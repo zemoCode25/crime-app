@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import "../globals.css";
 import { Inter } from "next/font/google";
 
 const inter = Inter({
@@ -17,5 +17,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <div className={`${inter.className} antialiased`}>{children}</div>;
+  return (
+    <section className={`${inter.className} antialiased bg-amber-100`}>
+      {children}
+    </section>
+  );
 }
