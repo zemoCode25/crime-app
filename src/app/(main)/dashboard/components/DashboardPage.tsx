@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import CardSection from "./CardSection";
+import ChartSection from "./ChartSection";
 import { ChevronDown } from "lucide-react";
 import * as React from "react";
 import { Check } from "lucide-react";
@@ -90,6 +91,7 @@ export default function DashboardPage() {
         </Popover>
       </div>
       <CardSection />
+      <ChartSection />
     </section>
   );
 }
