@@ -67,18 +67,10 @@ export default function ChartSection() {
             Burglary
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="account">
-          Make changes to your account here.
-        </TabsContent>
+        <TabsContent value="">Make changes to your account here.</TabsContent>
         <TabsContent value="password">Change your password here.</TabsContent>
       </Tabs>
-      <Card className="mt-6 w-full">
-        <CardHeader>
-          <CardTitle>Area Chart - Gradient</CardTitle>
-          <CardDescription>
-            Showing total visitors for the last 6 months
-          </CardDescription>
-        </CardHeader>
+      <Card className="mt-4 w-full">
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[10rem] w-full">
             <ResponsiveContainer>
