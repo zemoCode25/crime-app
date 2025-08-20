@@ -72,7 +72,7 @@ export default function ChartSection() {
         </TabsContent>
         <TabsContent value="password">Change your password here.</TabsContent>
       </Tabs>
-      <Card className="mt-6 w-full max-w-[60rem]">
+      <Card className="mt-6 w-full">
         <CardHeader>
           <CardTitle>Area Chart - Gradient</CardTitle>
           <CardDescription>
