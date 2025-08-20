@@ -2,6 +2,7 @@
 import { useState } from "react";
 import CardSection from "./CardSection";
 import ChartSection from "./ChartSection";
+import EmergencySection from "./EmergencySection";
 import { ChevronDown } from "lucide-react";
 import * as React from "react";
 import { Check } from "lucide-react";
@@ -92,6 +93,7 @@ export default function DashboardPage() {
       </div>
       <CardSection />
       <ChartSection />
+      <EmergencySection />
     </section>
   );
 }
