@@ -4,10 +4,10 @@ export default function ChartSection() {
   return (
     <div>
       <Tabs defaultValue="account" className="w-fit">
-        <TabsList className="bg-neutral-200 gap-5">
+        <TabsList className="bg-neutral-200/50 dark:bg-neutral-900 gap-5 w-full">
           <TabsTrigger
             value="account"
-            className="cursor-pointer bg-neutral-200"
+            className="cursor-pointer active:bg-neutral-100 px-3"
           >
             Theft
           </TabsTrigger>
