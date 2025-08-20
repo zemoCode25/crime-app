@@ -1,4 +1,47 @@
+"use client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { TrendingUp } from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  XAxis,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+export const description = "An area chart with gradient fill";
+const chartData = [
+  { month: "January", desktop: 186, mobile: 80 },
+  { month: "February", desktop: 305, mobile: 200 },
+  { month: "March", desktop: 237, mobile: 120 },
+  { month: "April", desktop: 73, mobile: 190 },
+  { month: "May", desktop: 209, mobile: 130 },
+  { month: "June", desktop: 214, mobile: 140 },
+];
+const chartConfig = {
+  desktop: {
+    label: "Desktop",
+    color: "var(--chart-4)",
+  },
+  mobile: {
+    label: "Mobile",
+    color: "var(--chart-4)",
+  },
+} satisfies ChartConfig;
 
 export default function ChartSection() {
   return (
@@ -7,7 +50,7 @@ export default function ChartSection() {
         <TabsList className="bg-neutral-200/50 dark:bg-neutral-900 gap-5 w-full">
           <TabsTrigger
             value="account"
-            className="cursor-pointer active:bg-neutral-100 px-3"
+            className="cursor-pointer active:bg-neutral-100"
           >
             Theft
           </TabsTrigger>
@@ -29,6 +72,89 @@ export default function ChartSection() {
         </TabsContent>
         <TabsContent value="password">Change your password here.</TabsContent>
       </Tabs>
+      <Card className="mt-6 w-full max-w-[60rem]">
+        <CardHeader>
+          <CardTitle>Area Chart - Gradient</CardTitle>
+          <CardDescription>
+            Showing total visitors for the last 6 months
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="h-[10rem] w-full">
+            <ResponsiveContainer>
+              <AreaChart
+                accessibilityLayer
+                data={chartData}
+                margin={{
+                  left: 12,
+                  right: 12,
+                }}
+                className="h-[1rem] w-full"
+              >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={(value) => value.slice(0, 3)}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent />}
+                />
+                <defs>
+                  <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-desktop)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-desktop)"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                  <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-mobile)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-mobile)"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                </defs>
+                <Area
+                  dataKey="desktop"
+                  type="linear"
+                  fill="url(#fillDesktop)"
+                  fillOpacity={0.4}
+                  stroke="var(--color-desktop)"
+                  stackId="a"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </CardContent>
+        <CardFooter>
+          <div className="flex w-full items-start gap-2 text-sm">
+            <div className="grid gap-2">
+              <div className="flex items-center gap-2 leading-none font-medium">
+                Trending up by 5.2% this month{" "}
+                <TrendingUp className="h-4 w-4" />
+              </div>
+              <div className="text-muted-foreground flex items-center gap-2 leading-none">
+                January - June 2024
+              </div>
+            </div>
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
