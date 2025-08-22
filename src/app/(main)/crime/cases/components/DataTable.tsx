@@ -37,7 +37,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
+import { CheckIcon, ChevronsUpDownIcon, CirclePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -78,6 +78,21 @@ const statuses = [
   },
 ];
 
+const crimeTypes = [
+  {
+    value: "theft",
+    label: "Theft",
+  },
+  {
+    value: "murder",
+    label: "Murder",
+  },
+  {
+    value: "assault",
+    label: "Assault",
+  },
+];
+
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -85,7 +100,8 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState<string>(""); // Added globalFilter state
-  const [open, setOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
+  const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
   const [value, setValue] = useState("");
 
   const table = useReactTable<TData>({
@@ -115,23 +131,27 @@ export function DataTable<TData, TValue>({
           onChange={(e) => setGlobalFilter(e.target.value)}
           className="max-w-[16rem]"
         />
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover open={statusOpen} onOpenChange={setStatusOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               role="combobox"
-              aria-expanded={open}
-              className="w-[200px] justify-between bg-transparent"
+              aria-expanded={statusOpen}
+              className="w-fit justify-between bg-transparent"
             >
-              {value
-                ? statuses.find((status) => status.value === value)?.label
-                : "Select status..."}
+              {value ? (
+                statuses.find((status) => status.value === value)?.label
+              ) : (
+                <span className="flex items-center gap-1">
+                  <CirclePlus /> <p>Status</p>
+                </span>
+              )}
               <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[200px] p-0">
             <Command>
-              <CommandInput placeholder="Search framework..." />
+              <CommandInput placeholder={`Select status`} />
               <CommandList>
                 <CommandEmpty>No framework found.</CommandEmpty>
                 <CommandGroup>
@@ -139,13 +159,55 @@ export function DataTable<TData, TValue>({
                     <CommandItem
                       key={status.value}
                       value={status.value}
-                      onSelect={(currentValue) => {
-                        setValue(currentValue === value ? "" : currentValue);
-                        setOpen(false);
+                      onMouseDown={(e) => {
+                        // Prevent Radix from closing the popover on click
+                        e.preventDefault();
                       }}
                     >
                       <Checkbox id={status.value} />
                       <Label htmlFor={status.value}>{status.label}</Label>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        <Popover open={crimeTypeOpen} onOpenChange={setCrimeTypeOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={crimeTypeOpen}
+              className="w-fit justify-between bg-transparent"
+            >
+              {value ? (
+                crimeTypes.find((crimeType) => crimeType.value === value)?.label
+              ) : (
+                <span className="flex items-center gap-1">
+                  <CirclePlus /> <p>Type</p>
+                </span>
+              )}
+              <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder={`Select status`} />
+              <CommandList>
+                <CommandEmpty>No framework found.</CommandEmpty>
+                <CommandGroup>
+                  {crimeTypes.map((crimeType) => (
+                    <CommandItem
+                      key={crimeType.value}
+                      value={crimeType.value}
+                      onMouseDown={(e) => {
+                        // Prevent Radix from closing the popover on click
+                        e.preventDefault();
+                      }}
+                    >
+                      <Checkbox id={crimeType.value} />
+                      <Label htmlFor={crimeType.value}>{crimeType.label}</Label>
                     </CommandItem>
                   ))}
                 </CommandGroup>
