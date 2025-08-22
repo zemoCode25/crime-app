@@ -111,7 +111,7 @@ export function DataTable<TData, TValue>({
           placeholder="Search complainant or suspect..."
           value={globalFilter ?? ""}
           onChange={(e) => setGlobalFilter(e.target.value)}
-          className="max-w-[15rem]"
+          className="max-w-[16rem]"
         />
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
@@ -142,13 +142,8 @@ export function DataTable<TData, TValue>({
                         setOpen(false);
                       }}
                     >
-                      <CheckIcon
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          value === status.value ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {status.label}
+                      <Checkbox id={status.value} />
+                      <Label htmlFor={status.value}>{status.label}</Label>
                     </CommandItem>
                   ))}
                 </CommandGroup>
