@@ -143,7 +143,7 @@ export default async function CrimePage() {
   const data = await fetchData();
 
   return (
-    <div className="p-4">
+    <div className="px-1 py-4">
       <h1 className="text-2xl font-bold mb-4">Crime Cases</h1>
       <DataTable columns={columns} data={data} />
     </div>
