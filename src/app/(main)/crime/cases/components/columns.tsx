@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +26,18 @@ export type CrimeCase = {
 export const columns: ColumnDef<CrimeCase>[] = [
   {
     accessorKey: "complainant",
-    header: () => <div className="text-left">Complainant</div>,
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="text-left !p-0"
+        >
+          Complainant
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       return (
         <div className="text-left font-medium">
@@ -37,7 +48,18 @@ export const columns: ColumnDef<CrimeCase>[] = [
   },
   {
     accessorKey: "suspect",
-    header: "Suspect",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="text-left !p-0"
+        >
+          Suspect
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
   },
   {
     accessorKey: "type",
