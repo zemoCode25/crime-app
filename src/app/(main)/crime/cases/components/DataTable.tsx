@@ -37,7 +37,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CheckIcon, ChevronsUpDownIcon, CirclePlus } from "lucide-react";
+import { CheckIcon, ChevronsUpDownIcon, CirclePlus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -123,98 +123,106 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="overflow-hidden rounded-md border p-4">
-      <div className="flex items-center py-4 gap-4">
-        <Input
-          placeholder="Search complainant or suspect..."
-          value={globalFilter ?? ""}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          className="max-w-[16rem]"
-        />
-        <Popover open={statusOpen} onOpenChange={setStatusOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={statusOpen}
-              className="w-fit justify-between bg-transparent"
-            >
-              {value ? (
-                statuses.find((status) => status.value === value)?.label
-              ) : (
-                <span className="flex items-center gap-1">
-                  <CirclePlus /> <p>Status</p>
-                </span>
-              )}
-              <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
-            <Command>
-              <CommandInput placeholder={`Select status`} />
-              <CommandList>
-                <CommandEmpty>No framework found.</CommandEmpty>
-                <CommandGroup>
-                  {statuses.map((status) => (
-                    <CommandItem
-                      key={status.value}
-                      value={status.value}
-                      onMouseDown={(e) => {
-                        // Prevent Radix from closing the popover on click
-                        e.preventDefault();
-                      }}
-                    >
-                      <Checkbox id={status.value} />
-                      <Label htmlFor={status.value}>{status.label}</Label>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-        <Popover open={crimeTypeOpen} onOpenChange={setCrimeTypeOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              role="combobox"
-              aria-expanded={crimeTypeOpen}
-              className="w-fit justify-between bg-transparent"
-            >
-              {value ? (
-                crimeTypes.find((crimeType) => crimeType.value === value)?.label
-              ) : (
-                <span className="flex items-center gap-1">
-                  <CirclePlus /> <p>Type</p>
-                </span>
-              )}
-              <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[200px] p-0">
-            <Command>
-              <CommandInput placeholder={`Select status`} />
-              <CommandList>
-                <CommandEmpty>No framework found.</CommandEmpty>
-                <CommandGroup>
-                  {crimeTypes.map((crimeType) => (
-                    <CommandItem
-                      key={crimeType.value}
-                      value={crimeType.value}
-                      onMouseDown={(e) => {
-                        // Prevent Radix from closing the popover on click
-                        e.preventDefault();
-                      }}
-                    >
-                      <Checkbox id={crimeType.value} />
-                      <Label htmlFor={crimeType.value}>{crimeType.label}</Label>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
+    <div className="overflow-hidden rounded-md border dark:border-neutral-600 p-4">
+      <div className="flex items-center py-4 gap-4 justify-between">
+        <div className="flex gap-2">
+          <Input
+            placeholder="Search complainant or suspect..."
+            value={globalFilter ?? ""}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="max-w-[16rem]"
+          />
+          <Popover open={statusOpen} onOpenChange={setStatusOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={statusOpen}
+                className="w-fit justify-between bg-transparent"
+              >
+                {value ? (
+                  statuses.find((status) => status.value === value)?.label
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <CirclePlus /> <p>Status</p>
+                  </span>
+                )}
+                <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+              <Command>
+                <CommandInput placeholder={`Select status`} />
+                <CommandList>
+                  <CommandEmpty>No framework found.</CommandEmpty>
+                  <CommandGroup>
+                    {statuses.map((status) => (
+                      <CommandItem
+                        key={status.value}
+                        value={status.value}
+                        onMouseDown={(e) => {
+                          // Prevent Radix from closing the popover on click
+                          e.preventDefault();
+                        }}
+                      >
+                        <Checkbox id={status.value} />
+                        <Label htmlFor={status.value}>{status.label}</Label>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <Popover open={crimeTypeOpen} onOpenChange={setCrimeTypeOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={crimeTypeOpen}
+                className="w-fit justify-between bg-transparent"
+              >
+                {value ? (
+                  crimeTypes.find((crimeType) => crimeType.value === value)
+                    ?.label
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <CirclePlus /> <p>Type</p>
+                  </span>
+                )}
+                <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0">
+              <Command>
+                <CommandInput placeholder={`Select status`} />
+                <CommandList>
+                  <CommandEmpty>No framework found.</CommandEmpty>
+                  <CommandGroup>
+                    {crimeTypes.map((crimeType) => (
+                      <CommandItem
+                        key={crimeType.value}
+                        value={crimeType.value}
+                        onMouseDown={(e) => {
+                          // Prevent Radix from closing the popover on click
+                          e.preventDefault();
+                        }}
+                      >
+                        <Checkbox id={crimeType.value} />
+                        <Label htmlFor={crimeType.value}>
+                          {crimeType.label}
+                        </Label>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <Button className="bg-orange-600 hover:bg-amber-500 cursor-pointer dark:text-white">
+          <Plus /> Add crime record
+        </Button>
       </div>
       <div>
         <Table>
