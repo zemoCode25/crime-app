@@ -73,6 +73,69 @@ async function fetchData(): Promise<CrimeCase[]> {
       type: "theft",
       suspect: "Jose Fernandez",
     },
+    {
+      id: "C010",
+      complainant: "Angela Santos",
+      status: "under investigation",
+      type: "theft",
+      suspect: "Jose Fernandez",
+    },
+    {
+      id: "C010",
+      complainant: "Angela Santos",
+      status: "under investigation",
+      type: "theft",
+      suspect: "Jose Fernandez",
+    },
+    {
+      id: "C010",
+      complainant: "Angela Santos",
+      status: "under investigation",
+      type: "theft",
+      suspect: "Jose Fernandez",
+    },
+    {
+      id: "C010",
+      complainant: "Angela Santos",
+      status: "under investigation",
+      type: "theft",
+      suspect: "Jose Fernandez",
+    },
+    {
+      id: "C010",
+      complainant: "Angela Santos",
+      status: "under investigation",
+      type: "theft",
+      suspect: "Jose Fernandez",
+    },
+    {
+      id: "C010",
+      complainant: "Angela Santos",
+      status: "under investigation",
+      type: "theft",
+      suspect: "Jose Fernandez",
+    },
+    {
+      id: "C010",
+      complainant: "Angela Santos",
+      status: "under investigation",
+      type: "theft",
+      suspect: "Jose Fernandez",
+    },
+    {
+      id: "C010",
+      complainant: "Angela Santos",
+      status: "under investigation",
+      type: "theft",
+      suspect: "Jose Fernandez",
+    },
+    {
+      id: "C010",
+      complainant: "Angela Santos",
+      status: "under investigation",
+      type: "theft",
+      suspect: "Jose Fernandez",
+    },
   ];
 }
 
@@ -80,8 +143,8 @@ export default async function CrimePage() {
   const data = await fetchData();
 
   return (
-    <div>
-      <h1>Crime Cases</h1>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Crime Cases</h1>
       <DataTable columns={columns} data={data} />
     </div>
   );
