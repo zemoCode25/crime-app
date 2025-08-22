@@ -50,8 +50,8 @@ export function DataTable<TData, TValue>({
       columnFilters,
       globalFilter,
     },
-    onGlobalFilterChange: setGlobalFilter, // 👈
-    globalFilterFn: "includesString", // default filter fn
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: "includesString",
   });
 
   return (
