@@ -45,6 +45,7 @@ export const columns: ColumnDef<CrimeCase>[] = [
         </div>
       );
     },
+    enableGlobalFilter: true,
   },
   {
     accessorKey: "suspect",
@@ -60,6 +61,7 @@ export const columns: ColumnDef<CrimeCase>[] = [
         </Button>
       );
     },
+    enableGlobalFilter: true,
   },
   {
     accessorKey: "type",
