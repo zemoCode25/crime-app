@@ -24,10 +24,57 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
+
+const statuses = [
+  {
+    value: "open",
+    label: "Open",
+  },
+  {
+    value: "under investigation",
+    label: "Under Investigation",
+  },
+  {
+    value: "case settled",
+    label: "Case Settled",
+  },
+  {
+    value: "lupon",
+    label: "Lupon",
+  },
+  {
+    value: "direct filing",
+    label: "Direct Filing",
+  },
+  {
+    value: "for record",
+    label: "For Record",
+  },
+  {
+    value: "turn over",
+    label: "Turn Over",
+  },
+];
 
 export function DataTable<TData, TValue>({
   columns,
@@ -36,6 +83,9 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState<string>(""); // Added globalFilter state
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+
   const table = useReactTable<TData>({
     data,
     columns,
@@ -56,13 +106,56 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="overflow-hidden rounded-md border p-4">
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-4 gap-4">
         <Input
           placeholder="Search complainant or suspect..."
           value={globalFilter ?? ""}
           onChange={(e) => setGlobalFilter(e.target.value)}
-          className="max-w-sm"
+          className="max-w-[15rem]"
         />
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-[200px] justify-between bg-transparent"
+            >
+              {value
+                ? statuses.find((status) => status.value === value)?.label
+                : "Select status..."}
+              <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder="Search framework..." />
+              <CommandList>
+                <CommandEmpty>No framework found.</CommandEmpty>
+                <CommandGroup>
+                  {statuses.map((status) => (
+                    <CommandItem
+                      key={status.value}
+                      value={status.value}
+                      onSelect={(currentValue) => {
+                        setValue(currentValue === value ? "" : currentValue);
+                        setOpen(false);
+                      }}
+                    >
+                      <CheckIcon
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          value === status.value ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      {status.label}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
       <div>
         <Table>
