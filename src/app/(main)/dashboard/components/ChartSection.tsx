@@ -46,7 +46,7 @@ const chartConfig = {
 export default function ChartSection() {
   return (
     <div>
-      <Tabs defaultValue="account" className="w-fit">
+      <Tabs defaultValue="account" className="max-w-[30rem]">
         <TabsList className="bg-neutral-200/50 dark:bg-neutral-900 gap-5 w-full">
           <TabsTrigger
             value="account"

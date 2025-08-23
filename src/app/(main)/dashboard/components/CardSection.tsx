@@ -5,7 +5,7 @@ import { TrendingUp } from "lucide-react";
 export default function CardSection() {
   return (
     <div className="flex flex-row flex-wrap gap-4 sm:gap-6">
-      <Card className="w-[calc(50%-1rem)] md:w-[calc(25%-1.5rem)] h-fit !gap-0 p-4">
+      <Card className="w-[calc(50%-1rem)] md:w-[calc(25%-1.5rem)] h-full !gap-0 p-4">
         <h1>Total Crimes</h1>
         <p className="text-4xl font-bold">1</p>
         <div className="flex items-center gap-1">
@@ -13,7 +13,7 @@ export default function CardSection() {
           <span className="text-sm text-muted-foreground">-2 (2%)</span>
         </div>
       </Card>
-      <Card className="w-[calc(50%-1rem)] md:w-[calc(25%-1.5rem)] h-30 !gap-0 p-4">
+      <Card className="w-[calc(50%-1rem)] md:w-[calc(25%-1.5rem)] h-full !gap-0 p-4">
         <h1>Crime Rate</h1>
         <p className="text-4xl font-bold">5%</p>
         <div className="flex items-center gap-1">
