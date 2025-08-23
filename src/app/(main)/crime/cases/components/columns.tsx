@@ -31,7 +31,7 @@ export const columns: ColumnDef<CrimeCase>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="text-left !p-0"
+          className="text-left !p-0 font-bold"
         >
           Complainant
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -54,7 +54,7 @@ export const columns: ColumnDef<CrimeCase>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="text-left !p-0"
+          className="text-left !p-0 font-bold"
         >
           Suspect
           <ArrowUpDown className="ml-2 h-4 w-4" />
