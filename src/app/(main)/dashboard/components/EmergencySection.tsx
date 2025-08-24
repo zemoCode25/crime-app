@@ -1,39 +1,53 @@
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Contact } from "lucide-react";
-import { BellPlus } from "lucide-react";
-import { Mail } from "lucide-react";
+import { Contact, BellPlus, Mail, Send } from "lucide-react";
+import Link from "next/link";
 
 export default function EmergencySection() {
   return (
     <section className="flex flex-col justify-between gap-4">
       <h1 className="font-semibold text-lg">Give the community a heads up</h1>
-      <div className="flex flex-wrap flex-col md:flex-row items-center justify-between !gap-3">
-        <Card className="px-3 py-4 w-full md:w-[calc(33.333%_-_1rem)] !gap-2 flex flex-row justify-center items-center">
-          <Contact size={60} />
-          <div>
-            <h1 className="text-xl font-bold">SMS</h1>
-            <p className="text-xs max-w-[7rem]">
-              Send emergency alerts via SMS
-            </p>
+      <div className="flex flex-wrap flex-col sm:flex-row items-center justify-between !gap-1">
+        <Card className="px-6 py-4 flex-col w-full sm:w-[calc(33.333%_-_1rem)] !gap-0 flex">
+          <div className="flex items-center gap-1">
+            <Contact size={20} />
+            <h1 className="text-lg font-bold">SMS</h1>
           </div>
+          <p className="text-sm w-full mb-2">Send emergency alerts via SMS</p>
+          <Link href="/dashboard/emergency/sms">
+            <Button className="!text-xs w-fit flex items-center gap-1 cursor-pointer">
+              <p>Send emergency</p>
+              <Send size={12} />
+            </Button>
+          </Link>
         </Card>
-        <Card className="px-3 py-4 w-full md:w-[calc(33.333%_-_1rem)] !gap-2 flex flex-row justify-center items-center">
-          <BellPlus size={60} />
-          <div>
-            <h1 className="text-xl font-bold">Push Notification</h1>
-            <p className="text-xs max-w-[8rem]">
-              Send emergency via Push Notification
-            </p>
+        <Card className="px-6 py-4 flex-col w-full sm:w-[calc(33.333%_-_1rem)] !gap-0 flex">
+          <div className="flex items-center gap-1">
+            <Contact size={20} />
+            <h1 className="text-lg font-bold">Push Notification</h1>
           </div>
+          <p className="text-sm w-full mb-2">
+            Send emergency alerts via Notification
+          </p>
+          <Link href="/dashboard/emergency/push">
+            <Button className="!text-xs w-fit flex items-center gap-1 cursor-pointer">
+              <p>Send emergency</p>
+              <Send size={12} />
+            </Button>
+          </Link>
         </Card>
-        <Card className="px-3 py-4 w-full md:w-[calc(33.333%_-_1rem)] !gap-2 flex flex-row justify-center items-center">
-          <Mail size={60} />
-          <div>
-            <h1 className="text-xl font-bold">Email</h1>
-            <p className="text-xs max-w-[7rem]">
-              Send emergency alerts via Email
-            </p>
+        <Card className="px-6 py-4 flex-col w-full sm:w-[calc(33.333%_-_1rem)] !gap-0 flex">
+          <div className="flex items-center gap-1">
+            <Mail size={20} />
+            <h1 className="text-lg font-bold">Email</h1>
           </div>
+          <p className="text-sm w-full mb-2">Send emergency alerts via Email</p>
+          <Link href="/dashboard/emergency/sms">
+            <Button className="!text-xs w-fit flex items-center gap-1 cursor-pointer">
+              <p>Send emergency</p>
+              <Send size={12} />
+            </Button>
+          </Link>
         </Card>
       </div>
     </section>
