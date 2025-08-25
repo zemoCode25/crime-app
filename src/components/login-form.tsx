@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
+import { login } from "@/lib/queries/auth";
 
 export function LoginForm({
   className,
@@ -13,7 +14,7 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8">
+          <form className="p-6 md:p-8" action={login}>
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
@@ -26,6 +27,7 @@ export function LoginForm({
                 <Input
                   id="email"
                   type="email"
+                  name="email"
                   placeholder="m@example.com"
                   required
                 />
@@ -40,7 +42,7 @@ export function LoginForm({
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <Input id="password" type="password" name="password" required />
               </div>
               <Button
                 type="submit"
