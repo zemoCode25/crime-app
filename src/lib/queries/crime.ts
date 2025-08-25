@@ -1,11 +1,14 @@
 "use server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export async function fetchProducts() {
+export async function getCrimeCases() {
   const supabase = createSupabaseServerClient();
 
-  const { data, error } = await supabase.from("products").select("*");
-  if (error) throw error;
+  const { data, error } = await supabase.from("crime_case").select("*");
 
-  return data;
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data; // total number of crime
 }

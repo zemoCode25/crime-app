@@ -1,5 +1,4 @@
-"use client";
-import { useState } from "react";
+// import { useState } from "react";
 import CardSection from "./CardSection";
 import ChartSection from "./ChartSection";
 import EmergencySection from "./EmergencySection";
@@ -40,13 +39,13 @@ const frameworks = [
 ];
 
 export default function DashboardPage() {
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState<string>("Last 7 days");
+  // const [open, setOpen] = useState(false);
+  // const [value, setValue] = useState<string>("Last 7 days");
 
   return (
     <section className="flex flex-col justify-between gap-4">
       <h1 className="text-2xl font-bold mt-2">Dashboard</h1>
-      <div className="w-full flex justify-end">
+      {/* <div className="w-full flex justify-end">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -91,7 +90,7 @@ export default function DashboardPage() {
             </Command>
           </PopoverContent>
         </Popover>
-      </div>
+      </div> */}
       <CardSection />
       <ChartSection />
       <EmergencySection />

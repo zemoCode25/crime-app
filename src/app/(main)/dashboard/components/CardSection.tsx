@@ -1,13 +1,21 @@
 import { Card } from "@/components/ui/card";
 import { TrendingDown } from "lucide-react";
 import { TrendingUp } from "lucide-react";
+import { getCrimeCases } from "@/lib/queries/crime";
 
-export default function CardSection() {
+export default async function CardSection() {
+  const crimeCases = await getCrimeCases();
+
+  if (!crimeCases) {
+    return <div>Failed to connect to Supabase</div>;
+  }
+
+  console.log(crimeCases);
   return (
     <div className="flex flex-row flex-wrap gap-4 sm:gap-6">
       <Card className="w-[calc(50%-1rem)] md:w-[calc(25%-1.5rem)] h-full !gap-0 p-4">
         <h1>Total Crimes</h1>
-        <p className="text-4xl font-bold">1</p>
+        <p className="text-4xl font-bold">{crimeCases.length}</p>
         <div className="flex items-center gap-1">
           <TrendingDown className="h-4 w-4 text-red-500" />
           <span className="text-sm text-muted-foreground">-2 (2%)</span>
