@@ -73,7 +73,7 @@ export function LoginForm({
               className="w-full h-full object-cover rounded-lg"
               fill
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-orange-700/70 to-orange-200/20 dark:from-orange-900/90 dark:to-orange-500/20 rounded-lg"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-orange-700/70 to-orange-200/20 dark:from-orange-900/100 dark:to-orange-500/20 rounded-lg"></div>
           </div>
         </CardContent>
       </Card>
