@@ -1,8 +1,8 @@
 "use server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function getCrimeCases() {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase.from("crime_case").select("*");
 
