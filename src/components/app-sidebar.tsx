@@ -35,9 +35,9 @@ const data = {
   },
   teams: [
     {
-      name: "Acme Inc",
+      name: "Brgy. Poblacion",
       logo: GalleryVerticalEnd,
-      plan: "Enterprise",
+      plan: "Barangay Police",
     },
     {
       name: "Acme Corp.",
