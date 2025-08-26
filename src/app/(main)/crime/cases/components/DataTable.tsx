@@ -122,6 +122,8 @@ export function DataTable<TData, TValue>({
     globalFilterFn: "includesString",
   });
 
+  console.log(data);
+
   return (
     <div className="overflow-hidden rounded-md border dark:border-neutral-600 p-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center py-4 gap-4 justify-between">
