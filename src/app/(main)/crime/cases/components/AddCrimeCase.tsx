@@ -8,8 +8,23 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
+import AdditionalNotes from "./multi-step/AdditionalNotes";
+import CrimeForm from "./multi-step/CrimeForm";
+import PersonInformation from "./multi-step/PersonInformation";
+import React, { useState } from "react";
 
 export default function AddCrimeCase() {
+  const [step, setStep] = useState(1);
+
+  const stepFormMap: Record<
+    number,
+    { title: string; formComponent: React.ReactNode }
+  > = {
+    0: { title: "Crime Information", formComponent: <CrimeForm /> },
+    1: { title: "Person Information", formComponent: <PersonInformation /> },
+    2: { title: "Additional Notes", formComponent: <AdditionalNotes /> },
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -18,13 +33,10 @@ export default function AddCrimeCase() {
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Are you absolutely sure?</DialogTitle>
-          <DialogDescription>
-            This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
-          </DialogDescription>
-        </DialogHeader>
+        <div>
+          <DialogTitle>{stepFormMap[step]?.title}</DialogTitle>
+        </div>
+        {stepFormMap[step]?.formComponent ?? <div>Unknown step</div>}
       </DialogContent>
     </Dialog>
   );
