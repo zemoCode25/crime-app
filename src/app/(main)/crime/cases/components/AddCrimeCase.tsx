@@ -15,8 +15,7 @@ import React, { useState } from "react";
 import StepNavigation from "./StepNavigation";
 
 export default function AddCrimeCase() {
-  const [step, setStep] = useState(1);
-
+  const [step, setStep] = useState(0);
   const stepFormMap: Record<
     number,
     { title: string; formComponent: React.ReactNode }
