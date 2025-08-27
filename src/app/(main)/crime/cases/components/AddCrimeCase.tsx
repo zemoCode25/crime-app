@@ -37,45 +37,6 @@ import AdditionalNotes from "./multi-step/AdditionalNotes";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import StepNavigation from "./StepNavigation";
 export default function MyForm() {
-  const languages = [
-    {
-      label: "English",
-      value: "en",
-    },
-    {
-      label: "French",
-      value: "fr",
-    },
-    {
-      label: "German",
-      value: "de",
-    },
-    {
-      label: "Spanish",
-      value: "es",
-    },
-    {
-      label: "Portuguese",
-      value: "pt",
-    },
-    {
-      label: "Russian",
-      value: "ru",
-    },
-    {
-      label: "Japanese",
-      value: "ja",
-    },
-    {
-      label: "Korean",
-      value: "ko",
-    },
-    {
-      label: "Chinese",
-      value: "zh",
-    },
-  ] as const;
-
   const formSchema = z.object({
     description: z.string(),
     crime_type: z.string(),
@@ -83,8 +44,6 @@ export default function MyForm() {
     report_datetime: z.preprocess((val) => new Date(val as string), z.date()),
     incident_datetime: z.preprocess((val) => new Date(val as string), z.date()),
   });
-
-  type FormData = z.infer<typeof formSchema>;
 
   const form = useForm<
     z.input<typeof formSchema>, // what comes *in* (string/unknown)
@@ -127,7 +86,7 @@ export default function MyForm() {
           <Plus /> Add crime record
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[30rem] overflow-y-scroll">
         <StepNavigation setStep={setStep} step={step} />
         <Form {...form}>
           <form
@@ -135,7 +94,12 @@ export default function MyForm() {
             className="mx-auto max-w-3xl space-y-8 py-10"
           >
             {stepFormMap[step].formComponent}
-            <Button type="submit">Submit</Button>
+            <Button
+              type="submit"
+              className="bg-orange-600 hover:bg-orange-600/90"
+            >
+              Submit
+            </Button>
           </form>
         </Form>
       </DialogContent>

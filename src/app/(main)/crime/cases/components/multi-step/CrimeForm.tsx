@@ -74,6 +74,33 @@ export default function CrimeForm({
       value: "vandalism",
     },
   ];
+
+  const statuses = [
+    {
+      label: "Open",
+      value: "open",
+    },
+    {
+      label: "Under Investigation",
+      value: "Under Investigation",
+    },
+    {
+      label: "Case Settled",
+      value: "Case Settled",
+    },
+    {
+      label: "Lupon",
+      value: "Lupon",
+    },
+    {
+      label: "Direct Filing",
+      value: "Direct Filing",
+    },
+    {
+      label: "For record",
+      value: "For record",
+    },
+  ];
   return (
     <>
       <FormField
@@ -85,7 +112,7 @@ export default function CrimeForm({
             <FormControl>
               <Textarea placeholder="" className="resize-none" {...field} />
             </FormControl>
-            <FormDescription>
+            <FormDescription className="text-xs">
               Describe the details of the crime case
             </FormDescription>
             <FormMessage />
@@ -112,16 +139,16 @@ export default function CrimeForm({
                     {field.value
                       ? types.find((language) => language.value === field.value)
                           ?.label
-                      : "Select language"}
+                      : "Select type"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </FormControl>
               </PopoverTrigger>
               <PopoverContent className="w-[200px] p-0">
                 <Command>
-                  <CommandInput placeholder="Search language..." />
+                  <CommandInput placeholder="Search type..." />
                   <CommandList>
-                    <CommandEmpty>No language found.</CommandEmpty>
+                    <CommandEmpty>No type found.</CommandEmpty>
                     <CommandGroup>
                       {types.map((type) => (
                         <CommandItem
@@ -170,35 +197,36 @@ export default function CrimeForm({
                     )}
                   >
                     {field.value
-                      ? types.find((type) => type.value === field.value)?.label
-                      : "Select language"}
+                      ? statuses.find((status) => status.value === field.value)
+                          ?.label
+                      : "Select status"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
                 </FormControl>
               </PopoverTrigger>
               <PopoverContent className="w-[200px] p-0">
                 <Command>
-                  <CommandInput placeholder="Search language..." />
+                  <CommandInput placeholder="Search type..." />
                   <CommandList>
-                    <CommandEmpty>No language found.</CommandEmpty>
+                    <CommandEmpty>No status found.</CommandEmpty>
                     <CommandGroup>
-                      {types.map((type) => (
+                      {statuses.map((status) => (
                         <CommandItem
-                          value={type.label}
-                          key={type.value}
+                          value={status.label}
+                          key={status.value}
                           onSelect={() => {
-                            form.setValue("case_status", type.value);
+                            form.setValue("case_status", status.value);
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              type.value === field.value
+                              status.value === field.value
                                 ? "opacity-100"
                                 : "opacity-0",
                             )}
                           />
-                          {type.label}
+                          {status.label}
                         </CommandItem>
                       ))}
                     </CommandGroup>
