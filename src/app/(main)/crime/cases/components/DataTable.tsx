@@ -125,10 +125,10 @@ export function DataTable<TData, TValue>({
   console.log(data);
 
   return (
-    <div className="overflow-hidden rounded-md border dark:border-neutral-600 p-4">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center py-4 gap-4 justify-between">
+    <div className="overflow-hidden rounded-md border p-4 dark:border-neutral-600">
+      <div className="flex flex-col items-start justify-between gap-4 py-4 sm:flex-row sm:items-center">
         {/* Search and Filter */}
-        <div className="flex flex-col md:flex-row gap-2 w-full">
+        <div className="flex w-full flex-col gap-2 md:flex-row">
           <Input
             placeholder="Search person..."
             value={globalFilter ?? ""}
@@ -226,7 +226,7 @@ export function DataTable<TData, TValue>({
             </Popover>
           </div>
         </div>
-        <Button className="bg-orange-600 hover:bg-amber-500 cursor-pointer dark:text-white">
+        <Button className="cursor-pointer bg-orange-600 hover:bg-amber-500 dark:text-white">
           <Plus /> Add crime record
         </Button>
       </div>
@@ -242,7 +242,7 @@ export function DataTable<TData, TValue>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -256,13 +256,13 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="hover:bg-neutral-200/50 cursor-pointer"
+                  className="cursor-pointer hover:bg-neutral-200/50"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

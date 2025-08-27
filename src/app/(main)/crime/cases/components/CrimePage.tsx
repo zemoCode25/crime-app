@@ -145,7 +145,7 @@ export default async function CrimePage() {
 
   return (
     <div className="px-1 py-4">
-      <h1 className="text-2xl font-bold mb-4">Crime Cases</h1>
+      <h1 className="mb-4 text-2xl font-bold">Crime Cases</h1>
       <DataTable columns={columns} data={data} />
     </div>
   );

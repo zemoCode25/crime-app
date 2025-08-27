@@ -1,7 +1,7 @@
 "use server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function getCrimeCases() {
+export async function getTableCrimeCases() {
   const supabase = await createClient();
   const { data, error } = await supabase.from("crime_case").select(`
     id,

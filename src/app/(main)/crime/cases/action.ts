@@ -1,7 +1,7 @@
-import { getCrimeCases } from "@/lib/queries/crime";
+import { getTableCrimeCases } from "@/lib/queries/crime";
 
 export async function getTableCases() {
-  const result = await getCrimeCases();
+  const result = await getTableCrimeCases();
 
   const data = result.map((item) => {
     // item.case_person is assumed to be an array
@@ -36,11 +36,6 @@ export async function getTableCases() {
       complainant: complainantName,
     };
   });
-  // console.log(
-  //   "result",
-  //   result[2]?.case_person?.find((cp) => cp.case_role === "suspect")
-  // );
-  // console.log("Transformed data:", data);
 
   console.log("Final data for table:", data);
 
