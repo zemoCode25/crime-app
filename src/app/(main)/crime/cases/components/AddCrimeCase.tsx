@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
-import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -31,15 +31,11 @@ import {
 } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { DatetimePicker } from "@/components/ui/datetime-picker";
-
-const formSchema = z.object({
-  description: z.string(),
-  crime_type: z.string(),
-  case_status: z.string(),
-  report_datetime: z.coerce.date(),
-  incident_datetime: z.coerce.date(),
-});
-
+import CrimeForm from "./multi-step/CrimeForm";
+import PersonInformation from "./multi-step/PersonInformation";
+import AdditionalNotes from "./multi-step/AdditionalNotes";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import StepNavigation from "./StepNavigation";
 export default function MyForm() {
   const languages = [
     {
@@ -79,7 +75,22 @@ export default function MyForm() {
       value: "zh",
     },
   ] as const;
-  const form = useForm<z.infer<typeof formSchema>>({
+
+  const formSchema = z.object({
+    description: z.string(),
+    crime_type: z.string(),
+    case_status: z.string(),
+    report_datetime: z.preprocess((val) => new Date(val as string), z.date()),
+    incident_datetime: z.preprocess((val) => new Date(val as string), z.date()),
+  });
+
+  type FormData = z.infer<typeof formSchema>;
+
+  const form = useForm<
+    z.input<typeof formSchema>, // what comes *in* (string/unknown)
+    any,
+    z.output<typeof formSchema> // what comes *out* (coerced Date)
+  >({
     resolver: zodResolver(formSchema),
     defaultValues: {
       report_datetime: new Date(),
@@ -90,203 +101,44 @@ export default function MyForm() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       console.log(values);
-      toast(
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
-        </pre>,
-      );
     } catch (error) {
       console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
     }
   }
 
+  const [step, setStep] = useState(0);
+
+  const stepFormMap: Record<
+    number,
+    { title: string; formComponent: React.ReactNode }
+  > = {
+    0: {
+      title: "Crime Information",
+      formComponent: <CrimeForm form={form} onSubmit={onSubmit} />,
+    },
+    1: { title: "Person Information", formComponent: <PersonInformation /> },
+    2: { title: "Additional Notes", formComponent: <AdditionalNotes /> },
+  };
+
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="mx-auto max-w-3xl space-y-8 py-10"
-      >
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea placeholder="" className="resize-none" {...field} />
-              </FormControl>
-              <FormDescription>
-                Describe the details of the crime case
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="crime_type"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Type</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-[200px] justify-between",
-                        !field.value && "text-muted-foreground",
-                      )}
-                    >
-                      {field.value
-                        ? languages.find(
-                            (language) => language.value === field.value,
-                          )?.label
-                        : "Select language"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search language..." />
-                    <CommandList>
-                      <CommandEmpty>No language found.</CommandEmpty>
-                      <CommandGroup>
-                        {languages.map((language) => (
-                          <CommandItem
-                            value={language.label}
-                            key={language.value}
-                            onSelect={() => {
-                              form.setValue("crime_type", language.value);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                language.value === field.value
-                                  ? "opacity-100"
-                                  : "opacity-0",
-                              )}
-                            />
-                            {language.label}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="case_status"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Status</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        "w-[200px] justify-between",
-                        !field.value && "text-muted-foreground",
-                      )}
-                    >
-                      {field.value
-                        ? languages.find(
-                            (language) => language.value === field.value,
-                          )?.label
-                        : "Select language"}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search language..." />
-                    <CommandList>
-                      <CommandEmpty>No language found.</CommandEmpty>
-                      <CommandGroup>
-                        {languages.map((language) => (
-                          <CommandItem
-                            value={language.label}
-                            key={language.value}
-                            onSelect={() => {
-                              form.setValue("case_status", language.value);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                language.value === field.value
-                                  ? "opacity-100"
-                                  : "opacity-0",
-                              )}
-                            />
-                            {language.label}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-              <FormDescription>
-                This is the language that will be used in the dashboard.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="report_datetime"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Report Date</FormLabel>
-              <DatetimePicker
-                {...field}
-                format={[
-                  ["months", "days", "years"],
-                  ["hours", "minutes", "am/pm"],
-                ]}
-              />
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="incident_datetime"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Incident Date</FormLabel>
-              <DatetimePicker
-                {...field}
-                format={[
-                  ["months", "days", "years"],
-                  ["hours", "minutes", "am/pm"],
-                ]}
-              />
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit">Submit</Button>
-      </form>
-    </Form>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="bg-orange-600 text-white hover:bg-amber-500">
+          <Plus /> Add crime record
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <StepNavigation setStep={setStep} step={step} />
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="mx-auto max-w-3xl space-y-8 py-10"
+          >
+            {stepFormMap[step].formComponent}
+            <Button type="submit">Submit</Button>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }
