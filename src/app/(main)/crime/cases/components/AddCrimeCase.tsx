@@ -12,6 +12,7 @@ import AdditionalNotes from "./multi-step/AdditionalNotes";
 import CrimeForm from "./multi-step/CrimeForm";
 import PersonInformation from "./multi-step/PersonInformation";
 import React, { useState } from "react";
+import StepNavigation from "./StepNavigation";
 
 export default function AddCrimeCase() {
   const [step, setStep] = useState(1);
@@ -33,6 +34,7 @@ export default function AddCrimeCase() {
         </Button>
       </DialogTrigger>
       <DialogContent>
+        <StepNavigation step={step} setStep={setStep} />
         <div>
           <DialogTitle>{stepFormMap[step]?.title}</DialogTitle>
         </div>
