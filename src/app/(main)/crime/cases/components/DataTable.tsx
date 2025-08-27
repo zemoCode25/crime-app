@@ -45,10 +45,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CheckIcon, ChevronsUpDownIcon, CirclePlus, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronsUpDownIcon, CirclePlus, Plus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import MultiStepDialog from "./MultiStepDialog";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -261,7 +261,7 @@ export function DataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <Dialog>
+                <Dialog key={row.id}>
                   <DialogTrigger asChild>
                     <TableRow
                       key={row.id}
@@ -278,16 +278,7 @@ export function DataTable<TData, TValue>({
                       ))}
                     </TableRow>
                   </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Are you absolutely sure?</DialogTitle>
-                      <DialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete your account and remove your data from our
-                        servers.
-                      </DialogDescription>
-                    </DialogHeader>
-                  </DialogContent>
+                  <MultiStepDialog />
                 </Dialog>
               ))
             ) : (

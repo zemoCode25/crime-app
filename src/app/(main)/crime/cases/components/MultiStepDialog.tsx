@@ -13,11 +13,21 @@ import React, { useState } from "react";
 export default function MultiStepDialog() {
   const [step, setStep] = useState(0);
 
+  const stepFormMap: Record<
+    number,
+    { title: string; formComponent: React.ReactNode }
+  > = {
+    0: { title: "Crime Information", formComponent: <CrimeForm /> },
+    1: { title: "Person Information", formComponent: <PersonInformation /> },
+    2: { title: "Additional Notes", formComponent: <AdditionalNotes /> },
+  };
+
   return (
     <DialogContent>
-      {step === 0 && <CrimeForm />}
-      {step === 1 && <PersonInformation />}
-      {step === 2 && <AdditionalNotes />}
+      <div>
+        <DialogTitle>{stepFormMap[step]?.title}</DialogTitle>
+      </div>
+      {stepFormMap[step]?.formComponent ?? <div>Unknown step</div>}
     </DialogContent>
   );
 }
