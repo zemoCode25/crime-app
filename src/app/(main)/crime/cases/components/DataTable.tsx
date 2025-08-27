@@ -32,14 +32,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import {
   Popover,
   PopoverContent,
@@ -49,6 +42,7 @@ import { ChevronsUpDownIcon, CirclePlus, Plus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import MultiStepDialog from "./MultiStepDialog";
+import AddCrimeCase from "./AddCrimeCase";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -234,9 +228,7 @@ export function DataTable<TData, TValue>({
             </Popover>
           </div>
         </div>
-        <Button className="cursor-pointer bg-orange-600 hover:bg-amber-500 dark:text-white">
-          <Plus /> Add crime record
-        </Button>
+        <AddCrimeCase />
       </div>
       <div>
         <Table>
