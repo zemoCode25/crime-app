@@ -35,9 +35,6 @@ export default function AddCrimeCase() {
       </DialogTrigger>
       <DialogContent>
         <StepNavigation step={step} setStep={setStep} />
-        <div>
-          <DialogTitle>{stepFormMap[step]?.title}</DialogTitle>
-        </div>
         {stepFormMap[step]?.formComponent ?? <div>Unknown step</div>}
       </DialogContent>
     </Dialog>

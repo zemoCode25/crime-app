@@ -1,5 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import { ArrowRight } from "lucide-react";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
 export default function StepNavigation({
   step,
@@ -27,10 +28,18 @@ export default function StepNavigation({
   }
 
   return (
-    <div className="w-full">
-      <ArrowLeft onClick={handlePrev} />
-      {stepTitleMap[step] ?? ""}
-      <ArrowRight onClick={handleNext} />
+    <div className="mt-4 flex w-full justify-between">
+      <ArrowLeft
+        className="cursor-pointer rounded-sm border p-1 dark:border-neutral-600"
+        onClick={handlePrev}
+      />
+      <DialogTitle className="font-bold">
+        {stepTitleMap[step] ?? ""}
+      </DialogTitle>
+      <ArrowRight
+        className="cursor-pointer rounded-sm border p-1 dark:border-neutral-600"
+        onClick={handleNext}
+      />
     </div>
   );
 }
