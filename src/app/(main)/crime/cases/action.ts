@@ -7,7 +7,7 @@ export async function getTableCases() {
     // item.case_person is assumed to be an array
     const suspect = item.case_person?.find((cp) => cp.case_role === "suspect");
     const complainant = item.case_person?.find(
-      (cp) => cp.case_role === "complainant"
+      (cp) => cp.case_role === "complainant",
     );
 
     // console.log("Transformed data:", suspect?.person_profile);
@@ -36,8 +36,6 @@ export async function getTableCases() {
       complainant: complainantName,
     };
   });
-
-  console.log("Final data for table:", data);
 
   return data;
 }
