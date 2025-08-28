@@ -52,6 +52,9 @@ export default function MyForm() {
     birth_date: z.coerce.date(),
     person_notified: z.string().optional(),
     related_contact: z.string().max(12).optional(),
+    investigator_notes: z.string().optional(),
+    follow_up: z.string().optional(),
+    remarks: z.string().optional(),
   });
 
   const form = useForm<
@@ -75,6 +78,9 @@ export default function MyForm() {
       description: "",
       crime_type: "",
       case_status: "",
+      investigator_notes: "",
+      follow_up: "",
+      remarks: "",
     },
   });
 
