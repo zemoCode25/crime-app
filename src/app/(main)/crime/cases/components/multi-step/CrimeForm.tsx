@@ -46,6 +46,15 @@ export default function CrimeForm({
       case_status: string;
       report_datetime: unknown;
       incident_datetime: unknown;
+      first_name: string;
+      last_name: string;
+      address: string;
+      civil_status: string;
+      contact_number: string;
+      sex: string;
+      birth_date: unknown;
+      person_notified?: string | undefined;
+      related_contact?: string | undefined;
     },
     any,
     {
@@ -54,6 +63,15 @@ export default function CrimeForm({
       case_status: string;
       report_datetime: Date;
       incident_datetime: Date;
+      first_name: string;
+      last_name: string;
+      address: string;
+      civil_status: string;
+      contact_number: string;
+      sex: string;
+      birth_date: Date;
+      person_notified?: string | undefined;
+      related_contact?: string | undefined;
     }
   >;
 }) {

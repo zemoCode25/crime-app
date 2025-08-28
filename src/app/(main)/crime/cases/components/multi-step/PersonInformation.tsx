@@ -29,7 +29,10 @@ import { Button } from "@/components/ui/button";
 import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { format } from "path/win32";
+import { format } from "date-fns";
+import "react-phone-number-input/style.css";
+import { UseFormReturn } from "react-hook-form";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 // Combo box to select for suspect, complainant, witness
 // Button to add person information
@@ -38,7 +41,45 @@ import { format } from "path/win32";
 // complainant (narrative, person-selection)
 // witness (testimony, person-selection)
 
-export default function PersonInformation() {
+export default function PersonInformation({
+  form,
+}: {
+  form: UseFormReturn<
+    {
+      description: string;
+      crime_type: string;
+      case_status: string;
+      report_datetime: unknown;
+      incident_datetime: unknown;
+      first_name: string;
+      last_name: string;
+      address: string;
+      civil_status: string;
+      contact_number: string;
+      sex: string;
+      birth_date: unknown;
+      person_notified?: string | undefined;
+      related_contact?: string | undefined;
+    },
+    any,
+    {
+      description: string;
+      crime_type: string;
+      case_status: string;
+      report_datetime: Date;
+      incident_datetime: Date;
+      first_name: string;
+      last_name: string;
+      address: string;
+      civil_status: string;
+      contact_number: string;
+      sex: string;
+      birth_date: Date;
+      person_notified?: string | undefined;
+      related_contact?: string | undefined;
+    }
+  >;
+}) {
   return (
     <>
       <FormField
@@ -156,12 +197,12 @@ export default function PersonInformation() {
         name="contact_number"
         render={({ field }) => (
           <FormItem className="flex flex-col items-start">
-            <FormLabel>Contact number</FormLabel>
+            <FormLabel>Cntact number</FormLabel>
             <FormControl className="w-full">
               <PhoneInput
                 placeholder="Placeholder"
                 {...field}
-                defaultCountry="TR"
+                defaultCountry="PH"
               />
             </FormControl>
 
@@ -246,7 +287,8 @@ export default function PersonInformation() {
                       !field.value && "text-muted-foreground",
                     )}
                   >
-                    {field.value ? (
+                    {field.value instanceof Date &&
+                    !isNaN(field.value.getTime()) ? (
                       format(field.value, "PPP")
                     ) : (
                       <span>Pick a date</span>
@@ -258,9 +300,10 @@ export default function PersonInformation() {
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={field.value}
+                  selected={
+                    field.value instanceof Date ? field.value : undefined
+                  }
                   onSelect={field.onChange}
-                  initialFocus
                 />
               </PopoverContent>
             </Popover>
@@ -297,7 +340,7 @@ export default function PersonInformation() {
               <PhoneInput
                 placeholder="Placeholder"
                 {...field}
-                defaultCountry="TR"
+                defaultCountry="PH"
               />
             </FormControl>
 

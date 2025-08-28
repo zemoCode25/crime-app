@@ -43,6 +43,15 @@ export default function MyForm() {
     case_status: z.string(),
     report_datetime: z.preprocess((val) => new Date(val as string), z.date()),
     incident_datetime: z.preprocess((val) => new Date(val as string), z.date()),
+    first_name: z.string().min(1),
+    last_name: z.string().min(1),
+    address: z.string().min(1),
+    civil_status: z.string(),
+    contact_number: z.string().max(12),
+    sex: z.string(),
+    birth_date: z.coerce.date(),
+    person_notified: z.string().min(1).optional(),
+    related_contact: z.string().max(12).optional(),
   });
 
   const form = useForm<
@@ -54,6 +63,18 @@ export default function MyForm() {
     defaultValues: {
       report_datetime: new Date(),
       incident_datetime: new Date(),
+      first_name: "",
+      last_name: "",
+      address: "",
+      civil_status: "",
+      contact_number: "",
+      sex: "",
+      birth_date: new Date(),
+      person_notified: "",
+      related_contact: "",
+      description: "",
+      crime_type: "",
+      case_status: "",
     },
   });
 
@@ -82,7 +103,7 @@ export default function MyForm() {
             className="mx-auto max-w-3xl space-y-8 py-10"
           >
             {step === 0 && <CrimeForm form={form} />}
-            {step === 1 && <PersonInformation />}
+            {step === 1 && <PersonInformation form={form} />}
             {step === 2 && <AdditionalNotes form={form} onSubmit={onSubmit} />}
           </form>
         </Form>
