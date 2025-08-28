@@ -3,34 +3,9 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { DatetimePicker } from "@/components/ui/datetime-picker";
+import { Form } from "@/components/ui/form";
 import CrimeForm from "./multi-step/CrimeForm";
 import PersonInformation from "./multi-step/PersonInformation";
 import AdditionalNotes from "./multi-step/AdditionalNotes";
@@ -41,16 +16,16 @@ import { ErrorMessage } from "@hookform/error-message";
 export default function MyForm() {
   const formSchema = z.object({
     description: z.string(),
-    crime_type: z.string(),
-    case_status: z.string(),
+    crime_type: z.string().min(1),
+    case_status: z.string().min(1),
     report_datetime: z.preprocess((val) => new Date(val as string), z.date()),
     incident_datetime: z.preprocess((val) => new Date(val as string), z.date()),
     first_name: z.string().min(1),
     last_name: z.string().min(1),
     address: z.string().min(1),
-    civil_status: z.string(),
+    civil_status: z.string().min(1),
     contact_number: z.string().max(12),
-    sex: z.string(),
+    sex: z.string().min(1),
     birth_date: z.coerce.date(),
     person_notified: z.string().optional(),
     related_contact: z.string().max(12).optional(),

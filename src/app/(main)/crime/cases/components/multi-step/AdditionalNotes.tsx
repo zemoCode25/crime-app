@@ -127,7 +127,17 @@ export default function AdditionalNotes({
         )}
       />
 
-      <Button type="submit">Submit</Button>
+      <Button
+        type="submit"
+        onClick={() => {
+          {
+            console.log(form.formState.errors ? "GAGI ERROR" : "WLA NAMAN");
+          }
+          console.log(typeof Object.keys(form.formState.errors).length);
+        }}
+      >
+        Submit
+      </Button>
     </>
   );
 }
