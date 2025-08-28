@@ -35,7 +35,6 @@ import { UseFormReturn } from "react-hook-form";
 
 export default function CrimeForm({
   form,
-  onSubmit,
 }: {
   form: UseFormReturn<
     {
@@ -54,7 +53,6 @@ export default function CrimeForm({
       incident_datetime: Date;
     }
   >;
-  onSubmit: (data: any) => void;
 }) {
   const types = [
     {

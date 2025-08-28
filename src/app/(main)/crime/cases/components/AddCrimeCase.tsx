@@ -67,18 +67,6 @@ export default function MyForm() {
 
   const [step, setStep] = useState(0);
 
-  const stepFormMap: Record<
-    number,
-    { title: string; formComponent: React.ReactNode }
-  > = {
-    0: {
-      title: "Crime Information",
-      formComponent: <CrimeForm form={form} onSubmit={onSubmit} />,
-    },
-    1: { title: "Person Information", formComponent: <PersonInformation /> },
-    2: { title: "Additional Notes", formComponent: <AdditionalNotes /> },
-  };
-
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -93,7 +81,9 @@ export default function MyForm() {
             onSubmit={form.handleSubmit(onSubmit)}
             className="mx-auto max-w-3xl space-y-8 py-10"
           >
-            {stepFormMap[step].formComponent}
+            {step === 0 && <CrimeForm form={form} />}
+            {step === 1 && <PersonInformation />}
+            {step === 2 && <AdditionalNotes form={form} onSubmit={onSubmit} />}
             <Button
               type="submit"
               className="bg-orange-600 hover:bg-orange-600/90"
