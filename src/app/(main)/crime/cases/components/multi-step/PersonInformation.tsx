@@ -89,7 +89,7 @@ export default function PersonInformation({
           <FormItem>
             <FormLabel>First name</FormLabel>
             <FormControl>
-              <Input placeholder="e.g. Juan Dela Cruz" type="text" {...field} />
+              <Input placeholder="e.g. Juan" type="text" {...field} />
             </FormControl>
 
             <FormMessage />
@@ -104,7 +104,7 @@ export default function PersonInformation({
           <FormItem>
             <FormLabel>Last Name</FormLabel>
             <FormControl>
-              <Input placeholder="shadcn" type="text" {...field} />
+              <Input placeholder="e.g. Dela Cruz" type="text" {...field} />
             </FormControl>
 
             <FormMessage />

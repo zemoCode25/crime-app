@@ -50,7 +50,7 @@ export default function MyForm() {
     contact_number: z.string().max(12),
     sex: z.string(),
     birth_date: z.coerce.date(),
-    person_notified: z.string().min(1).optional(),
+    person_notified: z.string().optional(),
     related_contact: z.string().max(12).optional(),
   });
 
@@ -95,12 +95,12 @@ export default function MyForm() {
           <Plus /> Add crime record
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[30rem] overflow-y-scroll">
+      <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
         <StepNavigation setStep={setStep} step={step} />
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="mx-auto max-w-3xl space-y-8 py-10"
+            className="mx-auto space-y-5 py-4"
           >
             {step === 0 && <CrimeForm form={form} />}
             {step === 1 && <PersonInformation form={form} />}

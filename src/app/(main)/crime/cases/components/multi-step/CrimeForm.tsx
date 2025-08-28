@@ -84,7 +84,11 @@ export default function CrimeForm({
           <FormItem>
             <FormLabel>Description</FormLabel>
             <FormControl>
-              <Textarea placeholder="" className="resize-none" {...field} />
+              <Textarea
+                placeholder=""
+                className="min-h-30 resize-none"
+                {...field}
+              />
             </FormControl>
             <FormDescription className="text-xs">
               Describe the details of the crime case
