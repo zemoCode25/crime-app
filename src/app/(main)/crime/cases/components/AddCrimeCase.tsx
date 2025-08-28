@@ -46,9 +46,9 @@ export default function MyForm() {
   });
 
   const form = useForm<
-    z.input<typeof formSchema>, // what comes *in* (string/unknown)
+    z.input<typeof formSchema>,
     any,
-    z.output<typeof formSchema> // what comes *out* (coerced Date)
+    z.output<typeof formSchema>
   >({
     resolver: zodResolver(formSchema),
     defaultValues: {
