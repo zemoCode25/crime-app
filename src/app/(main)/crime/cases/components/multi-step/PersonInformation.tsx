@@ -1,4 +1,35 @@
 import React from "react";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { sexes } from "@/constants/personal-information";
+import { civilStatus } from "@/constants/personal-information";
+import { Button } from "@/components/ui/button";
+import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import { format } from "path/win32";
 
 // Combo box to select for suspect, complainant, witness
 // Button to add person information
@@ -9,8 +40,271 @@ import React from "react";
 
 export default function PersonInformation() {
   return (
-    <div>
-      <h1>Person Information</h1>
-    </div>
+    <>
+      <FormField
+        control={form.control}
+        name="first_name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>First name</FormLabel>
+            <FormControl>
+              <Input placeholder="e.g. Juan Dela Cruz" type="text" {...field} />
+            </FormControl>
+
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="last_name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Last Name</FormLabel>
+            <FormControl>
+              <Input placeholder="shadcn" type="text" {...field} />
+            </FormControl>
+
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="address"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Address</FormLabel>
+            <FormControl>
+              <Input
+                placeholder="e.g. Southville 3 Poblacion, Muntinlupa City"
+                type="text"
+                {...field}
+              />
+            </FormControl>
+            <FormDescription>Enter public address</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={form.control}
+        name="civil_status"
+        render={({ field }) => (
+          <FormItem className="flex flex-col">
+            <FormLabel>Civil status</FormLabel>
+            <Popover>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className={cn(
+                      "w-[200px] justify-between",
+                      !field.value && "text-muted-foreground",
+                    )}
+                  >
+                    {field.value
+                      ? civilStatus.find(
+                          (status) => status.value === field.value,
+                        )?.label
+                      : "Select civil status"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <Command>
+                  <CommandInput placeholder="Search civil status..." />
+                  <CommandList>
+                    <CommandEmpty>No civil status found.</CommandEmpty>
+                    <CommandGroup>
+                      {civilStatus.map((status) => (
+                        <CommandItem
+                          value={status.label}
+                          key={status.value}
+                          onSelect={() => {
+                            form.setValue("civil_status", status.value);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              status.value === field.value
+                                ? "opacity-100"
+                                : "opacity-0",
+                            )}
+                          />
+                          {status.label}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="contact_number"
+        render={({ field }) => (
+          <FormItem className="flex flex-col items-start">
+            <FormLabel>Contact number</FormLabel>
+            <FormControl className="w-full">
+              <PhoneInput
+                placeholder="Placeholder"
+                {...field}
+                defaultCountry="TR"
+              />
+            </FormControl>
+
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="sex"
+        render={({ field }) => (
+          <FormItem className="flex flex-col">
+            <FormLabel>Sex</FormLabel>
+            <Popover>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className={cn(
+                      "w-[200px] justify-between",
+                      !field.value && "text-muted-foreground",
+                    )}
+                  >
+                    {field.value
+                      ? sexes.find((sex) => sex.value === field.value)?.label
+                      : "Select sex"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <Command>
+                  <CommandInput placeholder="Search language..." />
+                  <CommandList>
+                    <CommandEmpty>No sex found.</CommandEmpty>
+                    <CommandGroup>
+                      {sexes.map((sex) => (
+                        <CommandItem
+                          value={sex.label}
+                          key={sex.value}
+                          onSelect={() => {
+                            form.setValue("sex", sex.value);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              sex.value === field.value
+                                ? "opacity-100"
+                                : "opacity-0",
+                            )}
+                          />
+                          {sex.label}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="birth_date"
+        render={({ field }) => (
+          <FormItem className="flex flex-col">
+            <FormLabel>Date of birth</FormLabel>
+            <Popover>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-[240px] pl-3 text-left font-normal",
+                      !field.value && "text-muted-foreground",
+                    )}
+                  >
+                    {field.value ? (
+                      format(field.value, "PPP")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
+                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={field.value}
+                  onSelect={field.onChange}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            <FormDescription>
+              Your date of birth is used to calculate your age.
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="person_notified"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Person to be notified</FormLabel>
+            <FormControl>
+              <Input placeholder="e.g. Juan Dela Cruz" type="text" {...field} />
+            </FormControl>
+
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="related_contact"
+        render={({ field }) => (
+          <FormItem className="flex flex-col items-start">
+            <FormLabel>Related person contact number</FormLabel>
+            <FormControl className="w-full">
+              <PhoneInput
+                placeholder="Placeholder"
+                {...field}
+                defaultCountry="TR"
+              />
+            </FormControl>
+
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </>
   );
 }
