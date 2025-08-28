@@ -8,7 +8,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Command,
   CommandEmpty,
@@ -33,6 +32,8 @@ import { format } from "date-fns";
 import "react-phone-number-input/style.css";
 import { UseFormReturn } from "react-hook-form";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { personInvolvementList } from "@/constants/personal-information";
+import { types } from "@/constants/crime-case";
 
 // Combo box to select for suspect, complainant, witness
 // Button to add person information
@@ -60,6 +61,7 @@ export default function PersonInformation({
       birth_date: unknown;
       person_notified?: string | undefined;
       related_contact?: string | undefined;
+      case_role?: string | undefined;
     },
     any,
     {
@@ -77,6 +79,7 @@ export default function PersonInformation({
       birth_date: Date;
       person_notified?: string | undefined;
       related_contact?: string | undefined;
+      case_role?: string | undefined;
     }
   >;
 }) {
@@ -126,6 +129,68 @@ export default function PersonInformation({
               />
             </FormControl>
             <FormDescription>Enter public address</FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="case_role"
+        render={({ field }) => (
+          <FormItem className="flex flex-col">
+            <FormLabel>Involvement</FormLabel>
+            <Popover>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className={cn(
+                      "w-[200px] justify-between",
+                      !field.value && "text-muted-foreground",
+                    )}
+                  >
+                    {field.value
+                      ? personInvolvementList.find(
+                          (personItem) => personItem.value === field.value,
+                        )?.label
+                      : "Select involvement"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <Command>
+                  <CommandInput placeholder="Search type..." />
+                  <CommandList>
+                    <CommandEmpty>No involvement found.</CommandEmpty>
+                    <CommandGroup>
+                      {personInvolvementList.map((personItem) => (
+                        <CommandItem
+                          value={personItem.label}
+                          key={personItem.value}
+                          onSelect={() => {
+                            form.setValue("case_role", personItem.value);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              personItem.value === field.value
+                                ? "opacity-100"
+                                : "opacity-0",
+                            )}
+                          />
+                          {personItem.label}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+
             <FormMessage />
           </FormItem>
         )}

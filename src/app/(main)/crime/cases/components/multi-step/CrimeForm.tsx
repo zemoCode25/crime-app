@@ -55,6 +55,7 @@ export default function CrimeForm({
       birth_date: unknown;
       person_notified?: string | undefined;
       related_contact?: string | undefined;
+      case_role?: string | undefined;
     },
     any,
     {
@@ -72,6 +73,7 @@ export default function CrimeForm({
       birth_date: Date;
       person_notified?: string | undefined;
       related_contact?: string | undefined;
+      case_role?: string | undefined;
     }
   >;
 }) {
