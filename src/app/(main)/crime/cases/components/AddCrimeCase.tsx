@@ -36,6 +36,8 @@ import PersonInformation from "./multi-step/PersonInformation";
 import AdditionalNotes from "./multi-step/AdditionalNotes";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import StepNavigation from "./StepNavigation";
+import { ErrorMessage } from "@hookform/error-message";
+
 export default function MyForm() {
   const formSchema = z.object({
     description: z.string(),
