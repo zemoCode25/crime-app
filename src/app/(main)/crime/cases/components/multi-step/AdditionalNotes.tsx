@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
 
@@ -28,5 +29,12 @@ export default function AdditionalNotes({
   >;
   onSubmit: (data: any) => void;
 }) {
-  return <div>AdditionalNotes</div>;
+  return (
+    <div>
+      <h1>AdditionalNotes</h1>
+      <Button type="submit" className="bg-orange-600 hover:bg-orange-600/90">
+        Submit
+      </Button>
+    </div>
+  );
 }

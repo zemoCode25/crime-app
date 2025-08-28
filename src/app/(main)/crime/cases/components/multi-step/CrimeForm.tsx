@@ -26,6 +26,9 @@ import { DatetimePicker } from "@/components/ui/datetime-picker";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { UseFormReturn } from "react-hook-form";
+// constants
+import { types } from "@/constants/crime-case";
+import { statuses } from "@/constants/crime-case";
 
 // Report Date
 // Incident Date
@@ -54,51 +57,6 @@ export default function CrimeForm({
     }
   >;
 }) {
-  const types = [
-    {
-      label: "Theft",
-      value: "theft",
-    },
-    {
-      label: "Assault",
-      value: "assault",
-    },
-    {
-      label: "Fraud",
-      value: "fraud",
-    },
-    {
-      label: "Vandalism",
-      value: "vandalism",
-    },
-  ];
-
-  const statuses = [
-    {
-      label: "Open",
-      value: "open",
-    },
-    {
-      label: "Under Investigation",
-      value: "Under Investigation",
-    },
-    {
-      label: "Case Settled",
-      value: "Case Settled",
-    },
-    {
-      label: "Lupon",
-      value: "Lupon",
-    },
-    {
-      label: "Direct Filing",
-      value: "Direct Filing",
-    },
-    {
-      label: "For record",
-      value: "For record",
-    },
-  ];
   return (
     <>
       <FormField

@@ -84,12 +84,6 @@ export default function MyForm() {
             {step === 0 && <CrimeForm form={form} />}
             {step === 1 && <PersonInformation />}
             {step === 2 && <AdditionalNotes form={form} onSubmit={onSubmit} />}
-            <Button
-              type="submit"
-              className="bg-orange-600 hover:bg-orange-600/90"
-            >
-              Submit
-            </Button>
           </form>
         </Form>
       </DialogContent>
