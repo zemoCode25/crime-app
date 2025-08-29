@@ -61,7 +61,7 @@ export default function PersonInformation({
       birth_date: unknown;
       person_notified?: string | undefined;
       related_contact?: string | undefined;
-      case_role?: string | undefined;
+      case_role: string;
     },
     any,
     {
@@ -79,12 +79,12 @@ export default function PersonInformation({
       birth_date: Date;
       person_notified?: string | undefined;
       related_contact?: string | undefined;
-      case_role?: string | undefined;
+      case_role: string;
     }
   >;
 }) {
   return (
-    <>
+    <div className="flex flex-col gap-3">
       <FormField
         control={form.control}
         name="first_name"
@@ -413,6 +413,6 @@ export default function PersonInformation({
           </FormItem>
         )}
       />
-    </>
+    </div>
   );
 }

@@ -16,22 +16,25 @@ import { ErrorMessage } from "@hookform/error-message";
 export default function MyForm() {
   const formSchema = z.object({
     description: z.string(),
-    crime_type: z.string().min(1),
-    case_status: z.string().min(1),
+    crime_type: z.string().min(1, "Crime type is required"),
+    case_status: z.string().min(1, "Case status is required"),
     report_datetime: z.preprocess((val) => new Date(val as string), z.date()),
     incident_datetime: z.preprocess((val) => new Date(val as string), z.date()),
-    first_name: z.string().min(1),
-    last_name: z.string().min(1),
-    address: z.string().min(1),
-    civil_status: z.string().min(1),
-    contact_number: z.string().max(12),
-    sex: z.string().min(1),
+    first_name: z.string().min(1, "First name is required"),
+    last_name: z.string().min(1, "Last name is required"),
+    address: z.string().min(1, "Address is required"),
+    civil_status: z.string().min(1, "Civil status is required"),
+    contact_number: z
+      .string()
+      .max(12, "Contact number must be at most 12 characters"),
+    sex: z.string().min(1, "Sex is required"),
     birth_date: z.coerce.date(),
     person_notified: z.string().optional(),
     related_contact: z.string().max(12).optional(),
     investigator_notes: z.string().optional(),
     follow_up: z.string().optional(),
     remarks: z.string().optional(),
+    case_role: z.string().min(1, "Involvement is required"),
   });
 
   const form = useForm<
@@ -58,6 +61,7 @@ export default function MyForm() {
       investigator_notes: "",
       follow_up: "",
       remarks: "",
+      case_role: "",
     },
   });
 

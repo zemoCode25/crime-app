@@ -36,7 +36,7 @@ export default function StepNavigation({
       >
         <ArrowLeft className="text-black dark:text-white" />
       </Button>
-      <DialogTitle className="rounded-sm bg-white px-6 py-1 font-bold shadow dark:bg-black">
+      <DialogTitle className="rounded-sm bg-white/70 px-6 py-1 font-bold shadow dark:bg-black/50">
         {stepTitleMap[step] ?? ""}
       </DialogTitle>
       <Button

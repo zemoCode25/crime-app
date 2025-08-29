@@ -29,6 +29,7 @@ import { UseFormReturn } from "react-hook-form";
 // constants
 import { types } from "@/constants/crime-case";
 import { statuses } from "@/constants/crime-case";
+import { ErrorMessage } from "@hookform/error-message";
 
 // Report Date
 // Incident Date
@@ -55,7 +56,7 @@ export default function CrimeForm({
       birth_date: unknown;
       person_notified?: string | undefined;
       related_contact?: string | undefined;
-      case_role?: string | undefined;
+      case_role: string;
     },
     any,
     {
@@ -73,7 +74,7 @@ export default function CrimeForm({
       birth_date: Date;
       person_notified?: string | undefined;
       related_contact?: string | undefined;
-      case_role?: string | undefined;
+      case_role: string;
     }
   >;
 }) {
@@ -155,7 +156,10 @@ export default function CrimeForm({
               </PopoverContent>
             </Popover>
 
-            <FormMessage />
+            <ErrorMessage
+              name={field.name}
+              render={({ message }) => <FormMessage>{message}</FormMessage>}
+            />
           </FormItem>
         )}
       />

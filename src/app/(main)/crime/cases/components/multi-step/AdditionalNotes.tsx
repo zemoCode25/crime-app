@@ -50,6 +50,7 @@ export default function AdditionalNotes({
       investigator_notes?: string | undefined;
       follow_up?: string | undefined;
       remarks?: string | undefined;
+      case_role: string;
     },
     any,
     {
@@ -70,6 +71,7 @@ export default function AdditionalNotes({
       investigator_notes?: string | undefined;
       follow_up?: string | undefined;
       remarks?: string | undefined;
+      case_role: string;
     }
   >;
   onSubmit: (data: any) => void;
