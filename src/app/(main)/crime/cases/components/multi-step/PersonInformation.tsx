@@ -137,6 +137,7 @@ export default function PersonInformation({
       <FormField
         control={form.control}
         name="case_role"
+        defaultValue="suspect"
         render={({ field }) => (
           <FormItem className="flex flex-col">
             <FormLabel>Involvement</FormLabel>
