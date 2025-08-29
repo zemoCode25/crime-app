@@ -38,7 +38,7 @@ import Suspect from "./InvolvementForms/Suspect";
 import Complainant from "./InvolvementForms/Complainant";
 import Witness from "./InvolvementForms/Witness";
 import { FormSchemaType } from "../../../../../../../types/crime-case-type";
-
+import { X } from "lucide-react";
 // Combo box to select for suspect, complainant, witness
 // Button to add person information
 // ComboBox for role selection
@@ -88,60 +88,19 @@ export default function PersonInformation({
       {fields.map((field, index) => {
         return (
           <div key={field.id} className="flex flex-col gap-3">
-            <p>{`Person of Concern #${index + 1}`}</p>
-            <FormField
-              control={form.control}
-              name={`persons.${index}.first_name`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>First name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Juan" type="text" {...field} />
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name={`persons.${index}.last_name`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Last Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. Dela Cruz"
-                      type="text"
-                      {...field}
-                    />
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name={`persons.${index}.address`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. Southville 3 Poblacion, Muntinlupa City"
-                      type="text"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>Enter public address</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+            <div className="flex w-full items-center justify-between">
+              <p className="font-semibold">{`Person of Concern #${index + 1}`}</p>
+              <Button
+                type="button"
+                variant="outline"
+                className="p-1"
+                onClick={() => {
+                  if (index !== 0) remove(index);
+                }}
+              >
+                <X />
+              </Button>
+            </div>
             <FormField
               control={form.control}
               name={`persons.${index}.case_role`}
@@ -205,6 +164,58 @@ export default function PersonInformation({
                     </PopoverContent>
                   </Popover>
 
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name={`persons.${index}.first_name`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>First name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Juan" type="text" {...field} />
+                  </FormControl>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name={`persons.${index}.last_name`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g. Dela Cruz"
+                      type="text"
+                      {...field}
+                    />
+                  </FormControl>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name={`persons.${index}.address`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g. Southville 3 Poblacion, Muntinlupa City"
+                      type="text"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>Enter public address</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
