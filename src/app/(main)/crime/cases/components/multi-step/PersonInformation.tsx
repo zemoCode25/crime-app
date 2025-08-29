@@ -84,10 +84,11 @@ export default function PersonInformation({
   const { fields, append, remove } = formFieldArray;
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       {fields.map((field, index) => {
         return (
           <div key={field.id} className="flex flex-col gap-3">
+            <p>{`Person of Concern #${index + 1}`}</p>
             <FormField
               control={form.control}
               name={`persons.${index}.first_name`}
@@ -447,6 +448,23 @@ export default function PersonInformation({
           </div>
         );
       })}
+      <Button
+        type="button"
+        onClick={() =>
+          append({
+            first_name: "",
+            last_name: "",
+            address: "",
+            civil_status: "",
+            contact_number: "",
+            sex: "",
+            birth_date: new Date(),
+            case_role: "",
+          })
+        }
+      >
+        Add Another Person
+      </Button>
     </div>
   );
 }
