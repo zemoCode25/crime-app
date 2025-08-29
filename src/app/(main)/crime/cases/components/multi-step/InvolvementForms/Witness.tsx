@@ -8,61 +8,20 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
+import { FormSchemaType } from "../../../../../../../../types/crime-case-type";
 
 export default function Complainant({
   form,
+  index,
 }: {
-  form: UseFormReturn<
-    {
-      description: string;
-      crime_type: string;
-      case_status: string;
-      report_datetime: unknown;
-      incident_datetime: unknown;
-      first_name: string;
-      last_name: string;
-      address: string;
-      civil_status: string;
-      contact_number: string;
-      sex: string;
-      birth_date: unknown;
-      person_notified?: string | undefined;
-      related_contact?: string | undefined;
-      case_role: string;
-      motive?: string | undefined;
-      weapon_used?: string | undefined;
-      narrative?: string | undefined;
-      testimony?: string | undefined;
-    },
-    any,
-    {
-      description: string;
-      crime_type: string;
-      case_status: string;
-      report_datetime: Date;
-      incident_datetime: Date;
-      first_name: string;
-      last_name: string;
-      address: string;
-      civil_status: string;
-      contact_number: string;
-      sex: string;
-      birth_date: Date;
-      person_notified?: string | undefined;
-      related_contact?: string | undefined;
-      case_role: string;
-      motive?: string | undefined;
-      weapon_used?: string | undefined;
-      narrative?: string | undefined;
-      testimony?: string | undefined;
-    }
-  >;
+  form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
+  index: number;
 }) {
   return (
     <div>
       <FormField
         control={form.control}
-        name="motive"
+        name={`persons.${index}.testimony`}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Narrative</FormLabel>

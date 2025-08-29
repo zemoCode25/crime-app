@@ -44,8 +44,6 @@ export default function MyForm() {
     persons: z.array(personSchema),
   });
 
-  type formSchemaType = z.infer<typeof formSchema>;
-
   const form = useForm<
     z.input<typeof formSchema>,
     any,
@@ -115,7 +113,7 @@ export default function MyForm() {
             {step === 1 && (
               <PersonInformation form={form} formFieldArray={formFieldArray} />
             )}
-            {step === 2 && <AdditionalNotes form={form} onSubmit={onSubmit} />}
+            {step === 2 && <AdditionalNotes form={form} />}
           </form>
         </Form>
       </DialogContent>

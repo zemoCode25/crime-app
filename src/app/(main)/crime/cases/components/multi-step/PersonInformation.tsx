@@ -209,9 +209,11 @@ export default function PersonInformation({
               )}
             />
 
-            {involvement === "suspect" && <Suspect form={form} />}
-            {involvement === "complainant" && <Complainant form={form} />}
-            {involvement === "witness" && <Witness form={form} />}
+            {involvement === "suspect" && <Suspect form={form} index={index} />}
+            {involvement === "complainant" && (
+              <Complainant form={form} index={index} />
+            )}
+            {involvement === "witness" && <Witness form={form} index={index} />}
 
             <FormField
               control={form.control}
