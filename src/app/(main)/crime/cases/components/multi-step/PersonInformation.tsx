@@ -90,16 +90,18 @@ export default function PersonInformation({
           <div key={field.id} className="flex flex-col gap-3">
             <div className="flex w-full items-center justify-between">
               <p className="font-semibold">{`Person of Concern #${index + 1}`}</p>
-              <Button
-                type="button"
-                variant="outline"
-                className="p-1"
-                onClick={() => {
-                  if (index !== 0) remove(index);
-                }}
-              >
-                <X />
-              </Button>
+              {index > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="p-1"
+                  onClick={() => {
+                    if (index !== 0) remove(index);
+                  }}
+                >
+                  <X />
+                </Button>
+              )}
             </div>
             <FormField
               control={form.control}

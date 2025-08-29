@@ -82,7 +82,7 @@ export default function MyForm() {
 
   const formFieldArray = useFieldArray({
     control: form.control,
-    name: "persons", // 👈 must match schema
+    name: "persons",
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
