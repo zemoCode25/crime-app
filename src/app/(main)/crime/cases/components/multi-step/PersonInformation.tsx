@@ -33,7 +33,7 @@ import "react-phone-number-input/style.css";
 import { UseFormReturn } from "react-hook-form";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { personInvolvementList } from "@/constants/personal-information";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Suspect from "./InvolvementForms/Suspect";
 import Complainant from "./InvolvementForms/Complainant";
 import Witness from "./InvolvementForms/Witness";
@@ -44,8 +44,6 @@ import Witness from "./InvolvementForms/Witness";
 // Suspect (weapon_used, motive)
 // complainant (narrative, person-selection)
 // witness (testimony, person-selection)
-
-type Involvement = "suspect" | "complainant" | "witness";
 
 export default function PersonInformation({
   form,
@@ -96,7 +94,8 @@ export default function PersonInformation({
     }
   >;
 }) {
-  const [involvement, setInvolvement] = useState<string>("suspect");
+  const [involvement, setInvolvement] = useState<string>("complainant");
+
   return (
     <div className="flex flex-col gap-3">
       <FormField
