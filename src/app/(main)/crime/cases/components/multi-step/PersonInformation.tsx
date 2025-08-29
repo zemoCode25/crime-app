@@ -283,7 +283,7 @@ export default function PersonInformation({
         name="contact_number"
         render={({ field }) => (
           <FormItem className="flex flex-col items-start">
-            <FormLabel>Cntact number</FormLabel>
+            <FormLabel>Contact number</FormLabel>
             <FormControl className="w-full">
               <PhoneInput
                 placeholder="Placeholder"

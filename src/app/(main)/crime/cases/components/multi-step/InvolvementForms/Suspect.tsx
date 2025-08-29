@@ -6,6 +6,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
@@ -60,7 +61,7 @@ export default function Suspect({
   >;
 }) {
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       <FormField
         control={form.control}
         name="motive"
@@ -68,7 +69,11 @@ export default function Suspect({
           <FormItem>
             <FormLabel>Motive</FormLabel>
             <FormControl>
-              <Input placeholder="e.g. Dela Cruz" type="text" {...field} />
+              <Textarea
+                placeholder=""
+                className="min-h-30 resize-none"
+                {...field}
+              />
             </FormControl>
 
             <FormMessage />
