@@ -1,4 +1,4 @@
-import React from "react";
+"use client";
 import {
   Form,
   FormControl,
@@ -33,7 +33,10 @@ import "react-phone-number-input/style.css";
 import { UseFormReturn } from "react-hook-form";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { personInvolvementList } from "@/constants/personal-information";
-import { types } from "@/constants/crime-case";
+import { useState } from "react";
+import Suspect from "./InvolvementForms/Suspect";
+import Complainant from "./InvolvementForms/Complainant";
+import Witness from "./InvolvementForms/Witness";
 
 // Combo box to select for suspect, complainant, witness
 // Button to add person information
@@ -41,6 +44,8 @@ import { types } from "@/constants/crime-case";
 // Suspect (weapon_used, motive)
 // complainant (narrative, person-selection)
 // witness (testimony, person-selection)
+
+type Involvement = "suspect" | "complainant" | "witness";
 
 export default function PersonInformation({
   form,
@@ -62,6 +67,10 @@ export default function PersonInformation({
       person_notified?: string | undefined;
       related_contact?: string | undefined;
       case_role: string;
+      motive?: string | undefined;
+      weapon_used?: string | undefined;
+      narrative?: string | undefined;
+      testimony?: string | undefined;
     },
     any,
     {
@@ -80,9 +89,14 @@ export default function PersonInformation({
       person_notified?: string | undefined;
       related_contact?: string | undefined;
       case_role: string;
+      motive?: string | undefined;
+      weapon_used?: string | undefined;
+      narrative?: string | undefined;
+      testimony?: string | undefined;
     }
   >;
 }) {
+  const [involvement, setInvolvement] = useState<Involvement>("suspect");
   return (
     <div className="flex flex-col gap-3">
       <FormField
@@ -196,6 +210,11 @@ export default function PersonInformation({
           </FormItem>
         )}
       />
+
+      {involvement === "suspect" && <Suspect form={form} />}
+      {involvement === "complainant" && <Complainant form={form} />}
+      {involvement === "witness" && <Witness form={form} />}
+
       <FormField
         control={form.control}
         name="civil_status"

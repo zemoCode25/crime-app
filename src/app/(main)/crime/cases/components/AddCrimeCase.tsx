@@ -34,6 +34,10 @@ export default function MyForm() {
     follow_up: z.string().optional(),
     remarks: z.string().optional(),
     case_role: z.string().min(1, "Involvement is required"),
+    motive: z.string().optional(),
+    weapon_used: z.string().optional(),
+    narrative: z.string().optional(),
+    testimony: z.string().optional(),
   });
 
   const form = useForm<
@@ -61,6 +65,9 @@ export default function MyForm() {
       follow_up: "",
       remarks: "",
       case_role: "",
+      motive: "",
+      weapon_used: "",
+      narrative: "",
     },
   });
 

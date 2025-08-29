@@ -15,12 +15,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-
-const formSchema = z.object({
-  investigator_notes: z.string().optional(),
-  follow_up: z.string().optional(),
-  remarks: z.string().optional(),
-});
 import { UseFormReturn } from "react-hook-form";
 
 // follow up
@@ -51,6 +45,10 @@ export default function AdditionalNotes({
       follow_up?: string | undefined;
       remarks?: string | undefined;
       case_role: string;
+      motive?: string | undefined;
+      weapon_used?: string | undefined;
+      narrative?: string | undefined;
+      testimony?: string | undefined;
     },
     any,
     {
@@ -68,10 +66,11 @@ export default function AdditionalNotes({
       birth_date: Date;
       person_notified?: string | undefined;
       related_contact?: string | undefined;
-      investigator_notes?: string | undefined;
-      follow_up?: string | undefined;
-      remarks?: string | undefined;
       case_role: string;
+      motive?: string | undefined;
+      weapon_used?: string | undefined;
+      narrative?: string | undefined;
+      testimony?: string | undefined;
     }
   >;
   onSubmit: (data: any) => void;
