@@ -8,7 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import React from "react";
 
-export default function Suspect() {
+export default function Complainant() {
   return (
     <div>
       <FormField
@@ -16,22 +16,7 @@ export default function Suspect() {
         name="motive"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Motive</FormLabel>
-            <FormControl>
-              <Input placeholder="e.g. Dela Cruz" type="text" {...field} />
-            </FormControl>
-
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="weapon_used"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Weapon Used</FormLabel>
+            <FormLabel>Narrative</FormLabel>
             <FormControl>
               <Input placeholder="e.g. Dela Cruz" type="text" {...field} />
             </FormControl>
