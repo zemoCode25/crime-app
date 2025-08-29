@@ -30,7 +30,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import "react-phone-number-input/style.css";
-import { UseFormReturn } from "react-hook-form";
+import { UseFieldArrayReturn, UseFormReturn } from "react-hook-form";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { personInvolvementList } from "@/constants/personal-information";
 import { useEffect, useState } from "react";
@@ -45,54 +45,70 @@ import Witness from "./InvolvementForms/Witness";
 // complainant (narrative, person-selection)
 // witness (testimony, person-selection)
 
+type TFormFieldArray = {
+  description: string;
+  crime_type: string;
+  case_status: string;
+  report_datetime: unknown;
+  incident_datetime: unknown;
+  persons: {
+    first_name: string;
+    last_name: string;
+    address: string;
+    civil_status: string;
+    contact_number: string;
+    sex: string;
+    birth_date: unknown;
+    case_role: string;
+    person_notified?: string | undefined;
+    related_contact?: string | undefined;
+    motive?: string | undefined;
+    weapon_used?: string | undefined;
+    narrative?: string | undefined;
+    testimony?: string | undefined;
+  }[];
+  investigator_notes?: string | undefined;
+  follow_up?: string | undefined;
+  remarks?: string | undefined;
+};
+
+type PersonalInformationFormValues = {
+  description: string;
+  crime_type: string;
+  case_status: string;
+  report_datetime: unknown;
+  incident_datetime: unknown;
+  investigator_notes?: string;
+  follow_up?: string;
+  remarks?: string;
+  persons: {
+    first_name: string;
+    last_name: string;
+    address: string;
+    civil_status: string;
+    contact_number: string;
+    sex: string;
+    birth_date: unknown;
+    person_notified?: string;
+    related_contact?: string;
+    case_role: string;
+    motive?: string;
+    weapon_used?: string;
+    narrative?: string;
+    testimony?: string;
+  }[];
+};
+
 export default function PersonInformation({
   form,
+  formFieldArray,
 }: {
   form: UseFormReturn<
-    {
-      description: string;
-      crime_type: string;
-      case_status: string;
-      report_datetime: unknown;
-      incident_datetime: unknown;
-      first_name: string;
-      last_name: string;
-      address: string;
-      civil_status: string;
-      contact_number: string;
-      sex: string;
-      birth_date: unknown;
-      person_notified?: string | undefined;
-      related_contact?: string | undefined;
-      case_role: string;
-      motive?: string | undefined;
-      weapon_used?: string | undefined;
-      narrative?: string | undefined;
-      testimony?: string | undefined;
-    },
+    PersonalInformationFormValues,
     any,
-    {
-      description: string;
-      crime_type: string;
-      case_status: string;
-      report_datetime: Date;
-      incident_datetime: Date;
-      first_name: string;
-      last_name: string;
-      address: string;
-      civil_status: string;
-      contact_number: string;
-      sex: string;
-      birth_date: Date;
-      person_notified?: string | undefined;
-      related_contact?: string | undefined;
-      case_role: string;
-      motive?: string | undefined;
-      weapon_used?: string | undefined;
-      narrative?: string | undefined;
-      testimony?: string | undefined;
-    }
+    PersonalInformationFormValues
   >;
+  formFieldArray: UseFieldArrayReturn<TFormFieldArray, "persons", "id">;
 }) {
   const [involvement, setInvolvement] = useState<string>("complainant");
 

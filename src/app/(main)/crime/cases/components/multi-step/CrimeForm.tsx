@@ -37,46 +37,37 @@ import { ErrorMessage } from "@hookform/error-message";
 // Type
 // Description
 
+type CrimeFormValues = {
+  description: string;
+  crime_type: string;
+  case_status: string;
+  report_datetime: unknown;
+  incident_datetime: unknown;
+  investigator_notes?: string;
+  follow_up?: string;
+  remarks?: string;
+  persons: {
+    first_name: string;
+    last_name: string;
+    address: string;
+    civil_status: string;
+    contact_number: string;
+    sex: string;
+    birth_date: unknown;
+    person_notified?: string;
+    related_contact?: string;
+    case_role: string;
+    motive?: string;
+    weapon_used?: string;
+    narrative?: string;
+    testimony?: string;
+  }[];
+};
+
 export default function CrimeForm({
   form,
 }: {
-  form: UseFormReturn<
-    {
-      description: string;
-      crime_type: string;
-      case_status: string;
-      report_datetime: unknown;
-      incident_datetime: unknown;
-      first_name: string;
-      last_name: string;
-      address: string;
-      civil_status: string;
-      contact_number: string;
-      sex: string;
-      birth_date: unknown;
-      person_notified?: string | undefined;
-      related_contact?: string | undefined;
-      case_role: string;
-    },
-    any,
-    {
-      description: string;
-      crime_type: string;
-      case_status: string;
-      report_datetime: Date;
-      incident_datetime: Date;
-      first_name: string;
-      last_name: string;
-      address: string;
-      civil_status: string;
-      contact_number: string;
-      sex: string;
-      birth_date: Date;
-      person_notified?: string | undefined;
-      related_contact?: string | undefined;
-      case_role: string;
-    }
-  >;
+  form: UseFormReturn<CrimeFormValues, any, CrimeFormValues>;
 }) {
   return (
     <>

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import StepNavigation from "./StepNavigation";
 
 export default function MyForm() {
-  const formSchema = z.object({
-    description: z.string(),
-    crime_type: z.string().min(1, "Crime type is required"),
-    case_status: z.string().min(1, "Case status is required"),
-    report_datetime: z.preprocess((val) => new Date(val as string), z.date()),
-    incident_datetime: z.preprocess((val) => new Date(val as string), z.date()),
+  const personSchema = z.object({
     first_name: z.string().min(1, "First name is required"),
     last_name: z.string().min(1, "Last name is required"),
     address: z.string().min(1, "Address is required"),
@@ -30,14 +25,23 @@ export default function MyForm() {
     birth_date: z.coerce.date(),
     person_notified: z.string().optional(),
     related_contact: z.string().max(12).optional(),
-    investigator_notes: z.string().optional(),
-    follow_up: z.string().optional(),
-    remarks: z.string().optional(),
     case_role: z.string().min(1, "Involvement is required"),
     motive: z.string().optional(),
     weapon_used: z.string().optional(),
     narrative: z.string().optional(),
     testimony: z.string().optional(),
+  });
+
+  const formSchema = z.object({
+    description: z.string(),
+    crime_type: z.string().min(1, "Crime type is required"),
+    case_status: z.string().min(1, "Case status is required"),
+    report_datetime: z.preprocess((val) => new Date(val as string), z.date()),
+    incident_datetime: z.preprocess((val) => new Date(val as string), z.date()),
+    investigator_notes: z.string().optional(),
+    follow_up: z.string().optional(),
+    remarks: z.string().optional(),
+    persons: z.array(personSchema),
   });
 
   const form = useForm<
@@ -49,26 +53,36 @@ export default function MyForm() {
     defaultValues: {
       report_datetime: new Date(),
       incident_datetime: new Date(),
-      first_name: "",
-      last_name: "",
-      address: "",
-      civil_status: "",
-      contact_number: "",
-      sex: "",
-      birth_date: new Date(),
-      person_notified: "",
-      related_contact: "",
       description: "",
       crime_type: "",
       case_status: "",
       investigator_notes: "",
       follow_up: "",
       remarks: "",
-      case_role: "",
-      motive: "",
-      weapon_used: "",
-      narrative: "",
+      persons: [
+        {
+          first_name: "",
+          last_name: "",
+          address: "",
+          civil_status: "",
+          contact_number: "",
+          sex: "",
+          birth_date: new Date(),
+          person_notified: "",
+          related_contact: "",
+          case_role: "",
+          motive: "",
+          weapon_used: "",
+          narrative: "",
+          testimony: "",
+        },
+      ],
     },
+  });
+
+  const formFieldArray = useFieldArray({
+    control: form.control,
+    name: "persons", // 👈 must match schema
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -96,7 +110,9 @@ export default function MyForm() {
             className="mx-auto space-y-5 py-4"
           >
             {step === 0 && <CrimeForm form={form} />}
-            {step === 1 && <PersonInformation form={form} />}
+            {step === 1 && (
+              <PersonInformation form={form} formFieldArray={formFieldArray} />
+            )}
             {step === 2 && <AdditionalNotes form={form} onSubmit={onSubmit} />}
           </form>
         </Form>
