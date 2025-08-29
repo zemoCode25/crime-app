@@ -44,6 +44,8 @@ export default function MyForm() {
     persons: z.array(personSchema),
   });
 
+  type formSchemaType = z.infer<typeof formSchema>;
+
   const form = useForm<
     z.input<typeof formSchema>,
     any,
