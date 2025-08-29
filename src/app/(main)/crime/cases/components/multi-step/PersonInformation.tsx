@@ -96,7 +96,7 @@ export default function PersonInformation({
     }
   >;
 }) {
-  const [involvement, setInvolvement] = useState<Involvement>("suspect");
+  const [involvement, setInvolvement] = useState<string>("suspect");
   return (
     <div className="flex flex-col gap-3">
       <FormField
@@ -186,6 +186,7 @@ export default function PersonInformation({
                           value={personItem.label}
                           key={personItem.value}
                           onSelect={() => {
+                            setInvolvement(personItem.value);
                             form.setValue("case_role", personItem.value);
                           }}
                         >
