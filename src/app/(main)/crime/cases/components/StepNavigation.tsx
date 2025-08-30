@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import { ArrowRight } from "lucide-react";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Button } from "@/components/ui/button";
+import AddressInformation from "./multi-step/AddressInformation";
 
 export default function StepNavigation({
   step,
@@ -13,11 +14,12 @@ export default function StepNavigation({
   const stepTitleMap: Record<number, string> = {
     0: "Crime Information",
     1: "Person Information",
-    2: "Additional Notes",
+    2: "Address Information",
+    3: "Additional Notes",
   };
 
   function handleNext() {
-    if (step < 2) {
+    if (step < 3) {
       setStep(step + 1);
     }
   }

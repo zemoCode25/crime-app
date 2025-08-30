@@ -11,6 +11,7 @@ import PersonInformation from "./multi-step/PersonInformation";
 import AdditionalNotes from "./multi-step/AdditionalNotes";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import StepNavigation from "./StepNavigation";
+import AddressWrapper from "./multi-step/AddressWrapper";
 
 export default function MyForm() {
   const personSchema = z.object({
@@ -107,13 +108,14 @@ export default function MyForm() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="mx-auto space-y-5 py-4"
+            className="mx-auto w-fit space-y-5 py-4"
           >
             {step === 0 && <CrimeForm form={form} />}
             {step === 1 && (
               <PersonInformation form={form} formFieldArray={formFieldArray} />
             )}
-            {step === 2 && <AdditionalNotes form={form} />}
+            {step === 2 && <AddressWrapper />}
+            {step === 3 && <AdditionalNotes form={form} />}
           </form>
         </Form>
       </DialogContent>
