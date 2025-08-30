@@ -1,6 +1,8 @@
+"use client";
+
 import { MapContainer, TileLayer } from "react-leaflet";
 
-export default function AddressInformation() {
+export default function SimpleMap() {
   return (
     <div className="h-[600px] w-full">
       <MapContainer
@@ -10,7 +12,7 @@ export default function AddressInformation() {
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/">OSM</a>'
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
       </MapContainer>
     </div>
