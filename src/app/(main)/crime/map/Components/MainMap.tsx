@@ -18,7 +18,7 @@ export default function AddressInformation() {
       center={[14.451, 121.018]} // Alabang, Muntinlupa
       zoom={13}
       scrollWheelZoom={true}
-      className="h-40 w-70 rounded-lg shadow-md"
+      className="z-0 min-h-80 w-full rounded-lg shadow-md"
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

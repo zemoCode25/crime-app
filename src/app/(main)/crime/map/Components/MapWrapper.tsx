@@ -8,7 +8,7 @@ const MainMap = dynamic(() => import("./MainMap"), {
 
 export default function MapWrapper() {
   return (
-    <div className="w-full p-4">
+    <div className="w-full">
       <MainMap />
     </div>
   );
