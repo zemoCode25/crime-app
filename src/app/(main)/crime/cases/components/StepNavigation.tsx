@@ -31,16 +31,18 @@ export default function StepNavigation({
   return (
     <div className="sticky top-0 right-0 left-0 mt-4 flex w-full items-center justify-between">
       <Button
-        className="cursor-pointer border bg-transparent hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-neutral-800"
+        className="cursor-pointer border"
+        variant="outline"
         onClick={handlePrev}
       >
         <ArrowLeft className="text-black dark:text-white" />
       </Button>
-      <DialogTitle className="rounded-sm bg-white/70 px-6 py-1 font-bold shadow dark:bg-black/50">
+      <DialogTitle className="rounded-sm bg-white/70 px-6 py-1 font-bold shadow dark:bg-neutral-800/90">
         {stepTitleMap[step] ?? ""}
       </DialogTitle>
       <Button
-        className="cursor-pointer border bg-transparent hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-neutral-800"
+        className="cursor-pointer border"
+        variant="outline"
         onClick={handleNext}
       >
         <ArrowRight className="text-black dark:text-white" />
