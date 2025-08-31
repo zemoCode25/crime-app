@@ -11,7 +11,7 @@ import PersonInformation from "./multi-step/PersonInformation";
 import AdditionalNotes from "./multi-step/AdditionalNotes";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import StepNavigation from "./StepNavigation";
-import AddressWrapper from "./multi-step/AddressWrapper";
+import AddressInformation from "./multi-step/AddressInformation";
 
 export default function MyForm() {
   const personSchema = z.object({
@@ -114,7 +114,7 @@ export default function MyForm() {
             {step === 1 && (
               <PersonInformation form={form} formFieldArray={formFieldArray} />
             )}
-            {step === 2 && <AddressWrapper />}
+            {step === 2 && <AddressInformation />}
             {step === 3 && <AdditionalNotes form={form} />}
           </form>
         </Form>
