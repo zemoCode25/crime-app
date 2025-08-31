@@ -2,6 +2,9 @@
 
 import { ChevronRight, type LucideIcon } from "lucide-react";
 import { LayoutDashboard } from "lucide-react";
+import { ChartColumnIncreasing } from "lucide-react";
+import { UserLock } from "lucide-react";
+import { Settings } from "lucide-react";
 
 import {
   Collapsible,
@@ -78,6 +81,30 @@ export function NavMain({
           </Collapsible>
         ))}
       </SidebarMenu>
+      <SidebarMenuItem>
+        <SidebarMenuButton tooltip={"Analytics"}>
+          {<ChartColumnIncreasing />}
+          <Link href="/analytics">
+            <span>{"Analytics"}</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton tooltip={"Manage Accounts"}>
+          {<UserLock />}
+          <Link href="/manage-accounts">
+            <span>{"Manage Accounts"}</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton tooltip={"Settings"}>
+          {<Settings />}
+          <Link href="/settings">
+            <span>{"Settings"}</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
     </SidebarGroup>
   );
 }
