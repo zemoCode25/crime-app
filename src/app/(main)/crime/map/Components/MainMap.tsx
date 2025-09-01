@@ -37,13 +37,41 @@ export default function AddressInformation() {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       <Marker position={[14.3794, 121.0249]} icon={redIcon}>
-        <Popup>
-          A pretty CSS3 popup. <br /> Easily customizable.
+        <Popup className="!gap-2">
+          <div className="flex flex-col gap-2">
+            <div>
+              <label className="font-semibold">Case Task:</label>
+              <p className="!my-0">CASE-20250902-0001</p>
+            </div>
+            <div>
+              <label className="font-semibold">Description:</label>
+              <p className="!my-0">Crime description goes here.</p>
+            </div>
+            <div>
+              <label className="font-semibold">Address:</label>
+              <p className="!my-0">Crime address goes here.</p>
+            </div>
+            <Button className="bg-orange-600">View Details</Button>
+          </div>
         </Popup>
       </Marker>
       <Marker position={[14.3798, 121.0249]}>
-        <Popup>
-          A pretty CSS3 popup. <br /> Easily customizable.
+        <Popup className="!gap-2">
+          <div className="flex flex-col gap-2">
+            <div>
+              <label className="font-semibold">Case Task:</label>
+              <p className="!my-0">CASE-20250902-0001</p>
+            </div>
+            <div>
+              <label className="font-semibold">Description:</label>
+              <p className="!my-0">Crime description goes here.</p>
+            </div>
+            <div>
+              <label className="font-semibold">Address:</label>
+              <p className="!my-0">Crime address goes here.</p>
+            </div>
+            <Button className="bg-orange-600">View Details</Button>
+          </div>
         </Popup>
       </Marker>
     </MapContainer>
