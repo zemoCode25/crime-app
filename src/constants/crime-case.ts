@@ -90,3 +90,26 @@ export const barangays = [
     value: "tunasan",
   },
 ];
+
+export const dateInterval = [
+  {
+    label: "Last 7 days",
+    value: "last_7_days",
+  },
+  {
+    label: "Last 30 days",
+    value: "last_30_days",
+  },
+  {
+    label: "This month",
+    value: "this_month",
+  },
+  {
+    label: "Last month",
+    value: "last_month",
+  },
+  {
+    label: "Custom",
+    value: "custom",
+  },
+];

@@ -35,10 +35,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { types, statuses, barangays } from "@/constants/crime-case";
+import { types, barangays } from "@/constants/crime-case";
 import { useState } from "react";
-import { Checkbox } from "@radix-ui/react-checkbox";
-import { Label } from "@/components/ui/label";
 
 export const description = "An area chart with gradient fill";
 const chartData = [
