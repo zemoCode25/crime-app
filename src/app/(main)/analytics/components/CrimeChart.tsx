@@ -1,7 +1,7 @@
 "use client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { TrendingUp } from "lucide-react";
+import { ChevronsUpDownIcon, CirclePlus, TrendingUp } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -10,19 +10,30 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { types, statuses } from "@/constants/crime-case";
+import { useState } from "react";
+import { Checkbox } from "@radix-ui/react-checkbox";
+import { Label } from "@/components/ui/label";
+
 export const description = "An area chart with gradient fill";
 const chartData = [
   { month: "January", desktop: 186, mobile: 80 },
@@ -44,32 +55,97 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function CrimeChart() {
+  const [statusOpen, setStatusOpen] = useState(false);
+  const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
+  const [value, setValue] = useState("");
   return (
     <div className="mt-4 flex w-full flex-col gap-4 rounded-md border border-neutral-300 p-4">
-      <Tabs defaultValue="account" className="max-w-[30rem]">
-        <TabsList className="w-full gap-5 bg-neutral-200/50 dark:bg-neutral-900">
-          <TabsTrigger
-            value="account"
-            className="cursor-pointer active:bg-neutral-100"
-          >
-            Theft
-          </TabsTrigger>
-          <TabsTrigger value="assault" className="cursor-pointer">
-            Assault
-          </TabsTrigger>
-          <TabsTrigger value="homicide" className="cursor-pointer">
-            Homicide
-          </TabsTrigger>
-          <TabsTrigger value="fraud" className="cursor-pointer">
-            Fraud
-          </TabsTrigger>
-          <TabsTrigger value="burglary" className="cursor-pointer">
-            Burglary
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="">Make changes to your account here.</TabsContent>
-        <TabsContent value="password">Change your password here.</TabsContent>
-      </Tabs>
+      <div className="flex gap-2">
+        <Popover open={statusOpen} onOpenChange={setStatusOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={statusOpen}
+              className="w-fit justify-between bg-transparent"
+            >
+              {value ? (
+                statuses.find((status) => status.value === value)?.label
+              ) : (
+                <span className="flex items-center gap-1">
+                  <CirclePlus /> <p>Status</p>
+                </span>
+              )}
+              <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder={`Select status`} />
+              <CommandList>
+                <CommandEmpty>No framework found.</CommandEmpty>
+                <CommandGroup>
+                  {statuses.map((status) => (
+                    <CommandItem
+                      key={status.value}
+                      value={status.value}
+                      onMouseDown={(e) => {
+                        // Prevent Radix from closing the popover on click
+                        e.preventDefault();
+                      }}
+                    >
+                      <Checkbox id={status.value} />
+                      <Label htmlFor={status.value}>{status.label}</Label>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        <Popover open={crimeTypeOpen} onOpenChange={setCrimeTypeOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={crimeTypeOpen}
+              className="w-fit justify-between bg-transparent"
+            >
+              {value ? (
+                types.find((crimeType) => crimeType.value === value)?.label
+              ) : (
+                <span className="flex items-center gap-1">
+                  <CirclePlus /> <p>Type</p>
+                </span>
+              )}
+              <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder={`Select status`} />
+              <CommandList>
+                <CommandEmpty>No framework found.</CommandEmpty>
+                <CommandGroup>
+                  {types.map((crimeType) => (
+                    <CommandItem
+                      key={crimeType.value}
+                      value={crimeType.value}
+                      onMouseDown={(e) => {
+                        // Prevent Radix from closing the popover on click
+                        e.preventDefault();
+                      }}
+                    >
+                      <Checkbox id={crimeType.value} />
+                      <Label htmlFor={crimeType.value}>{crimeType.label}</Label>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
       <div className="mb-2 flex w-full items-center justify-between">
         <ChartContainer config={chartConfig} className="h-[10rem] w-full">
           <ResponsiveContainer>
