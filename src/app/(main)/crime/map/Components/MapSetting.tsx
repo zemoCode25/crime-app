@@ -171,41 +171,7 @@ export default function MapSetting() {
           </Popover>
         </div>
       </div>
-      <div className="flex flex-col justify-between gap-4 md:flex-row">
-        <MapWrapper />
-        <Card className="flex max-h-80 w-full flex-col gap-2 overflow-y-scroll p-4 text-sm md:w-[60%]">
-          <div>
-            <label className="font-semibold">Description:</label>
-            <p>Crime description goes here.</p>
-          </div>
-          <div>
-            <label className="font-semibold">Type:</label>
-            <p>Crime type goes here.</p>
-          </div>
-          <div>
-            <label className="font-semibold">Status:</label>
-            <p>Crime status goes here.</p>
-          </div>
-          <div>
-            <label className="font-semibold">Location:</label>
-            <p>Crime location goes here.</p>
-          </div>
-          <div>
-            <label className="font-semibold">Complainant:</label>
-            <p>Crime complainant goes here.</p>
-          </div>
-          <div>
-            <label className="font-semibold">Suspect:</label>
-            <p>Crime suspect goes here.</p>
-            <label className="font-semibold">Suspect:</label>
-            <p>Crime suspect goes here.</p>
-            <label className="font-semibold">Suspect:</label>
-            <p>Crime suspect goes here.</p>
-            <label className="font-semibold">Suspect:</label>
-            <p>Crime suspect goes here.</p>
-          </div>
-        </Card>
-      </div>
+      <MapWrapper />
     </div>
   );
 }

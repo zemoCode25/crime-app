@@ -30,12 +30,9 @@ export default function AddressInformation() {
       center={[14.3798, 121.0249]} // Alabang, Muntinlupa
       zoom={13}
       scrollWheelZoom={true}
-      className="z-0 min-h-80 w-full rounded-lg shadow-md"
+      className="z-0 h-dvh w-full rounded-lg shadow-md"
     >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <Marker position={[14.3794, 121.0249]} icon={redIcon}>
         <Popup className="!gap-2">
           <div className="flex flex-col gap-2">
