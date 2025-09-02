@@ -12,6 +12,7 @@ import AdditionalNotes from "./multi-step/AdditionalNotes";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import StepNavigation from "./StepNavigation";
 import AddressInformation from "./multi-step/AddressInformation";
+import MainButton from "@/components/utils/MainButton";
 
 export default function MyForm() {
   const personSchema = z.object({
@@ -99,9 +100,10 @@ export default function MyForm() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="bg-orange-600 text-white hover:bg-amber-500">
-          <Plus /> Add crime record
-        </Button>
+        <MainButton>
+          <Plus />
+          Add Crime Record
+        </MainButton>
       </DialogTrigger>
       <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
         <StepNavigation setStep={setStep} step={step} />

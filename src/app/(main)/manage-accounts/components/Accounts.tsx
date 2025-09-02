@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import { MoreHorizontal } from "lucide-react";
 import React from "react";
+import MainButton from "@/components/utils/MainButton";
 
 export default function Accounts() {
   return (
@@ -28,7 +29,7 @@ export default function Accounts() {
           placeholder="Search person..."
           className="w-full sm:max-w-[20rem]"
         />
-        <Button className="w-fit bg-orange-600">Create Account</Button>
+        <MainButton>Create Account</MainButton>
       </div>
       <div className="mt-4 flex flex-col gap-8">
         <div className="rounded-lg border p-4">
