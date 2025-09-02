@@ -11,3 +11,8 @@ export const civilStatus = [
   { value: "legally_separated", label: "Legally Separated" },
   { value: "annulled", label: "Annulled" },
 ];
+export const personInvolvementList = [
+  { value: "suspect", label: "Suspect" },
+  { value: "complainant", label: "Complainant" },
+  { value: "witness", label: "Witness" },
+];

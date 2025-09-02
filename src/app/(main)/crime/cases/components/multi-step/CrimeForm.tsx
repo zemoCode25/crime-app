@@ -29,6 +29,8 @@ import { UseFormReturn } from "react-hook-form";
 // constants
 import { types } from "@/constants/crime-case";
 import { statuses } from "@/constants/crime-case";
+import { ErrorMessage } from "@hookform/error-message";
+import { FormSchemaType } from "../../../../../../../types/crime-case-type";
 
 // Report Date
 // Incident Date
@@ -39,41 +41,7 @@ import { statuses } from "@/constants/crime-case";
 export default function CrimeForm({
   form,
 }: {
-  form: UseFormReturn<
-    {
-      description: string;
-      crime_type: string;
-      case_status: string;
-      report_datetime: unknown;
-      incident_datetime: unknown;
-      first_name: string;
-      last_name: string;
-      address: string;
-      civil_status: string;
-      contact_number: string;
-      sex: string;
-      birth_date: unknown;
-      person_notified?: string | undefined;
-      related_contact?: string | undefined;
-    },
-    any,
-    {
-      description: string;
-      crime_type: string;
-      case_status: string;
-      report_datetime: Date;
-      incident_datetime: Date;
-      first_name: string;
-      last_name: string;
-      address: string;
-      civil_status: string;
-      contact_number: string;
-      sex: string;
-      birth_date: Date;
-      person_notified?: string | undefined;
-      related_contact?: string | undefined;
-    }
-  >;
+  form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
 }) {
   return (
     <>
@@ -153,7 +121,10 @@ export default function CrimeForm({
               </PopoverContent>
             </Popover>
 
-            <FormMessage />
+            <ErrorMessage
+              name={field.name}
+              render={({ message }) => <FormMessage>{message}</FormMessage>}
+            />
           </FormItem>
         )}
       />
