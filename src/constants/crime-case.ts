@@ -43,3 +43,42 @@ export const statuses = [
     value: "For record",
   },
 ];
+
+export const barangays = [
+  {
+    label: "Alabang",
+    value: "alabang",
+  },
+  {
+    label: "Ayala-Alabang",
+    value: "ayala-alabang",
+  },
+  {
+    label: "Bayanan",
+    value: "bayanan",
+  },
+  {
+    label: "Buli",
+    value: "buli",
+  },
+  {
+    label: "Cupang",
+    value: "cupang",
+  },
+  {
+    label: "Putatan",
+    value: "putatan",
+  },
+  {
+    label: "Poblacion",
+    value: "poblacion",
+  },
+  {
+    label: "Sucat",
+    value: "sucat",
+  },
+  {
+    label: "Tunasan",
+    value: "tunasan",
+  },
+];
