@@ -1,3 +1,9 @@
+import AnalyticsPage from "./components/AnalyticsPage";
+
 export default function Page() {
-  return <div>Page</div>;
+  return (
+    <main>
+      <AnalyticsPage />
+    </main>
+  );
 }
