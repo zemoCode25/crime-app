@@ -35,7 +35,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { types, statuses } from "@/constants/crime-case";
+import { types, statuses, barangays } from "@/constants/crime-case";
 import { useState } from "react";
 import { Checkbox } from "@radix-ui/react-checkbox";
 import { Label } from "@/components/ui/label";
@@ -61,12 +61,10 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function CrimeChart() {
-  const [statusOpen, setStatusOpen] = useState(false);
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
-  const [crimeTypeValue, setCrimeTypeValue] = useState("");
-  const [value, setValue] = useState("");
-  // const [barangayOpen, setBarangayOpen] = useState(false);
-  // const [barangayValue, setBarangayValue] = useState("");
+  const [crimeTypeValue, setCrimeTypeValue] = useState("all");
+  const [barangayOpen, setBarangayOpen] = useState(false);
+  const [barangayValue, setBarangayValue] = useState("all");
   return (
     <div className="mt-4 flex w-full flex-col gap-4 rounded-md border border-neutral-300 p-4">
       <div className="flex gap-2">
@@ -102,6 +100,46 @@ export default function CrimeChart() {
                         className={`${crimeTypeValue === type.value ? "opacity-100" : "opacity-0"}`}
                       />
                       {type.label}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+        <Popover open={barangayOpen} onOpenChange={setBarangayOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              className={"w-[200px] justify-between"}
+            >
+              {barangayValue
+                ? barangays.find((barangay) => barangayValue === barangay.value)
+                    ?.label
+                : "Select barangay..."}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder="Search crime type..." />
+              <CommandList>
+                <CommandEmpty>No barangay found.</CommandEmpty>
+                <CommandGroup>
+                  {barangays.map((barangay) => (
+                    <CommandItem
+                      value={barangay.value}
+                      key={barangay.value}
+                      onSelect={() => {
+                        setBarangayValue(barangay.value);
+                        setBarangayOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={`${barangayValue === barangay.value ? "opacity-100" : "opacity-0"}`}
+                      />
+                      {barangay.label}
                     </CommandItem>
                   ))}
                 </CommandGroup>

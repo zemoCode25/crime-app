@@ -1,5 +1,9 @@
 export const types = [
   {
+    label: "All types",
+    value: "all",
+  },
+  {
     label: "Theft",
     value: "theft",
   },
@@ -45,6 +49,10 @@ export const statuses = [
 ];
 
 export const barangays = [
+  {
+    label: "All barangays",
+    value: "all",
+  },
   {
     label: "Alabang",
     value: "alabang",
