@@ -15,7 +15,7 @@ export const types = [
     label: "Vandalism",
     value: "vandalism",
   },
-] as const;
+];
 
 export const statuses = [
   {
@@ -42,4 +42,4 @@ export const statuses = [
     label: "For record",
     value: "For record",
   },
-] as const;
+];
