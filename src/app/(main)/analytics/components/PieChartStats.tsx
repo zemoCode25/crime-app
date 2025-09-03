@@ -21,36 +21,56 @@ import {
 export const description = "A pie chart with a legend";
 
 const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 90, fill: "var(--color-other)" },
+  { browser: "alabang", visitors: 275, fill: "#FF0000" },
+  { browser: "ayala_alabang", visitors: 200, fill: "#00FF00" },
+  { browser: "bayanan", visitors: 187, fill: "#0000FF" },
+  { browser: "buli", visitors: 173, fill: "#FFFF00" },
+  { browser: "cupang", visitors: 90, fill: "#FF00FF" },
+  { browser: "putatan", visitors: 275, fill: "#00FFFF" },
+  { browser: "poblacion", visitors: 200, fill: "#FF0000" },
+  { browser: "sucat", visitors: 187, fill: "#00FF00" },
+  { browser: "tunasan", visitors: 90, fill: "#0000FF" },
 ];
 
 const chartConfig = {
   visitors: {
     label: "Visitors",
   },
-  chrome: {
-    label: "Chrome",
+  alabang: {
+    label: "Alabang",
     color: "var(--chart-1)",
   },
-  safari: {
-    label: "Safari",
+  ayala_alabang: {
+    label: "Ayala-Alabang",
     color: "var(--chart-2)",
   },
-  firefox: {
-    label: "Firefox",
+  bayanan: {
+    label: "Bayanan",
     color: "var(--chart-3)",
   },
-  edge: {
-    label: "Edge",
+  buli: {
+    label: "Buli",
     color: "var(--chart-4)",
   },
-  other: {
-    label: "Other",
+  cupang: {
+    label: "Cupang",
     color: "var(--chart-5)",
+  },
+  putatan: {
+    label: "Putatan",
+    color: "var(--chart-5)",
+  },
+  poblacion: {
+    label: "Poblacion",
+    color: "var(--chart-5)",
+  },
+  sucat: {
+    label: "Sucat",
+    color: "var(--chart-5)",
+  },
+  tunasan: {
+    label: "Tunasan",
+    color: "var(--chart-6)",
   },
 } satisfies ChartConfig;
 
