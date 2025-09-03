@@ -78,8 +78,8 @@ export default function PieChartStats() {
   return (
     <div className="flex w-full flex-col rounded-md border border-neutral-300 p-4">
       <div className="items-center pb-0">
-        <CardTitle>Pie Chart - Legend</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>Barangay crime distribution</CardTitle>
+        <CardDescription>January - June 2025</CardDescription>
       </div>
       <div className="flex-1 pb-0">
         <ChartContainer

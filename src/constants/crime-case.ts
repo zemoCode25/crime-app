@@ -8,6 +8,10 @@ export const types = [
     value: "theft",
   },
   {
+    label: "Threat",
+    value: "threat",
+  },
+  {
     label: "Assault",
     value: "assault",
   },

@@ -17,12 +17,11 @@ import {
 export const description = "A donut chart with text";
 
 const chartData = [
-  { browser: "theft", visitors: 275, fill: "var(--color-safari)" },
-  { browser: "safari", visitors: 20, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 287, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 143, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 1567, fill: "var(--color-other)" },
-  { browser: "unknown", visitors: 780, fill: "var(--color-firefox)" },
+  { browser: "theft", visitors: 275, fill: "#FF6467" },
+  { browser: "threat", visitors: 20, fill: "#FF8904" },
+  { browser: "assault", visitors: 287, fill: "#9AE600" },
+  { browser: "fraud", visitors: 143, fill: "#7BF1A8" },
+  { browser: "vandalism", visitors: 1567, fill: "#534AFD" },
 ];
 
 const chartConfig = {
@@ -33,25 +32,21 @@ const chartConfig = {
     label: "Theft",
     color: "var(--chart-1)",
   },
-  safari: {
-    label: "Safari",
+  threat: {
+    label: "Threat",
     color: "var(--chart-2)",
   },
-  firefox: {
-    label: "Firefox",
+  assault: {
+    label: "Assault",
     color: "var(--chart-3)",
   },
-  edge: {
-    label: "Edge",
+  fraud: {
+    label: "Fraud",
     color: "var(--chart-4)",
   },
-  other: {
-    label: "Other",
+  vandalism: {
+    label: "Vandalism",
     color: "var(--chart-5)",
-  },
-  unknown: {
-    label: "Unknown",
-    color: "var(--color-edge)",
   },
 } satisfies ChartConfig;
 
@@ -63,7 +58,7 @@ export default function CrimeTypeChart() {
   return (
     <div className="flex w-full flex-col rounded-md border border-neutral-300 p-4">
       <div className="items-center pb-0">
-        <CardTitle>Crime type total crime chart.</CardTitle>
+        <CardTitle>Crime type chart</CardTitle>
         <CardDescription>January - June 2025</CardDescription>
       </div>
       <div className="flex-1 pb-0">
@@ -120,11 +115,6 @@ export default function CrimeTypeChart() {
           </PieChart>
         </ChartContainer>
       </div>
-      <CardFooter className="flex flex-col items-center gap-2 text-center text-sm">
-        <div className="flex items-center gap-2 leading-none font-medium">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-      </CardFooter>
     </div>
   );
 }
