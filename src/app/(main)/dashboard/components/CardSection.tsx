@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { TrendingDown } from "lucide-react";
 import { TrendingUp } from "lucide-react";
 
-export default async function CardSection() {
+export default function CardSection() {
   return (
     <div className="flex flex-row flex-wrap gap-4 sm:gap-6">
       <Card className="h-full w-[calc(50%-1rem)] !gap-0 p-4 md:w-[calc(25%-1.5rem)]">
