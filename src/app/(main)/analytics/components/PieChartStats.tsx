@@ -14,6 +14,8 @@ import {
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
 } from "@/components/ui/chart";
 
 export const description = "A pie chart with a legend";
@@ -54,7 +56,7 @@ const chartConfig = {
 
 export default function PieChartStats() {
   return (
-    <div className="flex w-full flex-col border border-neutral-300 p-4">
+    <div className="flex w-full flex-col rounded-md border border-neutral-300 p-4">
       <div className="items-center pb-0">
         <CardTitle>Pie Chart - Legend</CardTitle>
         <CardDescription>January - June 2024</CardDescription>
@@ -65,6 +67,10 @@ export default function PieChartStats() {
           className="mx-auto aspect-square max-h-[350px]"
         >
           <PieChart>
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent hideLabel />}
+            />
             <Pie data={chartData} dataKey="visitors" nameKey="browser" />
             <ChartLegend
               content={<ChartLegendContent nameKey="browser" />}
