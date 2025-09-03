@@ -1,12 +1,17 @@
+"use client";
 import { useState } from "react";
+import PushForm from "./PushForm";
+import EmailForm from "./EmailForm";
+import SMSForm from "./SMSForm";
 
 export default function EmergencyPage() {
   const [emergencyType, setEmergencyType] = useState("sms");
 
   return (
     <div>
-      <h2 className="text-xl font-bold">Emergency Page</h2>
-      <p>Current emergency type: {emergencyType}</p>
+      {emergencyType === "push" && <PushForm />}
+      {emergencyType === "email" && <EmailForm />}
+      {emergencyType === "sms" && <SMSForm />}
     </div>
   );
 }
