@@ -22,7 +22,7 @@ export async function getTableCrimeCases() {
 
   data?.forEach((crime) => {
     crime.case_person.forEach((cp) => {
-      const profile = cp.person_profile?.[0]; // take first (since only one exists)
+      const profile = cp.person_profile?.[0];
       if (profile) {
         console.log(
           `${cp.case_role}: ${profile.first_name} ${profile.last_name}`,
