@@ -35,19 +35,9 @@ const data = {
   },
   teams: [
     {
-      name: "Brgy. Poblacion",
+      name: "Muntinlupa City",
       logo: GalleryVerticalEnd,
-      plan: "Barangay Police",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
+      plan: "Crime Mapping App",
     },
   ],
   navMain: [
