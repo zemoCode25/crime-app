@@ -5,6 +5,7 @@ import { LayoutDashboard } from "lucide-react";
 import { ChartColumnIncreasing } from "lucide-react";
 import { UserLock } from "lucide-react";
 import { Settings } from "lucide-react";
+import { BellElectric } from "lucide-react";
 
 import {
   Collapsible,
@@ -94,6 +95,14 @@ export function NavMain({
           {<UserLock />}
           <Link href="/manage-accounts">
             <span>{"Manage Accounts"}</span>
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton tooltip={"Emergency"}>
+          {<BellElectric />}
+          <Link href="/emergency">
+            <span>{"Emergency"}</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenuItem>
