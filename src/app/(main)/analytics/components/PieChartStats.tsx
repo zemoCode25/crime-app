@@ -21,15 +21,15 @@ import {
 export const description = "A pie chart with a legend";
 
 const chartData = [
-  { browser: "alabang", visitors: 275, fill: "#FF0000" },
-  { browser: "ayala_alabang", visitors: 200, fill: "#00FF00" },
-  { browser: "bayanan", visitors: 187, fill: "#0000FF" },
-  { browser: "buli", visitors: 173, fill: "#FFFF00" },
-  { browser: "cupang", visitors: 90, fill: "#FF00FF" },
-  { browser: "putatan", visitors: 275, fill: "#00FFFF" },
-  { browser: "poblacion", visitors: 200, fill: "#FF0000" },
-  { browser: "sucat", visitors: 187, fill: "#00FF00" },
-  { browser: "tunasan", visitors: 90, fill: "#0000FF" },
+  { browser: "alabang", visitors: 60, fill: "#FF6467" },
+  { browser: "ayala_alabang", visitors: 20, fill: "#FF8904" },
+  { browser: "bayanan", visitors: 34, fill: "#9AE600" },
+  { browser: "buli", visitors: 43, fill: "#7BF1A8" },
+  { browser: "cupang", visitors: 90, fill: "#53EAFD" },
+  { browser: "putatan", visitors: 75, fill: "#8EC5FF" },
+  { browser: "poblacion", visitors: 40, fill: "#C4B4FF" },
+  { browser: "sucat", visitors: 87, fill: "#FDA5D5" },
+  { browser: "tunasan", visitors: 90, fill: "#FFA1AD" },
 ];
 
 const chartConfig = {
