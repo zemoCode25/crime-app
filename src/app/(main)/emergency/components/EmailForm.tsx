@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Calendar1Icon } from "lucide-react";
+import { Send } from "lucide-react";
 import { format } from "date-fns";
 
 import { cn } from "@/lib/utils";
@@ -156,6 +157,9 @@ export default function EmailForm() {
           </PopoverContent>
         </Popover>
       </div>
+      <Button className="cursor-pointer">
+        Send Email <Send />
+      </Button>
     </div>
   );
 }

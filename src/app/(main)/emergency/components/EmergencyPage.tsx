@@ -12,13 +12,13 @@ export default function EmergencyPage() {
     <div>
       <Tabs defaultValue="sms" className="g-neu w-[400px]">
         <TabsList className="flex items-center gap-3 bg-neutral-200">
-          <TabsTrigger value="sms" onClick={() => setEmergencyType("sms")}>
+          <TabsTrigger value="push" onClick={() => setEmergencyType("push")}>
             Push Notification
           </TabsTrigger>
           <TabsTrigger value="email" onClick={() => setEmergencyType("email")}>
             Email
           </TabsTrigger>
-          <TabsTrigger value="push" onClick={() => setEmergencyType("push")}>
+          <TabsTrigger value="sms" onClick={() => setEmergencyType("sms")}>
             SMS
           </TabsTrigger>
         </TabsList>
