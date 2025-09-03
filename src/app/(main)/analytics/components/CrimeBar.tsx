@@ -32,11 +32,11 @@ const chartData = [
 const chartConfig = {
   theft: {
     label: "Theft",
-    color: "var(--chart-1)",
+    color: "#155DFC",
   },
   threat: {
     label: "Threat",
-    color: "var(--chart-2)",
+    color: "#FDC700",
   },
 } satisfies ChartConfig;
 

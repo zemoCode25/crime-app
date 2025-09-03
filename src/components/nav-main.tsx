@@ -40,7 +40,6 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenuItem>
         <SidebarMenuButton tooltip={"Dashboard"}>
           {<LayoutDashboard />}
