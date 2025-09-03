@@ -21,21 +21,21 @@ import {
 export const description = "A multiple bar chart";
 
 const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
+  { month: "January", theft: 186, threat: 80 },
+  { month: "February", theft: 305, threat: 200 },
+  { month: "March", theft: 237, threat: 120 },
+  { month: "April", theft: 73, threat: 190 },
+  { month: "May", theft: 209, threat: 130 },
+  { month: "June", theft: 214, threat: 140 },
 ];
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
+  theft: {
+    label: "Theft",
     color: "var(--chart-1)",
   },
-  mobile: {
-    label: "Mobile",
+  threat: {
+    label: "Threat",
     color: "var(--chart-2)",
   },
 } satisfies ChartConfig;
@@ -46,11 +46,11 @@ export function CrimeBar() {
       <div>
         <CardTitle>Bar chart comparison</CardTitle>
         <CardDescription>
-          January - June 2024 | Total Crime cases
+          January - June 2025 | Total Crime cases
         </CardDescription>
       </div>
       <div>
-        <ChartContainer config={chartConfig} className="max-h-[600px]">
+        <ChartContainer config={chartConfig} className="">
           <BarChart accessibilityLayer data={chartData}>
             <CartesianGrid vertical={false} />
             <XAxis
@@ -64,19 +64,11 @@ export function CrimeBar() {
               cursor={false}
               content={<ChartTooltipContent indicator="dashed" />}
             />
-            <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-            <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
+            <Bar dataKey="theft" fill="var(--color-theft)" radius={4} />
+            <Bar dataKey="threat" fill="var(--color-threat)" radius={4} />
           </BarChart>
         </ChartContainer>
       </div>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="text-muted-foreground leading-none">
-          Showing total visitors for the last 6 months
-        </div>
-      </CardFooter>
     </div>
   );
 }
