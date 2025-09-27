@@ -94,10 +94,12 @@ export default function DashboardPage() {
           </PopoverContent>
         </Popover>
       </div>
-      <CardSection />
-      <ChartSection />
-      <EmergencySection />
-      <TableSection />
+      <div className="flex flex-col gap-10">
+        <CardSection />
+        <ChartSection />
+        <EmergencySection />
+        <TableSection />
+      </div>
     </section>
   );
 }

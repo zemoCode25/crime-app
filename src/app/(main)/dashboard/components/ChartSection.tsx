@@ -47,7 +47,7 @@ export default function ChartSection() {
   return (
     <div>
       <Tabs defaultValue="account" className="max-w-[30rem]">
-        <TabsList className="bg-neutral-200/50 dark:bg-neutral-900 gap-5 w-full">
+        <TabsList className="w-full gap-5 bg-neutral-200/50 dark:bg-neutral-900">
           <TabsTrigger
             value="account"
             className="cursor-pointer active:bg-neutral-100"
@@ -70,7 +70,7 @@ export default function ChartSection() {
         <TabsContent value="">Make changes to your account here.</TabsContent>
         <TabsContent value="password">Change your password here.</TabsContent>
       </Tabs>
-      <Card className="mt-4 w-full">
+      <div className="mt-4 w-full rounded-sm border border-neutral-300 bg-white py-6 shadow-sm dark:border-orange-900/30 dark:bg-[var(--dark-bg)] dark:shadow-none">
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[10rem] w-full">
             <ResponsiveContainer>
@@ -146,7 +146,7 @@ export default function ChartSection() {
             </div>
           </div>
         </CardFooter>
-      </Card>
+      </div>
     </div>
   );
 }

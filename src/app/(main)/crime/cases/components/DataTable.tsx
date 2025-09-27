@@ -127,7 +127,7 @@ export function DataTable<TData, TValue>({
   console.log(data);
 
   return (
-    <div className="overflow-hidden rounded-md border p-4 dark:border-neutral-600">
+    <div className="overflow-hidden rounded-sm border-10 p-4 shadow-smdark:bg-[var(--dark-card)] dark:shadow-none dark:border-orange-900">
       <div className="flex flex-col items-start justify-between gap-4 py-4 sm:flex-row sm:items-center">
         {/* Search and Filter */}
         <div className="flex w-full flex-col gap-2 md:flex-row">

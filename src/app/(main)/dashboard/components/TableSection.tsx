@@ -12,10 +12,10 @@ export default function TableSection() {
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-lg font-semibold">Table of recent crime cases</h2>
-      <Table>
+      <Table className="w-full rounded-sm border border-neutral-300 bg-white shadow-sm dark:border-orange-900/30 dark:bg-[var(--dark-card)] dark:shadow-none">
         <TableCaption>Recent 5 crime cases</TableCaption>
         <TableHeader>
-          <TableRow>
+          <TableRow className="dark:bg-orange-900/10">
             <TableHead className="w-[100px]">Case Code</TableHead>
             <TableHead>Complainant</TableHead>
             <TableHead>Suspect</TableHead>
