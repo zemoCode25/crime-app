@@ -34,7 +34,6 @@ import { FormSchemaType } from "../../../../../../types/crime-case-type";
 // tanstack
 import { useQuery } from "@tanstack/react-query";
 import { getCrimeTypes } from "@/lib/queries/crime-type";
-import useSupabaseBrowser from "@/utils/supabase-browser";
 // Report Date
 // Incident Date
 // Status
@@ -104,21 +103,21 @@ export default function CrimeForm({
                     <CommandGroup>
                       {crimeTypes.data?.map((type) => (
                         <CommandItem
-                          value={type.label}
+                          value={type.label || undefined}
                           key={type.label}
                           onSelect={() => {
-                            form.setValue("crime_type", type.label);
+                            form.setValue("crime_type", type.label || "");
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              type.label === field.value
+                              type?.label === field.value
                                 ? "opacity-100"
                                 : "opacity-0",
                             )}
                           />
-                          {type.label}
+                          {type?.label}
                         </CommandItem>
                       ))}
                     </CommandGroup>
