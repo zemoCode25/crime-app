@@ -1,5 +1,5 @@
 "use server";
-import { createClient } from '@/utils/supabase-server';
+import { createClient } from '@/lib/supabase/server';
 import { getTableCrimeCases } from '@/lib/queries/crime';
 
 // Helper function to format a person's full name
