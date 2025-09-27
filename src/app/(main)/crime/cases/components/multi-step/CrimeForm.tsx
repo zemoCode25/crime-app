@@ -1,3 +1,4 @@
+"use client";
 import {
   Form,
   FormControl,
@@ -32,20 +33,33 @@ import { statuses } from "@/constants/crime-case";
 import { ErrorMessage } from "@hookform/error-message";
 import { FormSchemaType } from "../../../../../../types/crime-case-type";
 // tanstack
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getCrimeTypes } from "@/lib/queries/crime-type";
+import useSupabaseBrowser from "@/utils/supabase-browser";
 // Report Date
 // Incident Date
 // Status
 // Type
 // Description
 
+interface CrimeType {
+  id: number;
+  label: string | null;
+}
+
 export default function CrimeForm({
   form,
 }: {
   form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
 }) {
-  const crimeTypes = useQuery({ queryKey: ["todos"], queryFn: getCrimeTypes });
+  const supabase = useSupabaseBrowser();
+  const {
+    data: crimeTypes,
+    isLoading,
+    isError,
+  } = useQuery(getCrimeTypes(supabase));
+
+  console.log("crimeTypes", crimeTypes && crimeTypes.length);
 
   return (
     <>
@@ -87,8 +101,8 @@ export default function CrimeForm({
                     )}
                   >
                     {field.value
-                      ? crimeTypes.data?.find(
-                          (type) => type.label === field.value,
+                      ? crimeTypes?.find(
+                          (type: CrimeType) => type.label === field.value,
                         )?.label
                       : "Select type"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -101,7 +115,7 @@ export default function CrimeForm({
                   <CommandList>
                     <CommandEmpty>No type found.</CommandEmpty>
                     <CommandGroup>
-                      {crimeTypes.data?.map((type) => (
+                      {crimeTypes?.map((type: CrimeType) => (
                         <CommandItem
                           value={type.label || undefined}
                           key={type.label}

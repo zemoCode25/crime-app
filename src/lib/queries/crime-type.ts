@@ -1,16 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
-import useSupabaseBrowser from "@/utils/supabase-browser";
+import { TypedSupabaseClient } from '@/types/supabase-client';
 
-
-// Server-side function (for Server Components and API routes)
-export async function getCrimeTypes() {
-  const supabase = useSupabaseBrowser();
-  const { data, error } = await supabase
+// Query function for cache helpers - returns the query builder
+export function getCrimeTypes(client: TypedSupabaseClient) {
+  return client
     .from("crime-type")
     .select("id, label")
     .order("id", { ascending: true });
-
-  if (error) throw error;
-
-  return data;
 }
