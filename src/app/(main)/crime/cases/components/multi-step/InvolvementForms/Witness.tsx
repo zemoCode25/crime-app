@@ -8,7 +8,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
-import { FormSchemaType } from "../../../../../../../../types/crime-case-type";
+import { FormSchemaType } from "../../../../../../../types/crime-case-type";
 
 export default function Complainant({
   form,

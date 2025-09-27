@@ -30,11 +30,11 @@ import { UseFormReturn } from "react-hook-form";
 import { types } from "@/constants/crime-case";
 import { statuses } from "@/constants/crime-case";
 import { ErrorMessage } from "@hookform/error-message";
-import { FormSchemaType } from "../../../../../../../types/crime-case-type";
+import { FormSchemaType } from "../../../../../../types/crime-case-type";
 // tanstack
 import { useQuery } from "@tanstack/react-query";
 import { getCrimeTypes } from "@/lib/queries/crime-type";
-
+import useSupabaseBrowser from "@/utils/supabase-browser";
 // Report Date
 // Incident Date
 // Status
