@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
-import { FormSchemaType } from "../../../../../../../types/crime-case-type";
+import { FormSchemaType } from "../../../../../../types/crime-case-type";
 import MainButton from "@/components/utils/MainButton";
 
 // follow up
