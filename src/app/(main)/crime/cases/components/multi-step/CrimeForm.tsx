@@ -31,6 +31,9 @@ import { types } from "@/constants/crime-case";
 import { statuses } from "@/constants/crime-case";
 import { ErrorMessage } from "@hookform/error-message";
 import { FormSchemaType } from "../../../../../../../types/crime-case-type";
+// tanstack
+import { useQuery } from "@tanstack/react-query";
+import { getCrimeTypes } from "@/lib/queries/crime-type";
 
 // Report Date
 // Incident Date
@@ -43,6 +46,8 @@ export default function CrimeForm({
 }: {
   form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
 }) {
+  const crimeTypes = useQuery({ queryKey: ["todos"], queryFn: getCrimeTypes });
+
   return (
     <>
       <FormField
@@ -83,8 +88,9 @@ export default function CrimeForm({
                     )}
                   >
                     {field.value
-                      ? types.find((language) => language.value === field.value)
-                          ?.label
+                      ? crimeTypes.data?.find(
+                          (type) => type.label === field.value,
+                        )?.label
                       : "Select type"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
@@ -96,18 +102,18 @@ export default function CrimeForm({
                   <CommandList>
                     <CommandEmpty>No type found.</CommandEmpty>
                     <CommandGroup>
-                      {types.map((type) => (
+                      {crimeTypes.data?.map((type) => (
                         <CommandItem
                           value={type.label}
-                          key={type.value}
+                          key={type.label}
                           onSelect={() => {
-                            form.setValue("crime_type", type.value);
+                            form.setValue("crime_type", type.label);
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              type.value === field.value
+                              type.label === field.value
                                 ? "opacity-100"
                                 : "opacity-0",
                             )}

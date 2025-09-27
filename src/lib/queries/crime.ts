@@ -35,3 +35,15 @@ export async function getTableCrimeCases() {
 
   return data;
 }
+
+export async function getCrimeTypes() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("crime-type")
+    .select("id, type, label")
+    .order("id", { ascending: true });
+
+  if (error) throw error;
+
+  return data;
+}
