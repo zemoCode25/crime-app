@@ -43,6 +43,8 @@ export default function DashboardPage() {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState<string>("Last 7 days");
 
+  // Seperate the sections with some spacing
+  // Seperate the popover component from the main dashboard component
   return (
     <section className="flex flex-col justify-between gap-4">
       <h1 className="mt-2 text-2xl font-bold">Dashboard</h1>
@@ -92,10 +94,12 @@ export default function DashboardPage() {
           </PopoverContent>
         </Popover>
       </div>
-      <CardSection />
-      <ChartSection />
-      <EmergencySection />
-      <TableSection />
+      <div className="flex flex-col gap-10">
+        <CardSection />
+        <ChartSection />
+        <EmergencySection />
+        <TableSection />
+      </div>
     </section>
   );
 }

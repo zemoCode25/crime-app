@@ -43,7 +43,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import MultiStepDialog from "./MultiStepDialog";
 import AddCrimeCase from "./AddCrimeCase";
-
+import useSupabaseBrowser from "@/lib/supabase/client";
+import { getCrimeTypes } from "@/lib/queries/crime-type";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -106,6 +108,10 @@ export function DataTable<TData, TValue>({
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
   const [value, setValue] = useState("");
 
+  const supabase = useSupabaseBrowser();
+
+  const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
+
   const table = useReactTable<TData>({
     data,
     columns,
@@ -127,7 +133,7 @@ export function DataTable<TData, TValue>({
   console.log(data);
 
   return (
-    <div className="overflow-hidden rounded-md border p-4 dark:border-neutral-600">
+    <div className="shadow-smdark:bg-[var(--dark-card)] overflow-hidden rounded-sm border p-4 dark:border-orange-900 dark:shadow-none">
       <div className="flex flex-col items-start justify-between gap-4 py-4 sm:flex-row sm:items-center">
         {/* Search and Filter */}
         <div className="flex w-full flex-col gap-2 md:flex-row">
@@ -190,7 +196,7 @@ export function DataTable<TData, TValue>({
                   className="w-fit justify-between bg-transparent"
                 >
                   {value ? (
-                    crimeTypes.find((crimeType) => crimeType.value === value)
+                    crimeTypes?.find((crimeType) => crimeType.label === value)
                       ?.label
                   ) : (
                     <span className="flex items-center gap-1">
@@ -206,18 +212,18 @@ export function DataTable<TData, TValue>({
                   <CommandList>
                     <CommandEmpty>No framework found.</CommandEmpty>
                     <CommandGroup>
-                      {crimeTypes.map((crimeType) => (
+                      {crimeTypes?.map((crimeType) => (
                         <CommandItem
-                          key={crimeType.value}
-                          value={crimeType.value}
+                          key={crimeType.label}
+                          value={crimeType.label || ""}
                           onMouseDown={(e) => {
                             // Prevent Radix from closing the popover on click
                             e.preventDefault();
                           }}
                         >
-                          <Checkbox id={crimeType.value} />
-                          <Label htmlFor={crimeType.value}>
-                            {crimeType.label}
+                          <Checkbox id={crimeType?.label || ""} />
+                          <Label htmlFor={crimeType?.label || ""}>
+                            {crimeType?.label}
                           </Label>
                         </CommandItem>
                       ))}

@@ -1,3 +1,4 @@
+"use client";
 import {
   Form,
   FormControl,
@@ -30,19 +31,36 @@ import { UseFormReturn } from "react-hook-form";
 import { types } from "@/constants/crime-case";
 import { statuses } from "@/constants/crime-case";
 import { ErrorMessage } from "@hookform/error-message";
-import { FormSchemaType } from "../../../../../../../types/crime-case-type";
-
+import { FormSchemaType } from "../../../../../../types/crime-case-type";
+// tanstack
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { getCrimeTypes } from "@/lib/queries/crime-type";
+import useSupabaseBrowser from "@/lib/supabase/client";
 // Report Date
 // Incident Date
 // Status
 // Type
 // Description
 
+interface CrimeType {
+  id: number;
+  label: string | null;
+}
+
 export default function CrimeForm({
   form,
 }: {
   form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
 }) {
+  const supabase = useSupabaseBrowser();
+  const {
+    data: crimeTypes,
+    isLoading,
+    isError,
+  } = useQuery(getCrimeTypes(supabase));
+
+  console.log("crimeTypes", crimeTypes && crimeTypes.length);
+
   return (
     <>
       <FormField
@@ -83,8 +101,9 @@ export default function CrimeForm({
                     )}
                   >
                     {field.value
-                      ? types.find((language) => language.value === field.value)
-                          ?.label
+                      ? crimeTypes?.find(
+                          (type: CrimeType) => type.label === field.value,
+                        )?.label
                       : "Select type"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
@@ -96,23 +115,23 @@ export default function CrimeForm({
                   <CommandList>
                     <CommandEmpty>No type found.</CommandEmpty>
                     <CommandGroup>
-                      {types.map((type) => (
+                      {crimeTypes?.map((type: CrimeType) => (
                         <CommandItem
-                          value={type.label}
-                          key={type.value}
+                          value={type.label || undefined}
+                          key={type.label}
                           onSelect={() => {
-                            form.setValue("crime_type", type.value);
+                            form.setValue("crime_type", type.label || "");
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              type.value === field.value
+                              type?.label === field.value
                                 ? "opacity-100"
                                 : "opacity-0",
                             )}
                           />
-                          {type.label}
+                          {type?.label}
                         </CommandItem>
                       ))}
                     </CommandGroup>
