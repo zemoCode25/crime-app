@@ -1,7 +1,11 @@
 import MetricCard from "./MetricCard";
-import { Shield, TrendingUp, Search, CheckCircle } from "lucide-react";
+import { DateRange } from "react-day-picker";
 
-export default function CardSection() {
+export default function CardSection({
+  dateRange,
+}: {
+  dateRange: DateRange | undefined;
+}) {
   return (
     <div className="flex flex-row flex-wrap gap-4 sm:gap-4">
       <MetricCard

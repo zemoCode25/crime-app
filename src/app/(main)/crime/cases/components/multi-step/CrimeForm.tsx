@@ -35,7 +35,7 @@ import { FormSchemaType } from "../../../../../../types/crime-case-type";
 // tanstack
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getCrimeTypes } from "@/lib/queries/crime-type";
-import useSupabaseBrowser from "@/utils/supabase-browser";
+import useSupabaseBrowser from "@/lib/supabase/client";
 // Report Date
 // Incident Date
 // Status

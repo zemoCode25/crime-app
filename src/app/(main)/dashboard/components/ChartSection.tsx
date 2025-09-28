@@ -23,6 +23,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { DateRange } from "react-day-picker";
 export const description = "An area chart with gradient fill";
 const chartData = [
   { month: "January", desktop: 186, mobile: 80 },
@@ -43,7 +44,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export default function ChartSection() {
+export default function ChartSection({
+  dateRange,
+}: {
+  dateRange: DateRange | undefined;
+}) {
   return (
     <div>
       <Tabs defaultValue="account" className="max-w-[30rem]">
