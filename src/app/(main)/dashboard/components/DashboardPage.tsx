@@ -14,8 +14,8 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-10">
             <CardSection dateRange={dateRange} />
             <ChartSection dateRange={dateRange} />
-            <EmergencySection dateRange={dateRange} />
-            <TableSection dateRange={dateRange} />
+            <EmergencySection />
+            <TableSection />
           </div>
         )}
       </DateRangeSelector>
