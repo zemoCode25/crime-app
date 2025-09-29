@@ -1,5 +1,6 @@
 "use server";
 import { TypedSupabaseClient } from "@/types/supabase-client";
+import { CrimeCaseData, LocationData, PersonData, CrimeCaseTransactionResult } from "@/types/crime-case";
 
 export async function getTableCrimeCases(client: TypedSupabaseClient) {
   return client
@@ -19,4 +20,28 @@ export async function getTableCrimeCases(client: TypedSupabaseClient) {
       `
     )
     .order("id", { ascending: true });
+}
+
+export async function createCrimeCaseTransaction(
+  client: TypedSupabaseClient,
+  caseData: CrimeCaseData,
+  locationData: LocationData,
+  personsData: PersonData[]
+) {
+  const { data, error } = await client.rpc('insert_crime_case_transaction', {
+    case_data: JSON.parse(JSON.stringify(caseData)),
+    location_data: JSON.parse(JSON.stringify(locationData)),
+    persons_data: JSON.parse(JSON.stringify(personsData))
+  });
+
+  if (error) {
+    console.error('RPC Error:', error);
+    return { 
+      success: false, 
+      error: error.message,
+      message: 'Failed to create crime case'
+    };
+  }
+
+  return data as unknown as CrimeCaseTransactionResult;
 }

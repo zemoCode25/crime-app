@@ -31,7 +31,7 @@ import { UseFormReturn } from "react-hook-form";
 import { types } from "@/constants/crime-case";
 import { statuses } from "@/constants/crime-case";
 import { ErrorMessage } from "@hookform/error-message";
-import { FormSchemaType } from "../../../../../../types/crime-case-type";
+import { FormSchemaType } from "../../../../../../types/crime-case";
 // tanstack
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getCrimeTypes } from "@/lib/queries/crime-type";
