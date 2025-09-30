@@ -37,7 +37,7 @@ import { useEffect, useState } from "react";
 import Suspect from "./InvolvementForms/Suspect";
 import Complainant from "./InvolvementForms/Complainant";
 import Witness from "./InvolvementForms/Witness";
-import { FormSchemaType } from "../../../../../../types/crime-case-type";
+import { FormSchemaType } from "../../../../../../types/crime-case";
 import { X } from "lucide-react";
 // Combo box to select for suspect, complainant, witness
 // Button to add person information

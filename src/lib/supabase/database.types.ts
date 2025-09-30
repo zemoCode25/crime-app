@@ -338,6 +338,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      insert_crime_case_transaction: {
+        Args: {
+          case_data: Json
+          location_data: Json
+          persons_data: Json[]
+        }
+        Returns: Json
+      }
     }
     Enums: {
       barangay:
@@ -389,7 +397,7 @@ export type Tables<
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

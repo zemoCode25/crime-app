@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
-import { FormSchemaType } from "../../../../../../types/crime-case-type";
+import { FormSchemaType } from "../../../../../../types/crime-case";
 import MainButton from "@/components/utils/MainButton";
 
 // follow up
@@ -80,17 +80,7 @@ export default function AdditionalNotes({
         )}
       />
 
-      <MainButton
-        type="submit"
-        onClick={() => {
-          {
-            console.log(form.formState.errors ? "GAGI ERROR" : "WLA NAMAN");
-          }
-          console.log(typeof Object.keys(form.formState.errors).length);
-        }}
-      >
-        Create Case
-      </MainButton>
+      <MainButton type="submit">Create Case</MainButton>
     </>
   );
 }
