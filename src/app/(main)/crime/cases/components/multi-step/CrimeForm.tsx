@@ -37,6 +37,7 @@ import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getCrimeTypes } from "@/lib/queries/crime-type";
 import useSupabaseBrowser from "@/lib/supabase/client";
 import Calendar24 from "@/components/calendar-24";
+import { Input } from "@/components/ui/input";
 // Report Date
 // Incident Date
 // Status
@@ -204,6 +205,36 @@ export default function CrimeForm({
             <FormDescription>
               This is the language that will be used in the dashboard.
             </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name={`investigator`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Lead Investigator</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name={`responder`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Lead Responder</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+
             <FormMessage />
           </FormItem>
         )}

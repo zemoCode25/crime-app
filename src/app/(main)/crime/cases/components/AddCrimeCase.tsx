@@ -14,10 +14,9 @@ import StepNavigation from "./StepNavigation";
 import AddressInformation from "./multi-step/AddressInformation";
 import MainButton from "@/components/utils/MainButton";
 import { formSchema, type FormSchemaType } from "@/types/form-schema";
+import { createCrimeCaseTransaction } from "@/lib/queries/crime";
 
 export default function MyForm() {
-  // Crime Case Schema
-
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -30,6 +29,9 @@ export default function MyForm() {
       investigator_notes: "",
       follow_up: "",
       remarks: "",
+      investigator: "",
+      responder: "",
+      // Response data defaults
       // Location data defaults
       barangay: "",
       crime_location: "",
@@ -70,7 +72,19 @@ export default function MyForm() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      console.log(values);
+      const crimeCase = {
+        case_number: `CASE-${Date.now()}`,
+        crime_type: values.crime_type,
+        case_status: values.case_status,
+        description: values.description,
+        incident_datetime: values.incident_datetime,
+        report_datetime: values.report_datetime,
+        investigator: values.investigator,
+        responder: values.responder,
+        investigator_notes: values.investigator_notes,
+        remarks: values.remarks,
+        follow_up: values.follow_up,
+      };
     } catch (error) {
       console.error("Form submission error", error);
     }

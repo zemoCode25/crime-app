@@ -7,6 +7,8 @@ export const caseDataSchema = z.object({
   case_status: z.string().min(1, "Case status field is required"),
   report_datetime: z.date(),
   incident_datetime: z.date(),
+  investigator: z.string().min(1, "Investigator field is required").optional(),
+  responder: z.string().min(1, "Responder field is required").optional(),
   investigator_notes: z.string().optional(),
   follow_up: z.string().optional(),
   remarks: z.string().optional(),
