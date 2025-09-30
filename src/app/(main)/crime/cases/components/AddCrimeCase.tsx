@@ -59,6 +59,10 @@ export default function MyForm() {
     },
   });
 
+  const watchPersons = form.watch();
+
+  console.log(watchPersons);
+
   const formFieldArray = useFieldArray({
     control: form.control,
     name: "persons",
@@ -93,7 +97,7 @@ export default function MyForm() {
             {step === 1 && (
               <PersonInformation form={form} formFieldArray={formFieldArray} />
             )}
-            {step === 2 && <AddressInformation />}
+            {step === 2 && <AddressInformation form={form} />}
             {step === 3 && <AdditionalNotes form={form} />}
           </form>
         </Form>
