@@ -14,9 +14,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 type CrimeCaseItem = {
-  id: string | number;
-  crime_type: string;
-  case_status: string;
+  id: number;
+  crime_type: "murder" | "assault" | "robbery" | "homicide" | "fraud" | null;
+  case_status:
+    | "Open"
+    | "Under Investigation"
+    | "Case Settled"
+    | "Lupon"
+    | "Direct filing"
+    | "For Record"
+    | "Turn-over"
+    | null;
   suspect: string;
   complainant: string;
 };
@@ -28,7 +36,7 @@ export const columns: ColumnDef<CrimeCaseItem>[] = [
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="text-left !p-0 font-bold"
+        className="!p-0 text-left font-bold"
       >
         Complainant
         <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -46,7 +54,7 @@ export const columns: ColumnDef<CrimeCaseItem>[] = [
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="text-left !p-0 font-bold"
+        className="!p-0 text-left font-bold"
       >
         Suspect
         <ArrowUpDown className="ml-2 h-4 w-4" />

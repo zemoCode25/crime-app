@@ -59,8 +59,6 @@ export default function CrimeForm({
     isError,
   } = useQuery(getCrimeTypes(supabase));
 
-  console.log("crimeTypes", crimeTypes && crimeTypes.length);
-
   return (
     <>
       <FormField

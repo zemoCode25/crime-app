@@ -41,7 +41,6 @@ import {
 import { ChevronsUpDownIcon, CirclePlus, Plus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import MultiStepDialog from "./MultiStepDialog";
 import AddCrimeCase from "./AddCrimeCase";
 import useSupabaseBrowser from "@/lib/supabase/client";
 import { getCrimeTypes } from "@/lib/queries/crime-type";
@@ -129,8 +128,6 @@ export function DataTable<TData, TValue>({
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: "includesString",
   });
-
-  console.log(data);
 
   return (
     <div className="shadow-smdark:bg-[var(--dark-card)] overflow-hidden rounded-sm border p-4 dark:border-orange-900 dark:shadow-none">
@@ -276,7 +273,6 @@ export function DataTable<TData, TValue>({
                       ))}
                     </TableRow>
                   </DialogTrigger>
-                  <MultiStepDialog />
                 </Dialog>
               ))
             ) : (

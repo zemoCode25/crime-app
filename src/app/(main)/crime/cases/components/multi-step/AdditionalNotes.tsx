@@ -80,17 +80,7 @@ export default function AdditionalNotes({
         )}
       />
 
-      <MainButton
-        type="submit"
-        onClick={() => {
-          {
-            console.log(form.formState.errors ? "GAGI ERROR" : "WLA NAMAN");
-          }
-          console.log(typeof Object.keys(form.formState.errors).length);
-        }}
-      >
-        Create Case
-      </MainButton>
+      <MainButton type="submit">Create Case</MainButton>
     </>
   );
 }

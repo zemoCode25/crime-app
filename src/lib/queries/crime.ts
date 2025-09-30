@@ -28,20 +28,9 @@ export async function createCrimeCaseTransaction(
   locationData: LocationData,
   personsData: PersonData[]
 ) {
-  const { data, error } = await client.rpc('insert_crime_case_transaction', {
+  return client.rpc('insert_crime_case_transaction', {
     case_data: JSON.parse(JSON.stringify(caseData)),
     location_data: JSON.parse(JSON.stringify(locationData)),
     persons_data: JSON.parse(JSON.stringify(personsData))
   });
-
-  if (error) {
-    console.error('RPC Error:', error);
-    return { 
-      success: false, 
-      error: error.message,
-      message: 'Failed to create crime case'
-    };
-  }
-
-  return data as unknown as CrimeCaseTransactionResult;
 }

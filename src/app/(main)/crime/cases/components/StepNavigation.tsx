@@ -2,7 +2,6 @@ import { ArrowLeft } from "lucide-react";
 import { ArrowRight } from "lucide-react";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Button } from "@/components/ui/button";
-import AddressInformation from "./multi-step/Map";
 
 export default function StepNavigation({
   step,
