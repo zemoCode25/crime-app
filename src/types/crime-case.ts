@@ -7,6 +7,12 @@ export type FormSchemaType = {
   investigator_notes?: string;
   follow_up?: string;
   remarks?: string;
+  barangay: string;
+  crime_location: string;
+  landmark?: string;
+  pin?: number;
+  lat?: number;
+  long?: number;
   persons: {
     first_name: string;
     last_name: string;

@@ -31,11 +31,12 @@ import { UseFormReturn } from "react-hook-form";
 import { types } from "@/constants/crime-case";
 import { statuses } from "@/constants/crime-case";
 import { ErrorMessage } from "@hookform/error-message";
-import { FormSchemaType } from "../../../../../../types/crime-case";
+import { formSchema, type FormSchemaType } from "@/types/form-schema";
 // tanstack
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getCrimeTypes } from "@/lib/queries/crime-type";
 import useSupabaseBrowser from "@/lib/supabase/client";
+import Calendar24 from "@/components/calendar-24";
 // Report Date
 // Incident Date
 // Status
@@ -214,15 +215,14 @@ export default function CrimeForm({
         render={({ field }) => (
           <FormItem className="flex flex-col">
             <FormLabel>Report Date</FormLabel>
-            <DatetimePicker
-              {...field}
-              value={field.value as Date | undefined}
-              format={[
-                ["months", "days", "years"],
-                ["hours", "minutes", "am/pm"],
-              ]}
-            />
-
+            <FormControl>
+              <Calendar24
+                value={field.value as Date}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                name={field.name}
+              />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}
@@ -234,15 +234,14 @@ export default function CrimeForm({
         render={({ field }) => (
           <FormItem className="flex flex-col">
             <FormLabel>Incident Date</FormLabel>
-            <DatetimePicker
-              {...field}
-              value={field.value as Date | undefined}
-              format={[
-                ["months", "days", "years"],
-                ["hours", "minutes", "am/pm"],
-              ]}
-            />
-
+            <FormControl>
+              <Calendar24
+                value={field.value as Date}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                name={field.name}
+              />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}

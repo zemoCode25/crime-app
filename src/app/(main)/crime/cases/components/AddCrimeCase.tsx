@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,46 +13,15 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import StepNavigation from "./StepNavigation";
 import AddressInformation from "./multi-step/AddressInformation";
 import MainButton from "@/components/utils/MainButton";
+import { formSchema, type FormSchemaType } from "@/types/form-schema";
 
 export default function MyForm() {
-  const personSchema = z.object({
-    first_name: z.string().min(1, "First name is required"),
-    last_name: z.string().min(1, "Last name is required"),
-    address: z.string().min(1, "Address is required"),
-    civil_status: z.string().min(1, "Civil status is required"),
-    contact_number: z
-      .string()
-      .max(12, "Contact number must be at most 12 characters"),
-    sex: z.string().min(1, "Sex is required"),
-    birth_date: z.coerce.date(),
-    person_notified: z.string().optional(),
-    related_contact: z.string().max(12).optional(),
-    case_role: z.string().min(1, "Involvement is required"),
-    motive: z.string().optional(),
-    weapon_used: z.string().optional(),
-    narrative: z.string().optional(),
-    testimony: z.string().optional(),
-  });
+  // Crime Case Schema
 
-  const formSchema = z.object({
-    description: z.string(),
-    crime_type: z.string().min(1, "Crime type is required"),
-    case_status: z.string().min(1, "Case status is required"),
-    report_datetime: z.preprocess((val) => new Date(val as string), z.date()),
-    incident_datetime: z.preprocess((val) => new Date(val as string), z.date()),
-    investigator_notes: z.string().optional(),
-    follow_up: z.string().optional(),
-    remarks: z.string().optional(),
-    persons: z.array(personSchema),
-  });
-
-  const form = useForm<
-    z.input<typeof formSchema>,
-    any,
-    z.output<typeof formSchema>
-  >({
+  const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      // Case data defaults
       report_datetime: new Date(),
       incident_datetime: new Date(),
       description: "",
@@ -61,6 +30,14 @@ export default function MyForm() {
       investigator_notes: "",
       follow_up: "",
       remarks: "",
+      // Location data defaults
+      barangay: "",
+      crime_location: "",
+      landmark: "",
+      pin: undefined,
+      lat: 0,
+      long: 0,
+      // Persons defaults
       persons: [
         {
           first_name: "",

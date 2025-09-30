@@ -1,10 +1,4 @@
 "use client";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -16,7 +10,7 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
-import { FormSchemaType } from "../../../../../../types/crime-case";
+import { FormSchemaType } from "@/types/form-schema";
 import MainButton from "@/components/utils/MainButton";
 
 // follow up

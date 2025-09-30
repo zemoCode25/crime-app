@@ -37,7 +37,7 @@ import { useEffect, useState } from "react";
 import Suspect from "./InvolvementForms/Suspect";
 import Complainant from "./InvolvementForms/Complainant";
 import Witness from "./InvolvementForms/Witness";
-import { FormSchemaType } from "../../../../../../types/crime-case";
+import { formSchema, type FormSchemaType } from "@/types/form-schema";
 import { X } from "lucide-react";
 // Combo box to select for suspect, complainant, witness
 // Button to add person information
@@ -46,38 +46,12 @@ import { X } from "lucide-react";
 // complainant (narrative, person-selection)
 // witness (testimony, person-selection)
 
-type TFormFieldArray = {
-  description: string;
-  crime_type: string;
-  case_status: string;
-  report_datetime: unknown;
-  incident_datetime: unknown;
-  persons: {
-    first_name: string;
-    last_name: string;
-    address: string;
-    civil_status: string;
-    contact_number: string;
-    sex: string;
-    birth_date: unknown;
-    case_role: string;
-    person_notified?: string | undefined;
-    related_contact?: string | undefined;
-    motive?: string | undefined;
-    weapon_used?: string | undefined;
-    narrative?: string | undefined;
-    testimony?: string | undefined;
-  }[];
-  investigator_notes?: string | undefined;
-  follow_up?: string | undefined;
-  remarks?: string | undefined;
-};
 export default function PersonInformation({
   form,
   formFieldArray,
 }: {
   form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
-  formFieldArray: UseFieldArrayReturn<TFormFieldArray, "persons", "id">;
+  formFieldArray: UseFieldArrayReturn<FormSchemaType, "persons", "id">;
 }) {
   const [involvement, setInvolvement] = useState<string>("complainant");
 
