@@ -1,6 +1,5 @@
-"use server";
 import { TypedSupabaseClient } from "@/types/supabase-client";
-import { CrimeCaseData, LocationData, PersonData, CrimeCaseTransactionResult } from "@/types/crime-case";
+import { CrimeCaseData, LocationData, PersonData } from "@/types/crime-case";
 
 export async function getTableCrimeCases(client: TypedSupabaseClient) {
   return client

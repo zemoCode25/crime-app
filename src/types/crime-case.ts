@@ -1,8 +1,12 @@
+import {CaseStatus} from "@/types/form-schema"
+import {Sex} from "@/types/form-schema"
+import {CivilStatus} from "@/types/form-schema"
+import {CaseRole} from "@/types/form-schema"
 
 export interface CrimeCaseData {
   case_number?: string;
-  crime_type?: "murder" | "assault" | "robbery" | "homicide" | "fraud";
-  case_status?: "Open" | "Under Investigation" | "Case Settled" | "Lupon" | "Direct filing" | "For Record" | "Turn-over";
+  crime_type?: number;
+  case_status?: CaseStatus;
   description?: string;
   incident_datetime?: string;
   report_datetime?: string;
@@ -14,7 +18,7 @@ export interface CrimeCaseData {
 }
 
 export interface LocationData {
-  barangay?: "poblacion" | "tunasan" | "putatan" | "bayanan" | "alabang" | "ayala alabang" | "buli" | "cupang" | "sucat";
+  barangay?: number
   crime_location?: string;
   landmark?: string;
   lat?: number;
@@ -26,16 +30,16 @@ export interface PersonData {
   // Person profile fields
   first_name?: string;
   last_name?: string;
-  birth_date?: string;
-  sex?: "male" | "female";
-  civil_status?: "single" | "married" | "widowed" | "divorced" | "legally separated" | "annulled";
+  birth_date?: Date;
+  sex?: Sex;
+  civil_status?: CivilStatus;
   address?: string;
   contact_number?: string;
   person_notified?: string;
   related_contact?: string;
   
   // Case involvement
-  case_role: "suspect" | "complainant" | "witness";
+  case_role: CaseRole;
   
   // Role-specific fields
   motive?: string; // for suspects

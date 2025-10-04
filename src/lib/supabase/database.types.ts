@@ -87,7 +87,7 @@ export type Database = {
           case_number: string | null
           case_status: Database["public"]["Enums"]["status_enum"] | null
           created_at: string
-          crime_type: Database["public"]["Enums"]["crime_type"] | null
+          crime_type: number | null
           description: string | null
           follow_up: string | null
           id: number
@@ -103,7 +103,7 @@ export type Database = {
           case_number?: string | null
           case_status?: Database["public"]["Enums"]["status_enum"] | null
           created_at?: string
-          crime_type?: Database["public"]["Enums"]["crime_type"] | null
+          crime_type?: number | null
           description?: string | null
           follow_up?: string | null
           id?: number
@@ -119,7 +119,7 @@ export type Database = {
           case_number?: string | null
           case_status?: Database["public"]["Enums"]["status_enum"] | null
           created_at?: string
-          crime_type?: Database["public"]["Enums"]["crime_type"] | null
+          crime_type?: number | null
           description?: string | null
           follow_up?: string | null
           id?: number
@@ -132,6 +132,13 @@ export type Database = {
           responder?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "crime_case_crime_type_fkey"
+            columns: ["crime_type"]
+            isOneToOne: false
+            referencedRelation: "crime-type"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "crime_case_location_id_fkey"
             columns: ["location_id"]
@@ -147,24 +154,27 @@ export type Database = {
           created_at: string
           id: number
           label: string | null
+          name: string | null
         }
         Insert: {
           color?: string | null
           created_at?: string
           id?: number
           label?: string | null
+          name?: string | null
         }
         Update: {
           color?: string | null
           created_at?: string
           id?: number
           label?: string | null
+          name?: string | null
         }
         Relationships: []
       }
       location: {
         Row: {
-          barangay: Database["public"]["Enums"]["barangay"] | null
+          barangay: number | null
           created_at: string
           crime_location: string | null
           id: number
@@ -174,7 +184,7 @@ export type Database = {
           pin: number | null
         }
         Insert: {
-          barangay?: Database["public"]["Enums"]["barangay"] | null
+          barangay?: number | null
           created_at?: string
           crime_location?: string | null
           id?: number
@@ -184,7 +194,7 @@ export type Database = {
           pin?: number | null
         }
         Update: {
-          barangay?: Database["public"]["Enums"]["barangay"] | null
+          barangay?: number | null
           created_at?: string
           crime_location?: string | null
           id?: number
@@ -329,6 +339,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      insert_crime_case_transaction: {
+        Args: { case_data: Json; location_data: Json; persons_data: Json[] }
+        Returns: Json
+      }
       insert_full_form: {
         Args: {
           _address: Json
@@ -337,14 +351,6 @@ export type Database = {
           _user_id: string
         }
         Returns: undefined
-      }
-      insert_crime_case_transaction: {
-        Args: {
-          case_data: Json
-          location_data: Json
-          persons_data: Json[]
-        }
-        Returns: Json
       }
     }
     Enums: {
@@ -366,17 +372,16 @@ export type Database = {
         | "divorced"
         | "legally separated"
         | "annulled"
-      crime_type: "murder" | "assault" | "robbery" | "homicide" | "fraud"
       roles: "main_admin" | "sub_admin"
       sex: "male" | "female"
       status_enum:
-        | "Open"
-        | "Under Investigation"
-        | "Case Settled"
-        | "Lupon"
-        | "Direct filing"
-        | "For Record"
-        | "Turn-over"
+        | "open"
+        | "under investigation"
+        | "case settled"
+        | "lupon"
+        | "direct filing"
+        | "for record"
+        | "turn-over"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -397,7 +402,7 @@ export type Tables<
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never,
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -524,17 +529,16 @@ export const Constants = {
         "legally separated",
         "annulled",
       ],
-      crime_type: ["murder", "assault", "robbery", "homicide", "fraud"],
       roles: ["main_admin", "sub_admin"],
       sex: ["male", "female"],
       status_enum: [
-        "Open",
-        "Under Investigation",
-        "Case Settled",
-        "Lupon",
-        "Direct filing",
-        "For Record",
-        "Turn-over",
+        "open",
+        "under investigation",
+        "case settled",
+        "lupon",
+        "direct filing",
+        "for record",
+        "turn-over",
       ],
     },
   },

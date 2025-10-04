@@ -2,8 +2,6 @@
 import { useState, useEffect } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Form } from "@/components/ui/form";
 import CrimeForm from "./multi-step/CrimeForm";
@@ -15,43 +13,45 @@ import AddressInformation from "./multi-step/AddressInformation";
 import MainButton from "@/components/utils/MainButton";
 import { formSchema, type FormSchemaType } from "@/types/form-schema";
 import { createCrimeCaseTransaction } from "@/lib/queries/crime";
+import useSupabaseBrowser from "@/lib/supabase/client";
 
 export default function MyForm() {
+  // ✅ Move useSupabaseBrowser to the top level
+  const supabase = useSupabaseBrowser();
+  const [step, setStep] = useState(0);
+
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      // Case data defaults
-      report_datetime: new Date(),
-      incident_datetime: new Date(),
+      // ✅ Fix default values - remove undefined, use empty strings
+      report_datetime: new Date().toISOString(),
+      incident_datetime: new Date().toISOString(),
       description: "",
-      crime_type: "",
-      case_status: "",
+      crime_type: 1, // ✅ Change from undefined to empty string
+      case_status: "under investigation", // ✅ Change from undefined to empty string
       investigator_notes: "",
       follow_up: "",
       remarks: "",
       investigator: "",
       responder: "",
-      // Response data defaults
-      // Location data defaults
-      barangay: "",
+      barangay: 1, // ✅ Change from undefined to empty string
       crime_location: "",
       landmark: "",
-      pin: undefined,
+      pin: undefined, // This can stay undefined as it's optional
       lat: 0,
       long: 0,
-      // Persons defaults
       persons: [
         {
           first_name: "",
           last_name: "",
           address: "",
-          civil_status: "",
+          civil_status: "single", // ✅ Change from undefined to empty string
           contact_number: "",
-          sex: "",
-          birth_date: new Date(),
+          sex: "male", // ✅ Change from undefined to empty string
+          birth_date: new Date(), // ✅ Use ISO string if schema expects string
           person_notified: "",
           related_contact: "",
-          case_role: "",
+          case_role: "complainant", // ✅ Change from undefined to empty string
           motive: "",
           weapon_used: "",
           narrative: "",
@@ -61,17 +61,19 @@ export default function MyForm() {
     },
   });
 
-  const watchPersons = form.watch();
-
-  console.log(watchPersons);
-
   const formFieldArray = useFieldArray({
     control: form.control,
     name: "persons",
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: FormSchemaType) {
     try {
+      // ✅ Check if supabase is available
+      if (!supabase) {
+        console.error("Supabase client not available");
+        return;
+      }
+
       const crimeCase = {
         case_number: `CASE-${Date.now()}`,
         crime_type: values.crime_type,
@@ -85,12 +87,47 @@ export default function MyForm() {
         remarks: values.remarks,
         follow_up: values.follow_up,
       };
+
+      const location = {
+        barangay: values.barangay,
+        crime_location: values.crime_location,
+        landmark: values.landmark,
+        pin: values.pin,
+        lat: values.lat,
+        long: values.long,
+      };
+
+      const persons = [...values.persons];
+
+      console.log("Submitting form with values:", {
+        crimeCase,
+        location,
+        persons,
+      });
+
+      // ✅ Use the supabase from the hook
+      const result = await createCrimeCaseTransaction(
+        supabase,
+        crimeCase,
+        location,
+        persons,
+      );
+
+      // ✅ Fix the response handling
+      if (result && !result.error) {
+        console.log("Crime case created successfully:", result);
+        form.reset();
+        setStep(0);
+      } else {
+        console.error(
+          "Failed to create crime case:",
+          result?.error || "Unknown error",
+        );
+      }
     } catch (error) {
       console.error("Form submission error", error);
     }
   }
-
-  const [step, setStep] = useState(0);
 
   return (
     <Dialog>

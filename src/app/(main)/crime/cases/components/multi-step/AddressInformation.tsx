@@ -27,7 +27,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { barangays } from "@/constants/crime-case";
+import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ErrorMessage } from "@hookform/error-message";
@@ -37,16 +37,23 @@ const Map = dynamic(() => import("./Map"), {
 });
 
 type Barangay = {
-  label: string;
-  value: string;
+  id: number;
+  value:
+    | "Alabang"
+    | "Ayala Alabang"
+    | "Bayanan"
+    | "Buli"
+    | "Cupang"
+    | "Poblacion"
+    | "Putatan"
+    | "Sucat"
+    | "Tunasan";
 };
-
 export default function AddressInformation({
   form,
 }: {
   form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
 }) {
-  const barangayList = barangays.slice(1, barangays.length - 1);
   return (
     <div className="w-full p-4">
       <div className="mb-4">
@@ -79,10 +86,9 @@ export default function AddressInformation({
                     )}
                   >
                     {field.value
-                      ? barangayList?.find(
-                          (barangay: Barangay) =>
-                            barangay.label === field.value,
-                        )?.label
+                      ? BARANGAY_OPTIONS?.find(
+                          (barangay: Barangay) => barangay.id === field.value,
+                        )?.value
                       : "Select type"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>
@@ -94,23 +100,23 @@ export default function AddressInformation({
                   <CommandList>
                     <CommandEmpty>No type found.</CommandEmpty>
                     <CommandGroup>
-                      {barangayList?.map((barangay: Barangay) => (
+                      {BARANGAY_OPTIONS?.map((barangay) => (
                         <CommandItem
-                          value={barangay.label || undefined}
-                          key={barangay.label}
+                          value={barangay.value}
+                          key={barangay.id}
                           onSelect={() => {
-                            form.setValue("barangay", barangay.label || "");
+                            form.setValue("barangay", barangay.id);
                           }}
                         >
                           <Check
                             className={cn(
                               "mr-2 h-4 w-4",
-                              barangay?.label === field.value
+                              barangay?.id === field.value
                                 ? "opacity-100"
                                 : "opacity-0",
                             )}
                           />
-                          {barangay?.label}
+                          {barangay?.value}
                         </CommandItem>
                       ))}
                     </CommandGroup>
