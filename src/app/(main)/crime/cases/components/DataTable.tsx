@@ -45,6 +45,7 @@ import AddCrimeCase from "./AddCrimeCase";
 import useSupabaseBrowser from "@/lib/supabase/client";
 import { getCrimeTypes } from "@/lib/queries/crime-type";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { Toaster } from "react-hot-toast";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -131,6 +132,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="shadow-smdark:bg-[var(--dark-card)] overflow-hidden rounded-sm border p-4 dark:border-orange-900 dark:shadow-none">
+      <Toaster position="top-center" />
       <div className="flex flex-col items-start justify-between gap-4 py-4 sm:flex-row sm:items-center">
         {/* Search and Filter */}
         <div className="flex w-full flex-col gap-2 md:flex-row">

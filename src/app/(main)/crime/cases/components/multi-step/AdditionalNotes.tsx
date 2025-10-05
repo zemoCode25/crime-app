@@ -75,12 +75,6 @@ export default function AdditionalNotes({
           </FormItem>
         )}
       />
-
-      <div className="pt-4">
-        <MainButton type="submit" className="w-full">
-          Create Crime Case
-        </MainButton>
-      </div>
     </>
   );
 }
