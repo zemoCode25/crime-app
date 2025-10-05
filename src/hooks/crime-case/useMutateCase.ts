@@ -12,10 +12,10 @@ type CrimeCaseOperation = 'create' | 'update' | 'delete';
 
 interface CrimeCaseMutationData {
   operation: CrimeCaseOperation;
-  id?: number; // For update/delete
-  crimeCase?: CrimeCaseData;
-  location?: LocationData;
-  persons?: PersonData[];
+  id?: number;
+  crimeCase: CrimeCaseData;
+  location: LocationData;
+  persons: PersonData[];
 }
 
 export function CrimeCaseMutation(operation: CrimeCaseOperation = 'create') {
@@ -25,7 +25,7 @@ export function CrimeCaseMutation(operation: CrimeCaseOperation = 'create') {
   const operationConfig = {
     create: {
       mutationFn: async ({ crimeCase, location, persons }: CrimeCaseMutationData) => {
-        return createCrimeCaseTransaction(supabase, crimeCase!, location!, persons!);
+        return createCrimeCaseTransaction(supabase, crimeCase, location, persons);
       },
       loadingMessage: 'Creating crime case...',
       successMessage: 'Crime case created successfully!',
@@ -111,3 +111,7 @@ export function CrimeCaseMutation(operation: CrimeCaseOperation = 'create') {
     },
   });
 }
+
+export const useCreateCrimeCase = () => CrimeCaseMutation('create');
+export const useUpdateCrimeCase = () => CrimeCaseMutation('update');
+export const useDeleteCrimeCase = () => CrimeCaseMutation('delete');

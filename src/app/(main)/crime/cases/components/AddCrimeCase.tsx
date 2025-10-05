@@ -12,7 +12,7 @@ import StepNavigation from "./StepNavigation";
 import AddressInformation from "./multi-step/AddressInformation";
 import MainButton from "@/components/utils/MainButton";
 import { formSchema, type FormSchemaType } from "@/types/form-schema";
-import { CrimeCaseMutation } from "@/server/actions/mutateCrimeCase";
+import { CrimeCaseMutation } from "@/hooks/crime-case/useMutateCase";
 
 export default function MyForm() {
   const [step, setStep] = useState(0);

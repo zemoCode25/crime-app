@@ -38,7 +38,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronsUpDownIcon, CirclePlus, Plus } from "lucide-react";
+import { ChevronsUpDownIcon, CirclePlus } from "lucide-react";
 import { STATUSES } from "@/constants/crime-case";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -47,18 +47,19 @@ import useSupabaseBrowser from "@/server/supabase/client";
 import { getCrimeTypes } from "@/server/queries/crime-type";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { Toaster } from "react-hot-toast";
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+  data: TData[]; // ✅ Changed from initialData to data
 }
 
 export function DataTable<TData, TValue>({
   columns,
-  data,
+  data, // ✅ Direct data prop
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState<string>(""); // Added globalFilter state
+  const [globalFilter, setGlobalFilter] = useState<string>("");
   const [statusOpen, setStatusOpen] = useState(false);
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
   const [value, setValue] = useState("");
@@ -68,7 +69,7 @@ export function DataTable<TData, TValue>({
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
 
   const table = useReactTable<TData>({
-    data,
+    data, // ✅ Use data directly from props
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -86,8 +87,9 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="shadow-smdark:bg-[var(--dark-card)] overflow-hidden rounded-sm border p-4 dark:border-orange-900 dark:shadow-none">
+    <div className="overflow-hidden rounded-sm border p-4 shadow-sm dark:border-orange-900 dark:bg-[var(--dark-card)] dark:shadow-none">
       <Toaster position="top-center" />
+
       <div className="flex flex-col items-start justify-between gap-4 py-4 sm:flex-row sm:items-center">
         {/* Search and Filter */}
         <div className="flex w-full flex-col gap-2 md:flex-row">
@@ -128,7 +130,6 @@ export function DataTable<TData, TValue>({
                           key={status.value}
                           value={status.value}
                           onMouseDown={(e) => {
-                            // Prevent Radix from closing the popover on click
                             e.preventDefault();
                           }}
                         >
@@ -162,16 +163,15 @@ export function DataTable<TData, TValue>({
               </PopoverTrigger>
               <PopoverContent className="w-[200px] p-0">
                 <Command>
-                  <CommandInput placeholder={`Select status`} />
+                  <CommandInput placeholder={`Select type`} />
                   <CommandList>
-                    <CommandEmpty>No framework found.</CommandEmpty>
+                    <CommandEmpty>No crime type found.</CommandEmpty>
                     <CommandGroup>
                       {crimeTypes?.map((crimeType) => (
                         <CommandItem
                           key={crimeType.label}
                           value={crimeType.label || ""}
                           onMouseDown={(e) => {
-                            // Prevent Radix from closing the popover on click
                             e.preventDefault();
                           }}
                         >
@@ -190,6 +190,7 @@ export function DataTable<TData, TValue>({
         </div>
         <AddCrimeCase />
       </div>
+
       <div>
         <Table>
           <TableHeader>
@@ -245,6 +246,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           variant="outline"
