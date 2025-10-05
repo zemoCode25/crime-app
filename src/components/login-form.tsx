@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
-import { login } from "@/lib/queries/auth";
+import { login } from "@/server/queries/auth";
 
 export function LoginForm({
   className,
@@ -79,10 +79,10 @@ export function LoginForm({
             <Image
               src="/img/Bgy_Hall.jpg"
               alt="Sample"
-              className="w-full h-full object-cover rounded-lg"
+              className="h-full w-full rounded-lg object-cover"
               fill
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-orange-700/70 to-orange-200/20 dark:from-orange-900/100 dark:to-orange-500/20 rounded-lg"></div>
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-orange-700/70 to-orange-200/20 dark:from-orange-900/100 dark:to-orange-500/20"></div>
           </div>
         </CardContent>
       </Card>

@@ -30,8 +30,8 @@ import { STATUSES } from "@/constants/crime-case";
 import { formSchema, type FormSchemaType } from "@/types/form-schema";
 // tanstack
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
-import { getCrimeTypes } from "@/lib/queries/crime-type";
-import useSupabaseBrowser from "@/lib/supabase/client";
+import { getCrimeTypes } from "@/server/queries/crime-type";
+import useSupabaseBrowser from "@/server/supabase/client";
 import Calendar24 from "@/components/calendar-24";
 import { Input } from "@/components/ui/input";
 // Report Date

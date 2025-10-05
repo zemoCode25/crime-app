@@ -3,8 +3,8 @@ import {
   createCrimeCaseTransaction, 
   updateCrimeCaseTransaction,
   deleteCrimeCaseTransaction 
-} from '@/lib/queries/crime';
-import useSupabaseBrowser from '@/lib/supabase/client';
+} from '@/server/queries/crime';
+import useSupabaseBrowser from '@/server/supabase/client';
 import { CrimeCaseData, LocationData, PersonData } from '@/types/crime-case';
 import toast from 'react-hot-toast';
 
@@ -18,7 +18,7 @@ interface CrimeCaseMutationData {
   persons?: PersonData[];
 }
 
-export function useCrimeCaseMutation(operation: CrimeCaseOperation = 'create') {
+export function CrimeCaseMutation(operation: CrimeCaseOperation = 'create') {
   const supabase = useSupabaseBrowser();
   const queryClient = useQueryClient();
 
@@ -75,7 +75,7 @@ export function useCrimeCaseMutation(operation: CrimeCaseOperation = 'create') {
       // Invalidate queries based on operation
       queryClient.invalidateQueries({ queryKey: ['crime-cases'] });
       if (operation === 'update' || operation === 'delete') {
-        queryClient.invalidateQueries({ queryKey: ['crime-case', data.case_id] });
+        queryClient.invalidateQueries({ queryKey: ['crime-case'] });
       }
       
       console.log(`Crime case ${operation} successful:`, data);

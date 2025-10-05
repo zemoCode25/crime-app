@@ -12,14 +12,13 @@ import StepNavigation from "./StepNavigation";
 import AddressInformation from "./multi-step/AddressInformation";
 import MainButton from "@/components/utils/MainButton";
 import { formSchema, type FormSchemaType } from "@/types/form-schema";
-import { useCrimeCaseMutation } from "@/hooks/useCrimeCaseMutation";
-import toast, { Toaster } from "react-hot-toast";
+import { CrimeCaseMutation } from "@/server/actions/mutateCrimeCase";
 
 export default function MyForm() {
   const [step, setStep] = useState(0);
 
   // ✅ Use TanStack Query mutation instead of direct function call
-  const crimeCaseMutation = useCrimeCaseMutation();
+  const crimeCaseMutation = CrimeCaseMutation("create");
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
@@ -141,7 +140,6 @@ export default function MyForm() {
         </MainButton>
       </DialogTrigger>
       <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
-        <Toaster position="top-center" />
         <StepNavigation setStep={setStep} step={step} form={form} />
         <Form {...form}>
           <form

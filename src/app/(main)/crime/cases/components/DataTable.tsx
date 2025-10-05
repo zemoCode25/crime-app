@@ -43,8 +43,8 @@ import { STATUSES } from "@/constants/crime-case";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import AddCrimeCase from "./AddCrimeCase";
-import useSupabaseBrowser from "@/lib/supabase/client";
-import { getCrimeTypes } from "@/lib/queries/crime-type";
+import useSupabaseBrowser from "@/server/supabase/client";
+import { getCrimeTypes } from "@/server/queries/crime-type";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { Toaster } from "react-hot-toast";
 interface DataTableProps<TData, TValue> {
