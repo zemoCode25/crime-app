@@ -67,58 +67,8 @@ export default function MyForm() {
     name: "persons",
   });
 
-  // ✅ Enhanced validation function
-  async function validateAllSteps(): Promise<boolean> {
-    const isValid = await form.trigger(); // Trigger validation for all fields
-
-    if (!isValid) {
-      const errors = form.formState.errors;
-
-      // Find which step has errors and navigate to it
-      if (
-        errors.description ||
-        errors.crime_type ||
-        errors.case_status ||
-        errors.report_datetime ||
-        errors.incident_datetime
-      ) {
-        setStep(0);
-        toast.error("Please fix errors in Crime Information");
-        return false;
-      }
-
-      if (errors.persons) {
-        setStep(1);
-        toast.error("Please fix errors in Person Information");
-        return false;
-      }
-
-      if (
-        errors.barangay ||
-        errors.crime_location ||
-        errors.lat ||
-        errors.long
-      ) {
-        setStep(2);
-        toast.error("Please fix errors in Address Information");
-        return false;
-      }
-
-      toast.error("Please fix all form errors before submitting");
-      return false;
-    }
-
-    return true;
-  }
-
   async function onSubmit(values: FormSchemaType) {
     try {
-      // ✅ Validate all steps before submission
-      const isAllValid = await validateAllSteps();
-      if (!isAllValid) {
-        return;
-      }
-
       // ✅ Prepare data for mutation
       const crimeCase = {
         case_number: `CASE-${Date.now()}`,

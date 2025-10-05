@@ -39,6 +39,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ChevronsUpDownIcon, CirclePlus, Plus } from "lucide-react";
+import { STATUSES } from "@/constants/crime-case";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import AddCrimeCase from "./AddCrimeCase";
@@ -50,52 +51,6 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
-
-const statuses = [
-  {
-    value: "open",
-    label: "Open",
-  },
-  {
-    value: "under investigation",
-    label: "Under Investigation",
-  },
-  {
-    value: "case settled",
-    label: "Case Settled",
-  },
-  {
-    value: "lupon",
-    label: "Lupon",
-  },
-  {
-    value: "direct filing",
-    label: "Direct Filing",
-  },
-  {
-    value: "for record",
-    label: "For Record",
-  },
-  {
-    value: "turn over",
-    label: "Turn Over",
-  },
-];
-
-const crimeTypes = [
-  {
-    value: "theft",
-    label: "Theft",
-  },
-  {
-    value: "murder",
-    label: "Murder",
-  },
-  {
-    value: "assault",
-    label: "Assault",
-  },
-];
 
 export function DataTable<TData, TValue>({
   columns,
@@ -153,7 +108,7 @@ export function DataTable<TData, TValue>({
                   className="w-fit justify-between bg-transparent"
                 >
                   {value ? (
-                    statuses.find((status) => status.value === value)?.label
+                    STATUSES.find((status) => status.value === value)?.label
                   ) : (
                     <span className="flex items-center gap-1">
                       <CirclePlus /> <p>Status</p>
@@ -168,7 +123,7 @@ export function DataTable<TData, TValue>({
                   <CommandList>
                     <CommandEmpty>No framework found.</CommandEmpty>
                     <CommandGroup>
-                      {statuses.map((status) => (
+                      {STATUSES.map((status) => (
                         <CommandItem
                           key={status.value}
                           value={status.value}
