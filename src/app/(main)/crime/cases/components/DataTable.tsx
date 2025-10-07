@@ -38,71 +38,28 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronsUpDownIcon, CirclePlus, Plus } from "lucide-react";
+import { ChevronsUpDownIcon, CirclePlus } from "lucide-react";
+import { STATUSES } from "@/constants/crime-case";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import AddCrimeCase from "./AddCrimeCase";
-import useSupabaseBrowser from "@/lib/supabase/client";
-import { getCrimeTypes } from "@/lib/queries/crime-type";
+import useSupabaseBrowser from "@/server/supabase/client";
+import { getCrimeTypes } from "@/server/queries/crime-type";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { Toaster } from "react-hot-toast";
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+  data: TData[]; // ✅ Changed from initialData to data
 }
-
-const statuses = [
-  {
-    value: "open",
-    label: "Open",
-  },
-  {
-    value: "under investigation",
-    label: "Under Investigation",
-  },
-  {
-    value: "case settled",
-    label: "Case Settled",
-  },
-  {
-    value: "lupon",
-    label: "Lupon",
-  },
-  {
-    value: "direct filing",
-    label: "Direct Filing",
-  },
-  {
-    value: "for record",
-    label: "For Record",
-  },
-  {
-    value: "turn over",
-    label: "Turn Over",
-  },
-];
-
-const crimeTypes = [
-  {
-    value: "theft",
-    label: "Theft",
-  },
-  {
-    value: "murder",
-    label: "Murder",
-  },
-  {
-    value: "assault",
-    label: "Assault",
-  },
-];
 
 export function DataTable<TData, TValue>({
   columns,
-  data,
+  data, // ✅ Direct data prop
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState<string>(""); // Added globalFilter state
+  const [globalFilter, setGlobalFilter] = useState<string>("");
   const [statusOpen, setStatusOpen] = useState(false);
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
   const [value, setValue] = useState("");
@@ -112,7 +69,7 @@ export function DataTable<TData, TValue>({
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
 
   const table = useReactTable<TData>({
-    data,
+    data, // ✅ Use data directly from props
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -130,7 +87,9 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="shadow-smdark:bg-[var(--dark-card)] overflow-hidden rounded-sm border p-4 dark:border-orange-900 dark:shadow-none">
+    <div className="overflow-hidden rounded-sm border p-4 shadow-sm dark:border-orange-900 dark:bg-[var(--dark-card)] dark:shadow-none">
+      <Toaster position="top-center" />
+
       <div className="flex flex-col items-start justify-between gap-4 py-4 sm:flex-row sm:items-center">
         {/* Search and Filter */}
         <div className="flex w-full flex-col gap-2 md:flex-row">
@@ -151,7 +110,7 @@ export function DataTable<TData, TValue>({
                   className="w-fit justify-between bg-transparent"
                 >
                   {value ? (
-                    statuses.find((status) => status.value === value)?.label
+                    STATUSES.find((status) => status.value === value)?.label
                   ) : (
                     <span className="flex items-center gap-1">
                       <CirclePlus /> <p>Status</p>
@@ -166,12 +125,11 @@ export function DataTable<TData, TValue>({
                   <CommandList>
                     <CommandEmpty>No framework found.</CommandEmpty>
                     <CommandGroup>
-                      {statuses.map((status) => (
+                      {STATUSES.map((status) => (
                         <CommandItem
                           key={status.value}
                           value={status.value}
                           onMouseDown={(e) => {
-                            // Prevent Radix from closing the popover on click
                             e.preventDefault();
                           }}
                         >
@@ -205,16 +163,15 @@ export function DataTable<TData, TValue>({
               </PopoverTrigger>
               <PopoverContent className="w-[200px] p-0">
                 <Command>
-                  <CommandInput placeholder={`Select status`} />
+                  <CommandInput placeholder={`Select type`} />
                   <CommandList>
-                    <CommandEmpty>No framework found.</CommandEmpty>
+                    <CommandEmpty>No crime type found.</CommandEmpty>
                     <CommandGroup>
                       {crimeTypes?.map((crimeType) => (
                         <CommandItem
                           key={crimeType.label}
                           value={crimeType.label || ""}
                           onMouseDown={(e) => {
-                            // Prevent Radix from closing the popover on click
                             e.preventDefault();
                           }}
                         >
@@ -233,6 +190,7 @@ export function DataTable<TData, TValue>({
         </div>
         <AddCrimeCase />
       </div>
+
       <div>
         <Table>
           <TableHeader>
@@ -288,6 +246,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           variant="outline"

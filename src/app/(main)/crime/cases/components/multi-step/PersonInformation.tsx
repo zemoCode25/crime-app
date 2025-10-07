@@ -22,8 +22,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { sexes } from "@/constants/personal-information";
-import { civilStatus } from "@/constants/personal-information";
+import { SEXES } from "@/constants/personal-information";
+import { CIVIL_STATUSES } from "@/constants/personal-information";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
@@ -32,12 +32,12 @@ import { format } from "date-fns";
 import "react-phone-number-input/style.css";
 import { UseFieldArrayReturn, UseFormReturn } from "react-hook-form";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { personInvolvementList } from "@/constants/personal-information";
+import { CASE_ROLES } from "@/constants/personal-information";
 import { useEffect, useState } from "react";
 import Suspect from "./InvolvementForms/Suspect";
 import Complainant from "./InvolvementForms/Complainant";
 import Witness from "./InvolvementForms/Witness";
-import { FormSchemaType } from "../../../../../../types/crime-case";
+import { formSchema, type FormSchemaType } from "@/types/form-schema";
 import { X } from "lucide-react";
 // Combo box to select for suspect, complainant, witness
 // Button to add person information
@@ -46,38 +46,12 @@ import { X } from "lucide-react";
 // complainant (narrative, person-selection)
 // witness (testimony, person-selection)
 
-type TFormFieldArray = {
-  description: string;
-  crime_type: string;
-  case_status: string;
-  report_datetime: unknown;
-  incident_datetime: unknown;
-  persons: {
-    first_name: string;
-    last_name: string;
-    address: string;
-    civil_status: string;
-    contact_number: string;
-    sex: string;
-    birth_date: unknown;
-    case_role: string;
-    person_notified?: string | undefined;
-    related_contact?: string | undefined;
-    motive?: string | undefined;
-    weapon_used?: string | undefined;
-    narrative?: string | undefined;
-    testimony?: string | undefined;
-  }[];
-  investigator_notes?: string | undefined;
-  follow_up?: string | undefined;
-  remarks?: string | undefined;
-};
 export default function PersonInformation({
   form,
   formFieldArray,
 }: {
   form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
-  formFieldArray: UseFieldArrayReturn<TFormFieldArray, "persons", "id">;
+  formFieldArray: UseFieldArrayReturn<FormSchemaType, "persons", "id">;
 }) {
   const [involvement, setInvolvement] = useState<string>("complainant");
 
@@ -122,9 +96,8 @@ export default function PersonInformation({
                           )}
                         >
                           {field.value
-                            ? personInvolvementList.find(
-                                (personItem) =>
-                                  personItem.value === field.value,
+                            ? CASE_ROLES.find(
+                                (role) => role.value === field.value,
                               )?.label
                             : "Select involvement"}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -137,27 +110,27 @@ export default function PersonInformation({
                         <CommandList>
                           <CommandEmpty>No involvement found.</CommandEmpty>
                           <CommandGroup>
-                            {personInvolvementList.map((personItem) => (
+                            {CASE_ROLES?.map((role) => (
                               <CommandItem
-                                value={personItem.label}
-                                key={personItem.value}
+                                value={role.label}
+                                key={role.value}
                                 onSelect={() => {
-                                  setInvolvement(personItem.value);
+                                  setInvolvement(role.value);
                                   form.setValue(
                                     `persons.${index}.case_role`,
-                                    personItem.value,
+                                    role.value,
                                   );
                                 }}
                               >
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    personItem.value === field.value
+                                    role.value === field.value
                                       ? "opacity-100"
                                       : "opacity-0",
                                   )}
                                 />
-                                {personItem.label}
+                                {role.label}
                               </CommandItem>
                             ))}
                           </CommandGroup>
@@ -247,7 +220,7 @@ export default function PersonInformation({
                           )}
                         >
                           {field.value
-                            ? civilStatus.find(
+                            ? CIVIL_STATUSES.find(
                                 (status) => status.value === field.value,
                               )?.label
                             : "Select civil status"}
@@ -261,7 +234,7 @@ export default function PersonInformation({
                         <CommandList>
                           <CommandEmpty>No civil status found.</CommandEmpty>
                           <CommandGroup>
-                            {civilStatus.map((status) => (
+                            {CIVIL_STATUSES.map((status) => (
                               <CommandItem
                                 value={status.label}
                                 key={status.value}
@@ -331,7 +304,7 @@ export default function PersonInformation({
                           )}
                         >
                           {field.value
-                            ? sexes.find((sex) => sex.value === field.value)
+                            ? SEXES.find((sex) => sex.value === field.value)
                                 ?.label
                             : "Select sex"}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -344,7 +317,7 @@ export default function PersonInformation({
                         <CommandList>
                           <CommandEmpty>No sex found.</CommandEmpty>
                           <CommandGroup>
-                            {sexes.map((sex) => (
+                            {SEXES.map((sex) => (
                               <CommandItem
                                 value={sex.label}
                                 key={sex.value}
@@ -468,11 +441,11 @@ export default function PersonInformation({
             first_name: "",
             last_name: "",
             address: "",
-            civil_status: "",
+            civil_status: "single",
             contact_number: "",
-            sex: "",
+            sex: "male",
             birth_date: new Date(),
-            case_role: "",
+            case_role: "complainant",
           })
         }
       >

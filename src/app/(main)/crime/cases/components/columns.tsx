@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-
+import { CaseStatus } from "@/types/form-schema";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,68 +13,53 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type CrimeCaseItem = {
+// ✅ Update type to match what getTableCases actually returns
+type CrimeTableRow = {
   id: number;
-  crime_type: "murder" | "assault" | "robbery" | "homicide" | "fraud" | null;
-  case_status:
-    | "Open"
-    | "Under Investigation"
-    | "Case Settled"
-    | "Lupon"
-    | "Direct filing"
-    | "For Record"
-    | "Turn-over"
-    | null;
-  suspect: string;
-  complainant: string;
+  crime_type: number | null;
+  case_status: CaseStatus | null;
+  suspect: string; // ✅ Already processed as string
+  complainant: string; // ✅ Already processed as string
 };
 
-export const columns: ColumnDef<CrimeCaseItem>[] = [
+export const columns: ColumnDef<CrimeTableRow>[] = [
   {
-    accessorKey: "complainant",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="!p-0 text-left font-bold"
-      >
-        Complainant
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    accessorKey: "id",
+    header: "ID",
     cell: ({ row }) => {
-      const complainant = row.original.complainant;
-      return <div className="text-left font-medium">{complainant}</div>;
+      return <div className="font-medium">{row.getValue("id")}</div>;
     },
-    enableGlobalFilter: true,
-  },
-  {
-    accessorKey: "suspect",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="!p-0 text-left font-bold"
-      >
-        Suspect
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => {
-      const suspect = row.original.suspect;
-      return <div className="text-left font-medium">{suspect}</div>;
-    },
-    enableGlobalFilter: true,
   },
   {
     accessorKey: "crime_type",
-    header: "Type",
-    cell: ({ row }) => <span>{row.original.crime_type}</span>,
+    header: "Crime Type",
+    cell: ({ row }) => {
+      const crimeType = row.getValue("crime_type") as number | null;
+      // You might want to create a helper function to map crime type numbers to names
+      return <div>{crimeType || "Unknown"}</div>;
+    },
   },
   {
     accessorKey: "case_status",
     header: "Status",
-    cell: ({ row }) => <span>{row.original.case_status}</span>,
+    cell: ({ row }) => {
+      const status = row.getValue("case_status") as string | null;
+      return <div className="capitalize">{status || "Unknown"}</div>;
+    },
+  },
+  {
+    accessorKey: "complainant",
+    header: "Complainant",
+    cell: ({ row }) => {
+      return <div>{row.getValue("complainant")}</div>;
+    },
+  },
+  {
+    accessorKey: "suspect",
+    header: "Suspect",
+    cell: ({ row }) => {
+      return <div>{row.getValue("suspect")}</div>;
+    },
   },
   {
     id: "actions",

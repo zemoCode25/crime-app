@@ -1,73 +1,51 @@
-export type FormSchemaType = {
-  description: string;
-  crime_type: string;
-  case_status: string;
-  report_datetime: unknown;
-  incident_datetime: unknown;
-  investigator_notes?: string;
-  follow_up?: string;
-  remarks?: string;
-  persons: {
-    first_name: string;
-    last_name: string;
-    address: string;
-    civil_status: string;
-    contact_number: string;
-    sex: string;
-    birth_date: unknown;
-    person_notified?: string;
-    related_contact?: string;
-    case_role: string;
-    motive?: string;
-    weapon_used?: string;
-    narrative?: string;
-    testimony?: string;
-  }[];
-};
+import {CaseStatus} from "@/types/form-schema"
+import {Sex} from "@/types/form-schema"
+import {CivilStatus} from "@/types/form-schema"
+import {CaseRole} from "@/types/form-schema"
 
 export interface CrimeCaseData {
   case_number?: string;
-  crime_type?: "murder" | "assault" | "robbery" | "homicide" | "fraud";
-  case_status?: "Open" | "Under Investigation" | "Case Settled" | "Lupon" | "Direct filing" | "For Record" | "Turn-over";
-  description?: string;
-  incident_datetime?: string;
-  report_datetime?: string;
-  investigator?: string;
-  responder?: string;
-  investigator_notes?: string;
-  remarks?: string;
-  follow_up?: string;
+  crime_type: number; // ✅ Required field, remove optional
+  case_status: CaseStatus; // ✅ Required field, remove optional
+  description: string; // ✅ Required field, remove optional
+  incident_datetime: string; // ✅ Required field, remove optional
+  report_datetime: string; // ✅ Required field, remove optional
+  investigator: string | null; // ✅ Nullable instead of optional
+  responder: string | null; // ✅ Nullable instead of optional
+  investigator_notes: string | null; // ✅ Nullable instead of optional
+  remarks: string | null; // ✅ Nullable instead of optional
+  follow_up: string | null; // ✅ Nullable instead of optional
 }
 
 export interface LocationData {
-  barangay?: "poblacion" | "tunasan" | "putatan" | "bayanan" | "alabang" | "ayala alabang" | "buli" | "cupang" | "sucat";
-  crime_location?: string;
-  landmark?: string;
-  lat?: number;
-  long?: number;
-  pin?: number;
+  barangay: number; // ✅ Required field, remove optional
+  crime_location: string; // ✅ Required field, remove optional
+  landmark: string | null; // ✅ Nullable instead of optional
+  lat: number; // ✅ Required field, remove optional
+  long: number; // ✅ Required field, remove optional
+  pin: number | null; // ✅ Nullable instead of optional
 }
 
 export interface PersonData {
-  // Person profile fields
-  first_name?: string;
-  last_name?: string;
-  birth_date?: string;
-  sex?: "male" | "female";
-  civil_status?: "single" | "married" | "widowed" | "divorced" | "legally separated" | "annulled";
-  address?: string;
-  contact_number?: string;
-  person_notified?: string;
-  related_contact?: string;
+  // Person profile fields (required)
+  first_name: string; // ✅ Required field, remove optional
+  last_name: string; // ✅ Required field, remove optional
+  birth_date: Date; // ✅ Required field, use Date for consistency
+  sex: Sex; // ✅ Required field, remove optional
+  civil_status: CivilStatus; // ✅ Required field, remove optional
+  address: string; // ✅ Required field, remove optional
+  contact_number: string; // ✅ Required field, remove optional
+  case_role: CaseRole; // ✅ Required field
   
-  // Case involvement
-  case_role: "suspect" | "complainant" | "witness";
+  // Optional fields (nullable)
+  person_notified: string | null; // ✅ Nullable instead of optional
+  related_contact: string | null; // ✅ Nullable instead of optional
   
-  // Role-specific fields
-  motive?: string; // for suspects
-  weapon_used?: string; // for suspects
-  narrative?: string; // for complainants
-  testimony?: string; // for witnesses
+  // Role-specific fields (nullable)
+  motive: string | null; // ✅ for suspects
+  weapon_used: string | null; // ✅ for suspects
+  narrative: string | null; // ✅ for complainants
+  testimony: string | null; // ✅ for witnesses
 }
 
 export interface CrimeCaseTransactionResult {

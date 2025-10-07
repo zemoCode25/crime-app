@@ -2,8 +2,6 @@
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Form } from "@/components/ui/form";
 import CrimeForm from "./multi-step/CrimeForm";
@@ -13,66 +11,47 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import StepNavigation from "./StepNavigation";
 import AddressInformation from "./multi-step/AddressInformation";
 import MainButton from "@/components/utils/MainButton";
+import { formSchema, type FormSchemaType } from "@/types/form-schema";
+import { CrimeCaseMutation } from "@/hooks/crime-case/useMutateCase";
 
 export default function MyForm() {
-  const personSchema = z.object({
-    first_name: z.string().min(1, "First name is required"),
-    last_name: z.string().min(1, "Last name is required"),
-    address: z.string().min(1, "Address is required"),
-    civil_status: z.string().min(1, "Civil status is required"),
-    contact_number: z
-      .string()
-      .max(12, "Contact number must be at most 12 characters"),
-    sex: z.string().min(1, "Sex is required"),
-    birth_date: z.coerce.date(),
-    person_notified: z.string().optional(),
-    related_contact: z.string().max(12).optional(),
-    case_role: z.string().min(1, "Involvement is required"),
-    motive: z.string().optional(),
-    weapon_used: z.string().optional(),
-    narrative: z.string().optional(),
-    testimony: z.string().optional(),
-  });
+  const [step, setStep] = useState(0);
 
-  const formSchema = z.object({
-    description: z.string(),
-    crime_type: z.string().min(1, "Crime type is required"),
-    case_status: z.string().min(1, "Case status is required"),
-    report_datetime: z.preprocess((val) => new Date(val as string), z.date()),
-    incident_datetime: z.preprocess((val) => new Date(val as string), z.date()),
-    investigator_notes: z.string().optional(),
-    follow_up: z.string().optional(),
-    remarks: z.string().optional(),
-    persons: z.array(personSchema),
-  });
+  // ✅ Use TanStack Query mutation instead of direct function call
+  const crimeCaseMutation = CrimeCaseMutation("create");
 
-  const form = useForm<
-    z.input<typeof formSchema>,
-    any,
-    z.output<typeof formSchema>
-  >({
+  const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
-      report_datetime: new Date(),
-      incident_datetime: new Date(),
+      report_datetime: new Date().toISOString(),
+      incident_datetime: new Date().toISOString(),
       description: "",
-      crime_type: "",
-      case_status: "",
+      crime_type: 1,
+      case_status: "under investigation",
       investigator_notes: "",
       follow_up: "",
       remarks: "",
+      investigator: "",
+      responder: "",
+      barangay: 1,
+      crime_location: "",
+      landmark: "",
+      pin: undefined,
+      lat: 0,
+      long: 0,
       persons: [
         {
           first_name: "",
           last_name: "",
           address: "",
-          civil_status: "",
+          civil_status: "single",
           contact_number: "",
-          sex: "",
+          sex: "male",
           birth_date: new Date(),
           person_notified: "",
           related_contact: "",
-          case_role: "",
+          case_role: "complainant",
           motive: "",
           weapon_used: "",
           narrative: "",
@@ -87,15 +66,70 @@ export default function MyForm() {
     name: "persons",
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: FormSchemaType) {
     try {
-      console.log(values);
+      // ✅ Prepare data for mutation
+      const crimeCase = {
+        case_number: `CASE-${Date.now()}`,
+        crime_type: values.crime_type,
+        case_status: values.case_status,
+        description: values.description,
+        incident_datetime: values.incident_datetime,
+        report_datetime: values.report_datetime,
+        investigator: values.investigator?.trim() || null,
+        responder: values.responder?.trim() || null,
+        investigator_notes: values.investigator_notes?.trim() || null,
+        remarks: values.remarks?.trim() || null,
+        follow_up: values.follow_up?.trim() || null,
+      };
+
+      const location = {
+        barangay: values.barangay,
+        crime_location: values.crime_location,
+        landmark: values.landmark?.trim() || null,
+        pin: values.pin || null,
+        lat: values.lat,
+        long: values.long,
+      };
+
+      const persons = values.persons.map((person) => ({
+        first_name: person.first_name,
+        last_name: person.last_name,
+        birth_date: person.birth_date,
+        sex: person.sex,
+        civil_status: person.civil_status,
+        address: person.address,
+        contact_number: person.contact_number,
+        case_role: person.case_role,
+        person_notified: person.person_notified?.trim() || null,
+        related_contact: person.related_contact?.trim() || null,
+        motive: person.motive?.trim() || null,
+        weapon_used: person.weapon_used?.trim() || null,
+        narrative: person.narrative?.trim() || null,
+        testimony: person.testimony?.trim() || null,
+      }));
+
+      console.log("Submitting form with values:", {
+        crimeCase,
+        location,
+        persons,
+      });
+
+      // ✅ Trigger the mutation
+      await crimeCaseMutation.mutateAsync({
+        crimeCase,
+        location,
+        persons,
+      });
+
+      // ✅ Reset form on success (mutation handles toast notifications)
+      form.reset();
+      setStep(0);
     } catch (error) {
+      // ✅ Error handling is managed by the mutation hook
       console.error("Form submission error", error);
     }
   }
-
-  const [step, setStep] = useState(0);
 
   return (
     <Dialog>
@@ -106,7 +140,7 @@ export default function MyForm() {
         </MainButton>
       </DialogTrigger>
       <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
-        <StepNavigation setStep={setStep} step={step} />
+        <StepNavigation setStep={setStep} step={step} form={form} />
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -116,8 +150,23 @@ export default function MyForm() {
             {step === 1 && (
               <PersonInformation form={form} formFieldArray={formFieldArray} />
             )}
-            {step === 2 && <AddressInformation />}
+            {step === 2 && <AddressInformation form={form} />}
             {step === 3 && <AdditionalNotes form={form} />}
+
+            {/* ✅ Submit button for last step */}
+            {step === 3 && (
+              <div className="pt-4">
+                <MainButton
+                  type="submit"
+                  className="w-full"
+                  disabled={crimeCaseMutation.isPending} // ✅ Use mutation loading state
+                >
+                  {crimeCaseMutation.isPending
+                    ? "Creating..."
+                    : "Create Crime Case"}
+                </MainButton>
+              </div>
+            )}
           </form>
         </Form>
       </DialogContent>

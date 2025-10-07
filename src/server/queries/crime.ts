@@ -1,6 +1,5 @@
-"use server";
 import { TypedSupabaseClient } from "@/types/supabase-client";
-import { CrimeCaseData, LocationData, PersonData, CrimeCaseTransactionResult } from "@/types/crime-case";
+import { CrimeCaseData, LocationData, PersonData } from "@/types/crime-case";
 
 export async function getTableCrimeCases(client: TypedSupabaseClient) {
   return client
@@ -32,5 +31,29 @@ export async function createCrimeCaseTransaction(
     case_data: JSON.parse(JSON.stringify(caseData)),
     location_data: JSON.parse(JSON.stringify(locationData)),
     persons_data: JSON.parse(JSON.stringify(personsData))
+  });
+}
+
+export async function updateCrimeCaseTransaction(
+  client: TypedSupabaseClient,
+  caseId: number,
+  caseData: CrimeCaseData,
+  locationData: LocationData,
+  personsData: PersonData[]
+) {
+  return client.rpc('update_crime_case_transaction', {
+    case_id: caseId,
+    case_data: JSON.parse(JSON.stringify(caseData)),
+    location_data: JSON.parse(JSON.stringify(locationData)),
+    persons_data: JSON.parse(JSON.stringify(personsData))
+  });
+}
+
+export async function deleteCrimeCaseTransaction(
+  client: TypedSupabaseClient,
+  caseId: number
+) {
+  return client.rpc('delete_crime_case_transaction', {
+    case_id: caseId
   });
 }
