@@ -98,6 +98,7 @@ export type Database = {
           remarks: string | null
           report_datetime: string | null
           responder: string | null
+          visibility: Database["public"]["Enums"]["visibility"] | null
         }
         Insert: {
           case_number?: string | null
@@ -114,6 +115,7 @@ export type Database = {
           remarks?: string | null
           report_datetime?: string | null
           responder?: string | null
+          visibility?: Database["public"]["Enums"]["visibility"] | null
         }
         Update: {
           case_number?: string | null
@@ -130,6 +132,7 @@ export type Database = {
           remarks?: string | null
           report_datetime?: string | null
           responder?: string | null
+          visibility?: Database["public"]["Enums"]["visibility"] | null
         }
         Relationships: [
           {
@@ -382,6 +385,7 @@ export type Database = {
         | "direct filing"
         | "for record"
         | "turn-over"
+      visibility: "public" | "private"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -540,6 +544,7 @@ export const Constants = {
         "for record",
         "turn-over",
       ],
+      visibility: ["public", "private"],
     },
   },
 } as const
