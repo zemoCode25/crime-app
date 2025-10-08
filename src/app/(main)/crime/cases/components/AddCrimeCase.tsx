@@ -13,6 +13,7 @@ import AddressInformation from "./multi-step/AddressInformation";
 import MainButton from "@/components/utils/MainButton";
 import { formSchema, type FormSchemaType } from "@/types/form-schema";
 import { CrimeCaseMutation } from "@/hooks/crime-case/useMutateCase";
+import { defaultValues } from "@/lib/crime-case";
 
 export default function MyForm() {
   const [step, setStep] = useState(0);
@@ -23,43 +24,7 @@ export default function MyForm() {
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     mode: "onChange",
-    defaultValues: {
-      report_datetime: new Date().toISOString(),
-      incident_datetime: new Date().toISOString(),
-      description: "",
-      crime_type: 1,
-      case_status: "under investigation",
-      investigator_notes: "",
-      follow_up: "",
-      remarks: "",
-      investigator: "",
-      responder: "",
-      barangay: 1,
-      visibility: "private",
-      crime_location: "",
-      landmark: "",
-      pin: undefined,
-      lat: 0,
-      long: 0,
-      persons: [
-        {
-          first_name: "",
-          last_name: "",
-          address: "",
-          civil_status: "single",
-          contact_number: "",
-          sex: "male",
-          birth_date: new Date(),
-          person_notified: "",
-          related_contact: "",
-          case_role: "complainant",
-          motive: "",
-          weapon_used: "",
-          narrative: "",
-          testimony: "",
-        },
-      ],
-    },
+    defaultValues: defaultValues,
   });
 
   const formFieldArray = useFieldArray({

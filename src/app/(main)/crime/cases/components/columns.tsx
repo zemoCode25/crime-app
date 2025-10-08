@@ -27,7 +27,7 @@ export const columns: ColumnDef<CrimeTableRow>[] = [
     accessorKey: "id",
     header: "ID",
     cell: ({ row }) => {
-      return <div className="font-medium">{row.getValue("id")}</div>;
+      return <div className="font-medium">{`CASE-${row.getValue("id")}`}</div>;
     },
   },
   {
