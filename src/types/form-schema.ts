@@ -78,7 +78,7 @@ export const personDataSchema = z.object({
   sex: SexEnum,
   birth_date: z.date("Invalid date format"),
   person_notified: z.string().optional(),
-  related_contact: z.string().max(12).optional(),
+  related_contact: z.string().max(15).optional(),
   case_role: CaseRoleEnum,
   motive: z.string().optional(),
   weapon_used: z.string().optional(),
