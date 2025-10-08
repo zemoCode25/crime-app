@@ -25,10 +25,9 @@ import { Input } from "@/components/ui/input";
 import { SEXES } from "@/constants/personal-information";
 import { CIVIL_STATUSES } from "@/constants/personal-information";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
+import { Check, ChevronsUpDown } from "lucide-react";
+import Calendar22 from "@/components/calendar-22";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import "react-phone-number-input/style.css";
 import { UseFieldArrayReturn, UseFormReturn } from "react-hook-form";
 import { PhoneInput } from "@/components/ui/phone-input";
@@ -354,36 +353,18 @@ export default function PersonInformation({
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Date of birth</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[240px] pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {field.value instanceof Date &&
-                          !isNaN(field.value.getTime()) ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={
-                          field.value instanceof Date ? field.value : undefined
-                        }
-                        onSelect={field.onChange}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <FormControl>
+                    <Calendar22
+                      value={
+                        field.value instanceof Date ? field.value : undefined
+                      }
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      placeholder="Pick a date"
+                      className="w-[100px] text-left"
+                    />
+                  </FormControl>
                   <FormDescription>
                     Your date of birth is used to calculate your age.
                   </FormDescription>
