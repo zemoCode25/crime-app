@@ -33,6 +33,8 @@ export default function Calendar22({
 }: Calendar22Props) {
   const [open, setOpen] = React.useState(false);
 
+  console.log("Calendar22 value:", typeof value);
+
   const handleDateSelect = (date: Date | undefined) => {
     onChange?.(date);
     setOpen(false);

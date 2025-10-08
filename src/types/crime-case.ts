@@ -9,8 +9,8 @@ export interface CrimeCaseData {
   crime_type: number; // ✅ Required field, remove optional
   case_status: CaseStatus; // ✅ Required field, remove optional
   description: string; // ✅ Required field, remove optional
-  incident_datetime: string; // ✅ Required field, remove optional
-  report_datetime: string; // ✅ Required field, remove optional
+  incident_datetime: Date; // ✅ Required field, remove optional
+  report_datetime: Date; // ✅ Required field, remove optional
   investigator: string | null; // ✅ Nullable instead of optional
   responder: string | null; // ✅ Nullable instead of optional
   investigator_notes: string | null; // ✅ Nullable instead of optional
