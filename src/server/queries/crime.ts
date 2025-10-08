@@ -21,6 +21,29 @@ export async function getTableCrimeCases(client: TypedSupabaseClient) {
     .order("id", { ascending: true });
 }
 
+export async function getCrimeCaseById(
+  client: TypedSupabaseClient,
+  caseId: number
+) {
+  return client
+    .from("crime_case")
+    .select(
+      `
+      id,
+      crime_type,
+      case_status,
+      case_person (
+        case_role,
+        person_profile ( 
+          first_name, 
+          last_name 
+        )
+      )
+      `
+    ).eq("id", caseId)
+  }
+      
+
 export async function createCrimeCaseTransaction(
   client: TypedSupabaseClient,
   caseData: CrimeCaseData,
@@ -57,3 +80,4 @@ export async function deleteCrimeCaseTransaction(
     case_id: caseId
   });
 }
+

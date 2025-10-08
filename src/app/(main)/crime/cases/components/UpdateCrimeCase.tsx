@@ -1,272 +1,134 @@
 "use client";
-
 import { useState } from "react";
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  SortingState,
-  useReactTable,
-  getSortedRowModel,
-  getPaginationRowModel,
-  ColumnFiltersState,
-  getFilteredRowModel,
-} from "@tanstack/react-table";
+import { useFieldArray, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus } from "lucide-react";
+import { Form } from "@/components/ui/form";
+import CrimeForm from "./multi-step/CrimeForm";
+import PersonInformation from "./multi-step/PersonInformation";
+import AdditionalNotes from "./multi-step/AdditionalNotes";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import StepNavigation from "./StepNavigation";
+import AddressInformation from "./multi-step/AddressInformation";
+import MainButton from "@/components/utils/MainButton";
+import { formSchema, type FormSchemaType } from "@/types/form-schema";
+import { CrimeCaseMutation } from "@/hooks/crime-case/useMutateCase";
+import { defaultValues } from "@/lib/crime-case";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
+  const [step, setStep] = useState(0);
 
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { ChevronsUpDownIcon, CirclePlus } from "lucide-react";
-import { STATUSES } from "@/constants/crime-case";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import AddCrimeCase from "./AddCrimeCase";
-import useSupabaseBrowser from "@/server/supabase/client";
-import { getCrimeTypes } from "@/server/queries/crime-type";
-import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
-import { Toaster } from "react-hot-toast";
-import { CrimeTableRow } from "@/app/(main)/crime/cases/components/columns"; // Import your type
+  // ✅ Use TanStack Query mutation instead of direct function call
+  const crimeCaseMutation = CrimeCaseMutation("update");
 
-// ✅ Use specific type instead of generic
-interface DataTableProps {
-  columns: ColumnDef<CrimeTableRow, any>[];
-  data: CrimeTableRow[];
-}
-
-export function DataTable({ columns, data }: DataTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState<string>("");
-  const [statusOpen, setStatusOpen] = useState(false);
-  const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
-  const [value, setValue] = useState("");
-
-  const supabase = useSupabaseBrowser();
-
-  const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
-
-  const table = useReactTable<CrimeTableRow>({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    state: {
-      sorting,
-      columnFilters,
-      globalFilter,
-    },
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: "includesString",
+  const form = useForm<FormSchemaType>({
+    resolver: zodResolver(formSchema),
+    mode: "onChange",
+    defaultValues: defaultValues,
   });
 
+  const formFieldArray = useFieldArray({
+    control: form.control,
+    name: "persons",
+  });
+
+  async function onSubmit(values: FormSchemaType) {
+    try {
+      // ✅ Prepare data for mutation
+      const crimeCase = {
+        case_number: `CASE-${Date.now()}`,
+        crime_type: values.crime_type,
+        case_status: values.case_status,
+        description: values.description,
+        incident_datetime: values.incident_datetime,
+        report_datetime: values.report_datetime,
+        investigator: values.investigator?.trim() || null,
+        responder: values.responder?.trim() || null,
+        investigator_notes: values.investigator_notes?.trim() || null,
+        remarks: values.remarks?.trim() || null,
+        follow_up: values.follow_up?.trim() || null,
+        visibility: values.visibility,
+      };
+
+      const location = {
+        barangay: values.barangay,
+        crime_location: values.crime_location,
+        landmark: values.landmark?.trim() || null,
+        pin: values.pin || null,
+        lat: values.lat,
+        long: values.long,
+      };
+
+      const persons = values.persons.map((person) => ({
+        first_name: person.first_name,
+        last_name: person.last_name,
+        birth_date: person.birth_date,
+        sex: person.sex,
+        civil_status: person.civil_status,
+        address: person.address,
+        contact_number: person.contact_number,
+        case_role: person.case_role,
+        person_notified: person.person_notified?.trim() || null,
+        related_contact: person.related_contact?.trim() || null,
+        motive: person.motive?.trim() || null,
+        weapon_used: person.weapon_used?.trim() || null,
+        narrative: person.narrative?.trim() || null,
+        testimony: person.testimony?.trim() || null,
+      }));
+
+      console.log("Submitting form with values:", {
+        crimeCase,
+        location,
+        persons,
+      });
+
+      // ✅ Trigger the mutation
+      await crimeCaseMutation.mutateAsync({
+        crimeCase,
+        location,
+        persons,
+      });
+
+      // ✅ Reset form on success (mutation handles toast notifications)
+      form.reset();
+      setStep(0);
+    } catch (error) {
+      // ✅ Error handling is managed by the mutation hook
+      console.error("Form submission error", error);
+    }
+  }
+
   return (
-    <div className="overflow-hidden rounded-sm border p-4 shadow-sm dark:border-orange-900 dark:bg-[var(--dark-card)] dark:shadow-none">
-      <Toaster position="top-center" />
-
-      <div className="-between flex flex-col items-start gap-4 py-4 sm:flex-row sm:items-center">
-        {/* Search and Filter */}
-        <div className="flex w-full flex-col gap-2 md:flex-row">
-          <Input
-            placeholder="Search person..."
-            value={globalFilter ?? ""}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            className="w-full sm:max-w-[17rem]"
-          />
-          {/* filter status and types */}
-          <div className="flex gap-2">
-            <Popover open={statusOpen} onOpenChange={setStatusOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={statusOpen}
-                  className="w-fit justify-between bg-transparent"
-                >
-                  {value ? (
-                    STATUSES.find((status) => status.value === value)?.label
-                  ) : (
-                    <span className="flex items-center gap-1">
-                      <CirclePlus /> <p>Status</p>
-                    </span>
-                  )}
-                  <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[200px] p-0">
-                <Command>
-                  <CommandInput placeholder={`Select status`} />
-                  <CommandList>
-                    <CommandEmpty>No framework found.</CommandEmpty>
-                    <CommandGroup>
-                      {STATUSES.map((status) => (
-                        <CommandItem
-                          key={status.value}
-                          value={status.value}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                          }}
-                        >
-                          <Checkbox id={status.value} />
-                          <Label htmlFor={status.value}>{status.label}</Label>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            <Popover open={crimeTypeOpen} onOpenChange={setCrimeTypeOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={crimeTypeOpen}
-                  className="w-fit justify-between bg-transparent"
-                >
-                  {value ? (
-                    crimeTypes?.find((crimeType) => crimeType.label === value)
-                      ?.label
-                  ) : (
-                    <span className="flex items-center gap-1">
-                      <CirclePlus /> <p>Type</p>
-                    </span>
-                  )}
-                  <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[200px] p-0">
-                <Command>
-                  <CommandInput placeholder={`Select type`} />
-                  <CommandList>
-                    <CommandEmpty>No crime type found.</CommandEmpty>
-                    <CommandGroup>
-                      {crimeTypes?.map((crimeType) => (
-                        <CommandItem
-                          key={crimeType.label}
-                          value={crimeType.label || ""}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                          }}
-                        >
-                          <Checkbox id={crimeType?.label || ""} />
-                          <Label htmlFor={crimeType?.label || ""}>
-                            {crimeType?.label}
-                          </Label>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
-        </div>
-        <AddCrimeCase />
-      </div>
-
-      <div>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <Dialog key={row.id}>
-                  <DialogTrigger asChild>
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                      className="cursor-pointer hover:bg-neutral-200/50"
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </DialogTrigger>
-
-                  {/* ✅ TypeScript knows this is CrimeTableRow with id property */}
-                  <UpdateCrimeCase caseId={row.original.id} />
-                </Dialog>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
+    <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
+      <StepNavigation setStep={setStep} step={step} form={form} />
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="mx-auto w-fit space-y-5 py-4"
         >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
+          {step === 0 && <CrimeForm form={form} />}
+          {step === 1 && (
+            <PersonInformation form={form} formFieldArray={formFieldArray} />
+          )}
+          {step === 2 && <AddressInformation form={form} />}
+          {step === 3 && <AdditionalNotes form={form} />}
+
+          {/* ✅ Submit button for last step */}
+          {step === 3 && (
+            <div className="pt-4">
+              <MainButton
+                type="submit"
+                className="w-full"
+                disabled={crimeCaseMutation.isPending} // ✅ Use mutation loading state
+              >
+                {crimeCaseMutation.isPending
+                  ? "Creating..."
+                  : "Create Crime Case"}
+              </MainButton>
+            </div>
+          )}
+        </form>
+      </Form>
+    </DialogContent>
   );
 }
