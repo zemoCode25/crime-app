@@ -47,16 +47,16 @@ import useSupabaseBrowser from "@/server/supabase/client";
 import { getCrimeTypes } from "@/server/queries/crime-type";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { Toaster } from "react-hot-toast";
+import UpdateCrimeCase from "./UpdateCrimeCase";
+import { CrimeTableRow } from "@/app/(main)/crime/cases/components/columns"; // Import your type
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[]; // ✅ Changed from initialData to data
+// ✅ Use specific type instead of generic
+interface DataTableProps {
+  columns: ColumnDef<CrimeTableRow, any>[];
+  data: CrimeTableRow[];
 }
 
-export function DataTable<TData, TValue>({
-  columns,
-  data, // ✅ Direct data prop
-}: DataTableProps<TData, TValue>) {
+export function DataTable({ columns, data }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState<string>("");
@@ -68,8 +68,8 @@ export function DataTable<TData, TValue>({
 
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
 
-  const table = useReactTable<TData>({
-    data, // ✅ Use data directly from props
+  const table = useReactTable<CrimeTableRow>({
+    data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -90,7 +90,7 @@ export function DataTable<TData, TValue>({
     <div className="overflow-hidden rounded-sm border p-4 shadow-sm dark:border-orange-900 dark:bg-[var(--dark-card)] dark:shadow-none">
       <Toaster position="top-center" />
 
-      <div className="flex flex-col items-start justify-between gap-4 py-4 sm:flex-row sm:items-center">
+      <div className="-between flex flex-col items-start gap-4 py-4 sm:flex-row sm:items-center">
         {/* Search and Filter */}
         <div className="flex w-full flex-col gap-2 md:flex-row">
           <Input
@@ -231,6 +231,9 @@ export function DataTable<TData, TValue>({
                       ))}
                     </TableRow>
                   </DialogTrigger>
+
+                  {/* ✅ TypeScript knows this is CrimeTableRow with id property */}
+                  <UpdateCrimeCase caseId={row.original.id} />
                 </Dialog>
               ))
             ) : (
