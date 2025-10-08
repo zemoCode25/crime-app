@@ -53,13 +53,12 @@ export default function PersonInformation({
   form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
   formFieldArray: UseFieldArrayReturn<FormSchemaType, "persons", "id">;
 }) {
-  const [involvement, setInvolvement] = useState<string>("complainant");
-
   const { fields, append, remove } = formFieldArray;
 
   return (
     <div className="flex flex-col gap-4">
       {fields.map((field, index) => {
+        const currentRole = form.watch(`persons.${index}.case_role`);
         return (
           <div key={field.id} className="flex flex-col gap-3">
             <div className="flex w-full items-center justify-between">
@@ -115,7 +114,6 @@ export default function PersonInformation({
                                 value={role.label}
                                 key={role.value}
                                 onSelect={() => {
-                                  setInvolvement(role.value);
                                   form.setValue(
                                     `persons.${index}.case_role`,
                                     role.value,
@@ -196,11 +194,11 @@ export default function PersonInformation({
               )}
             />
 
-            {involvement === "suspect" && <Suspect form={form} index={index} />}
-            {involvement === "complainant" && (
+            {currentRole === "suspect" && <Suspect form={form} index={index} />}
+            {currentRole === "complainant" && (
               <Complainant form={form} index={index} />
             )}
-            {involvement === "witness" && <Witness form={form} index={index} />}
+            {currentRole === "witness" && <Witness form={form} index={index} />}
 
             <FormField
               control={form.control}
@@ -446,6 +444,12 @@ export default function PersonInformation({
             sex: "male",
             birth_date: new Date(),
             case_role: "complainant",
+            motive: "",
+            weapon_used: "",
+            narrative: "",
+            testimony: "",
+            person_notified: "",
+            related_contact: "",
           })
         }
       >

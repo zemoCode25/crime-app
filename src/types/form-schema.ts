@@ -34,6 +34,10 @@ export const CaseRoleEnum = z.enum([
   error: () => "Case role field is required",
 });
 
+export const VisibilityEnum = z.enum(["public", "private"], {
+  error: () => "Visibility field is required",
+});
+
 // ===== SCHEMAS =====
 
 // Crime Case Schema
@@ -48,6 +52,7 @@ export const caseDataSchema = z.object({
   investigator_notes: z.string().optional(),
   follow_up: z.string().optional(),
   remarks: z.string().optional(),
+  visibility: VisibilityEnum,
 });
 
 // Location Schema
@@ -73,7 +78,7 @@ export const personDataSchema = z.object({
   sex: SexEnum,
   birth_date: z.date("Invalid date format"),
   person_notified: z.string().optional(),
-  related_contact: z.string().max(12).optional(),
+  related_contact: z.string().max(15).optional(),
   case_role: CaseRoleEnum,
   motive: z.string().optional(),
   weapon_used: z.string().optional(),
@@ -98,3 +103,4 @@ export type CaseStatus = z.infer<typeof CaseStatusEnum>;
 export type Sex = z.infer<typeof SexEnum>;
 export type CivilStatus = z.infer<typeof CivilStatusEnum>;
 export type CaseRole = z.infer<typeof CaseRoleEnum>;
+export type Visibility = z.infer<typeof VisibilityEnum>;

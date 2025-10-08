@@ -35,6 +35,7 @@ export default function MyForm() {
       investigator: "",
       responder: "",
       barangay: 1,
+      visibility: "private",
       crime_location: "",
       landmark: "",
       pin: undefined,
@@ -81,6 +82,7 @@ export default function MyForm() {
         investigator_notes: values.investigator_notes?.trim() || null,
         remarks: values.remarks?.trim() || null,
         follow_up: values.follow_up?.trim() || null,
+        visibility: values.visibility,
       };
 
       const location = {
