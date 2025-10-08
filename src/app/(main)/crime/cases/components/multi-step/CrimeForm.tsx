@@ -34,11 +34,8 @@ import { getCrimeTypes } from "@/server/queries/crime-type";
 import useSupabaseBrowser from "@/server/supabase/client";
 import Calendar24 from "@/components/calendar-24";
 import { Input } from "@/components/ui/input";
-// Report Date
-// Incident Date
-// Status
-// Type
-// Description
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface CaseStatus {
   value: string;
@@ -140,6 +137,35 @@ export default function CrimeForm({
           );
         }}
       />
+
+      <FormField
+        control={form.control}
+        name="visibility"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Incident Date</FormLabel>
+            <FormControl>
+              <RadioGroup
+                value={field.value}
+                onValueChange={field.onChange}
+                aria-label="Case visibility"
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="private" id="private" />
+                  <Label htmlFor="private">Private</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="public" id="public" />
+                  <Label htmlFor="public">Public</Label>
+                </div>
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
       <FormField
         control={form.control}
         name="case_status"
@@ -148,23 +174,21 @@ export default function CrimeForm({
             <FormLabel>Status</FormLabel>
             <Popover>
               <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className={cn(
-                      "w-[200px] justify-between",
-                      !field.value && "text-muted-foreground",
-                    )}
-                  >
-                    {field.value
-                      ? STATUSES.find(
-                          (status: CaseStatus) => status.value === field.value,
-                        )?.label
-                      : "Select status"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </FormControl>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className={cn(
+                    "w-[200px] justify-between",
+                    !field.value && "text-muted-foreground",
+                  )}
+                >
+                  {field.value
+                    ? STATUSES.find(
+                        (status: CaseStatus) => status.value === field.value,
+                      )?.label
+                    : "Select status"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[200px] p-0">
                 <Command>

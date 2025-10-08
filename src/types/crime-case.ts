@@ -46,8 +46,8 @@ export interface PersonData {
   // Role-specific fields (nullable)
   motive: string | null; // ✅ for suspects
   weapon_used: string | null; // ✅ for suspects
-  narrative: string | null; // ✅ for complainants
-  testimony: string | null; // ✅ for witnesses
+  narrative: string | null; 
+  testimony: string | null;
 }
 
 export interface CrimeCaseTransactionResult {

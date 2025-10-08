@@ -35,7 +35,7 @@ export default function MyForm() {
       investigator: "",
       responder: "",
       barangay: 1,
-      visibility: "public",
+      visibility: "private",
       crime_location: "",
       landmark: "",
       pin: undefined,
