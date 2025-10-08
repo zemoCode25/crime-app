@@ -1,7 +1,14 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import {
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+} from "lucide-react";
 import { CaseStatus } from "@/types/form-schema";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,13 +20,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// ✅ Update type to match what getTableCases actually returns
-type CrimeTableRow = {
+export type CrimeTableRow = {
   id: number;
   crime_type: number | null;
   case_status: CaseStatus | null;
-  suspect: string; // ✅ Already processed as string
-  complainant: string; // ✅ Already processed as string
+  suspect: string;
+  complainant: string;
 };
 
 export const columns: ColumnDef<CrimeTableRow>[] = [
@@ -27,7 +33,7 @@ export const columns: ColumnDef<CrimeTableRow>[] = [
     accessorKey: "id",
     header: "ID",
     cell: ({ row }) => {
-      return <div className="font-medium">{row.getValue("id")}</div>;
+      return <div className="font-medium">{`CASE-${row.getValue("id")}`}</div>;
     },
   },
   {
@@ -35,31 +41,83 @@ export const columns: ColumnDef<CrimeTableRow>[] = [
     header: "Crime Type",
     cell: ({ row }) => {
       const crimeType = row.getValue("crime_type") as number | null;
-      // You might want to create a helper function to map crime type numbers to names
       return <div>{crimeType || "Unknown"}</div>;
     },
   },
   {
     accessorKey: "case_status",
-    header: "Status",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="!p-0 text-left font-bold"
+      >
+        Status
+        {/* ✅ Dynamic sort icon */}
+        {column.getIsSorted() === "desc" ? (
+          <ArrowDown className="ml-2 h-4 w-4" />
+        ) : column.getIsSorted() === "asc" ? (
+          <ArrowUp className="ml-2 h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        )}
+      </Button>
+    ),
     cell: ({ row }) => {
       const status = row.getValue("case_status") as string | null;
       return <div className="capitalize">{status || "Unknown"}</div>;
     },
+    enableGlobalFilter: true,
   },
   {
     accessorKey: "complainant",
-    header: "Complainant",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="!p-0 text-left font-bold"
+      >
+        Complainant
+        {/* ✅ Dynamic sort icon based on current sort state */}
+        {column.getIsSorted() === "desc" ? (
+          <ArrowDown className="ml-2 h-4 w-4" />
+        ) : column.getIsSorted() === "asc" ? (
+          <ArrowUp className="ml-2 h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        )}
+      </Button>
+    ),
     cell: ({ row }) => {
-      return <div>{row.getValue("complainant")}</div>;
+      const complainant = row.original.complainant;
+      return <div className="text-left font-medium">{complainant}</div>;
     },
+    enableGlobalFilter: true,
   },
   {
     accessorKey: "suspect",
-    header: "Suspect",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="!p-0 text-left font-bold"
+      >
+        Suspect
+        {/* ✅ Dynamic sort icon based on current sort state */}
+        {column.getIsSorted() === "desc" ? (
+          <ArrowDown className="ml-2 h-4 w-4" />
+        ) : column.getIsSorted() === "asc" ? (
+          <ArrowUp className="ml-2 h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        )}
+      </Button>
+    ),
     cell: ({ row }) => {
-      return <div>{row.getValue("suspect")}</div>;
+      const suspect = row.original.suspect;
+      return <div className="text-left font-medium">{suspect}</div>;
     },
+    enableGlobalFilter: true,
   },
   {
     id: "actions",

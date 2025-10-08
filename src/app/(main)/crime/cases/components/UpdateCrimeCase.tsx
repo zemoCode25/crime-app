@@ -15,11 +15,11 @@ import { formSchema, type FormSchemaType } from "@/types/form-schema";
 import { CrimeCaseMutation } from "@/hooks/crime-case/useMutateCase";
 import { defaultValues } from "@/lib/crime-case";
 
-export default function MyForm() {
+export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
   const [step, setStep] = useState(0);
 
   // ✅ Use TanStack Query mutation instead of direct function call
-  const crimeCaseMutation = CrimeCaseMutation("create");
+  const crimeCaseMutation = CrimeCaseMutation("update");
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
@@ -99,44 +99,36 @@ export default function MyForm() {
   }
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <MainButton>
-          <Plus />
-          Add Crime Record
-        </MainButton>
-      </DialogTrigger>
-      <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
-        <StepNavigation setStep={setStep} step={step} form={form} />
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="mx-auto w-fit space-y-5 py-4"
-          >
-            {step === 0 && <CrimeForm form={form} />}
-            {step === 1 && (
-              <PersonInformation form={form} formFieldArray={formFieldArray} />
-            )}
-            {step === 2 && <AddressInformation form={form} />}
-            {step === 3 && <AdditionalNotes form={form} />}
+    <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
+      <StepNavigation setStep={setStep} step={step} form={form} />
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="mx-auto w-fit space-y-5 py-4"
+        >
+          {step === 0 && <CrimeForm form={form} />}
+          {step === 1 && (
+            <PersonInformation form={form} formFieldArray={formFieldArray} />
+          )}
+          {step === 2 && <AddressInformation form={form} />}
+          {step === 3 && <AdditionalNotes form={form} />}
 
-            {/* ✅ Submit button for last step */}
-            {step === 3 && (
-              <div className="pt-4">
-                <MainButton
-                  type="submit"
-                  className="w-full"
-                  disabled={crimeCaseMutation.isPending} // ✅ Use mutation loading state
-                >
-                  {crimeCaseMutation.isPending
-                    ? "Creating..."
-                    : "Create Crime Case"}
-                </MainButton>
-              </div>
-            )}
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          {/* ✅ Submit button for last step */}
+          {step === 3 && (
+            <div className="pt-4">
+              <MainButton
+                type="submit"
+                className="w-full"
+                disabled={crimeCaseMutation.isPending} // ✅ Use mutation loading state
+              >
+                {crimeCaseMutation.isPending
+                  ? "Creating..."
+                  : "Create Crime Case"}
+              </MainButton>
+            </div>
+          )}
+        </form>
+      </Form>
+    </DialogContent>
   );
 }
