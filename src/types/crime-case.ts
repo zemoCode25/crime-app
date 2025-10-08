@@ -2,6 +2,7 @@ import {CaseStatus} from "@/types/form-schema"
 import {Sex} from "@/types/form-schema"
 import {CivilStatus} from "@/types/form-schema"
 import {CaseRole} from "@/types/form-schema"
+import {Visibility} from "@/types/form-schema"  
 
 export interface CrimeCaseData {
   case_number?: string;
@@ -15,6 +16,7 @@ export interface CrimeCaseData {
   investigator_notes: string | null; // ✅ Nullable instead of optional
   remarks: string | null; // ✅ Nullable instead of optional
   follow_up: string | null; // ✅ Nullable instead of optional
+  visibility: Visibility; // ✅ Required field, remove optional
 }
 
 export interface LocationData {
