@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/popover";
 
 interface Calendar24Props {
-  value?: string; // ISO string
-  onChange?: (value: string) => void; // Returns ISO string
+  value?: Date; // ✅ Changed from string to Date
+  onChange?: (value: Date | undefined) => void; // ✅ Changed to return Date
   onBlur?: () => void;
   name?: string;
   placeholder?: string;
@@ -31,10 +31,9 @@ export default function Calendar24({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [timeValue, setTimeValue] = useState<string>("10:30:00");
 
-  // Helper function to format time in PH timezone
-  function formatTimeForPHTimezone(date: Date): string {
-    return date.toLocaleTimeString("en-PH", {
-      timeZone: "Asia/Manila",
+  // Helper function to format time from Date
+  function formatTimeFromDate(date: Date): string {
+    return date.toLocaleTimeString("en-US", {
       hour12: false,
       hour: "2-digit",
       minute: "2-digit",
@@ -44,61 +43,41 @@ export default function Calendar24({
 
   // Helper function to format date for display
   function formatDateForDisplay(date: Date): string {
-    return date.toLocaleDateString("en-PH", {
-      timeZone: "Asia/Manila",
+    return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
   }
 
-  // Helper function to create PH timezone date and return ISO string
-  function createPHDateTimeISO(date: Date, timeString: string): string {
+  // Helper function to create new Date with time
+  function createDateWithTime(date: Date, timeString: string): Date {
     try {
       const [hours, minutes, seconds = 0] = timeString.split(":").map(Number);
 
-      // Create date in PH timezone (UTC+8)
-      const year = date.getFullYear();
-      const month = date.getMonth();
-      const day = date.getDate();
+      // Create new date with the same date but new time
+      const newDate = new Date(date);
+      newDate.setHours(hours, minutes, seconds, 0);
 
-      // Create date in local timezone first
-      const localDate = new Date(year, month, day, hours, minutes, seconds);
-
-      // Convert to PH timezone by adjusting for timezone difference
-      const phOffset = 8 * 60; // PH is UTC+8
-      const localOffset = localDate.getTimezoneOffset();
-      const offsetDiff = localOffset + phOffset;
-
-      const phDate = new Date(localDate.getTime() + offsetDiff * 60 * 1000);
-
-      return phDate.toISOString();
+      return newDate;
     } catch (error) {
-      console.error("Error creating PH DateTime:", error);
-      return new Date().toISOString(); // Fallback to current time
+      console.error("Error creating DateTime:", error);
+      return new Date(); // Fallback to current time
     }
   }
 
-  // Parse ISO string to extract date and time
+  // ✅ Initialize from Date value
   useEffect(() => {
-    if (value) {
-      try {
-        const date = new Date(value);
-        setSelectedDate(date);
-        setTimeValue(formatTimeForPHTimezone(date));
-      } catch (error) {
-        console.error("Error parsing ISO date:", error);
-        // Reset to defaults if invalid
-        setSelectedDate(undefined);
-        setTimeValue("10:30:00");
-      }
+    if (value && value instanceof Date && !isNaN(value.getTime())) {
+      setSelectedDate(value);
+      setTimeValue(formatTimeFromDate(value));
     } else {
       setSelectedDate(undefined);
       setTimeValue("10:30:00");
     }
   }, [value]);
 
-  // Handle date selection
+  // ✅ Handle date selection - returns Date
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) return;
 
@@ -106,28 +85,28 @@ export default function Calendar24({
     setOpen(false);
 
     if (onChange) {
-      const isoString = createPHDateTimeISO(date, timeValue);
-      onChange(isoString);
+      const dateWithTime = createDateWithTime(date, timeValue);
+      onChange(dateWithTime); // ✅ Returns Date object
     }
   };
 
-  // Handle time change
+  // ✅ Handle time change - returns Date
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = e.target.value;
     setTimeValue(newTime);
 
     if (selectedDate && onChange) {
-      const isoString = createPHDateTimeISO(selectedDate, newTime);
-      onChange(isoString);
+      const dateWithTime = createDateWithTime(selectedDate, newTime);
+      onChange(dateWithTime); // ✅ Returns Date object
     }
   };
 
-  // Handle manual input clearing
+  // ✅ Handle clearing - returns undefined
   const handleClear = () => {
     setSelectedDate(undefined);
     setTimeValue("10:30:00");
     if (onChange) {
-      onChange("");
+      onChange(undefined); // ✅ Returns undefined instead of empty string
     }
   };
 
@@ -175,7 +154,7 @@ export default function Calendar24({
           onBlur={onBlur}
           name={name}
           className="bg-background w-32"
-          disabled={!selectedDate} // Disable time input if no date selected
+          disabled={!selectedDate}
         />
       </div>
 
