@@ -1,31 +1,32 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-export default function MapView() {
-  const mapContainerRef = useRef<HTMLDivElement>(null);
+const INITIAL_CENTER: [number, number] = [121.0218, 14.3731];
+const INITIAL_ZOOM = 20;
+
+export default function MapBox() {
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+
+  // ✅ Add error and loading states
+  const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [center, setCenter] = useState(INITIAL_CENTER);
+  const [zoom, setZoom] = useState(INITIAL_ZOOM);
 
   useEffect(() => {
-    const apiKey = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
+    const apiKey = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
+    // ✅ Better error checking
     if (!apiKey) {
-      setError("Mapbox API key is missing");
-      setIsLoading(false);
+      setError("Mapbox access token is missing");
       return;
     }
 
-    if (!mapContainerRef.current) {
-      setError("Map container not found");
-      setIsLoading(false);
-      return;
-    }
-
-    if (mapRef.current) return;
+    if (mapRef.current || !mapContainerRef.current) return;
 
     try {
       mapboxgl.accessToken = apiKey;
@@ -33,24 +34,38 @@ export default function MapView() {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: "mapbox://styles/mapbox/streets-v12",
-        center: [121.0437, 14.676], // Manila coordinates
-        zoom: 12,
+        center: center,
+        zoom: zoom,
       });
 
+      // ✅ Handle load success
       mapRef.current.on("load", () => {
-        setIsLoading(false);
+        setIsLoaded(true);
         setError(null);
       });
 
+      // ✅ Handle errors
       mapRef.current.on("error", (e) => {
-        setError(e.error?.message || "Failed to load map");
-        setIsLoading(false);
+        setError(e.error?.message || "Map failed to load");
+        setIsLoaded(false);
       });
 
-      mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
-    } catch (error) {
+      // ✅ Optimize move event with throttling
+      let moveTimeout: NodeJS.Timeout;
+      mapRef.current.on("moveend", () => {
+        // Use moveend instead of move
+        if (!mapRef.current) return;
+
+        clearTimeout(moveTimeout);
+        moveTimeout = setTimeout(() => {
+          const mapCenter = mapRef.current!.getCenter();
+          const mapZoom = mapRef.current!.getZoom();
+          setCenter([mapCenter.lng, mapCenter.lat]);
+          setZoom(mapZoom);
+        }, 200);
+      });
+    } catch (err) {
       setError("Failed to initialize map");
-      setIsLoading(false);
     }
 
     return () => {
@@ -61,31 +76,27 @@ export default function MapView() {
     };
   }, []);
 
+  // ✅ Better error UI
   if (error) {
     return (
-      <div className="flex h-[90vh] w-full items-center justify-center rounded-lg border border-red-300 bg-red-50">
-        <div className="text-center">
-          <p className="text-red-600">Failed to load map</p>
-          <p className="text-sm text-red-500">{error}</p>
-        </div>
+      <div className="flex h-[400px] w-full items-center justify-center border border-red-200 bg-red-50">
+        <p className="text-red-600">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="relative h-full w-full">
-      {isLoading && (
+    <div className="relative h-[400px] w-full">
+      {/* ✅ Loading indicator */}
+      {!isLoaded && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-100">
           <div className="text-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
             <p className="mt-2 text-gray-600">Loading map...</p>
           </div>
         </div>
       )}
-      <div
-        ref={mapContainerRef}
-        className="h-full w-full rounded-lg border border-gray-300"
-      />
+      <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
     </div>
   );
 }

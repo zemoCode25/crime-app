@@ -88,7 +88,7 @@ export function DataTable({ columns, data }: DataTableProps) {
 
   return (
     <div className="overflow-hidden rounded-sm border p-4 shadow-sm dark:border-orange-900 dark:bg-[var(--dark-card)] dark:shadow-none">
-      <Toaster position="top-center" />
+      <Toaster position="top-right" />
 
       <div className="-between flex flex-col items-start gap-4 py-4 sm:flex-row sm:items-center">
         {/* Search and Filter */}
