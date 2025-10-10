@@ -8,7 +8,12 @@ import { Coordinates } from "@/types/map";
 const INITIAL_CENTER: [number, number] = [121.0218, 14.3731];
 const INITIAL_ZOOM = 20;
 
-export default function MapBox({ coordinates }: { coordinates: Coordinates }) {
+interface MapBoxProps {
+  coordinates: Coordinates;
+  setCoordinates: (newCoordinates: Coordinates) => void;
+}
+
+export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const initialCenter: [number, number] = [coordinates.long, coordinates.lat];
@@ -62,28 +67,13 @@ export default function MapBox({ coordinates }: { coordinates: Coordinates }) {
       });
 
       const marker = new mapboxgl.Marker({ color: "red", draggable: true })
-        .setLngLat(INITIAL_CENTER)
+        .setLngLat(initialCenter)
         .addTo(mapRef.current);
 
       marker.on("dragend", () => {
         const coordinates = marker.getLngLat();
-        console.log(`Marker moved to: ${coordinates.lng}, ${coordinates.lat}`);
+        setCoordinates({ lat: coordinates.lat, long: coordinates.lng });
       });
-
-      // ✅ Optimize move event with throttling
-      // let moveTimeout: NodeJS.Timeout;
-      // mapRef.current.on("dragend", () => {
-      //   // Use moveend instead of move
-      //   if (!mapRef.current) return;
-
-      //   clearTimeout(moveTimeout);
-      //   moveTimeout = setTimeout(() => {
-      //     const mapCenter = mapRef.current!.getCenter();
-      //     const mapZoom = mapRef.current!.getZoom();
-      //     setCenter([mapCenter.lng, mapCenter.lat]);
-      //     setZoom(mapZoom);
-      //   }, 200);
-      // });
     } catch (err) {
       setError("Failed to initialize map");
     }

@@ -31,7 +31,7 @@ import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ErrorMessage } from "@hookform/error-message";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Coordinates } from "@/types/map";
 
 const Map = dynamic(() => import("./Map"), {
@@ -51,15 +51,36 @@ type Barangay = {
     | "Sucat"
     | "Tunasan";
 };
+
 export default function AddressInformation({
   form,
 }: {
   form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
 }) {
+  // ✅ Watch specific fields efficiently
+  const lat = form.getValues("lat");
+  const long = form.getValues("long");
+
   const [coordinates, setCoordinates] = useState<Coordinates>({
-    lat: 14.3731,
-    long: 121.0218,
+    lat: lat || 14.3731,
+    long: long || 121.0218,
   });
+
+  // ✅ Sync coordinates with form when they change from map
+  useEffect(() => {
+    form.setValue("lat", coordinates.lat, { shouldValidate: true });
+    form.setValue("long", coordinates.long, { shouldValidate: true });
+
+    console.log("Updated coordinates:", coordinates);
+  }, [coordinates, form]);
+
+  // ✅ Sync local state when form values change from other sources
+  useEffect(() => {
+    setCoordinates({
+      lat: lat || 14.3731,
+      long: long || 121.0218,
+    });
+  }, [lat, long]);
 
   return (
     <div className="w-full p-4">
@@ -71,11 +92,14 @@ export default function AddressInformation({
           {...form.register("crime_location")}
         />
       </div>
-      <Map coordinates={coordinates} />
+
+      <Map coordinates={coordinates} setCoordinates={setCoordinates} />
+
       <div className="mt-4 mb-4">
         <label className="mb-2 block text-sm font-medium">Landmark</label>
         <Input placeholder="Enter landmark" {...form.register("landmark")} />
       </div>
+
       <FormField
         control={form.control}
         name="barangay"
@@ -140,8 +164,6 @@ export default function AddressInformation({
           </FormItem>
         )}
       />
-      <Input className="hidden" {...form.register("lat")} />
-      <Input className="hidden" {...form.register("long")} />
     </div>
   );
 }
