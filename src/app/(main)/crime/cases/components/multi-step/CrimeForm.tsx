@@ -55,7 +55,7 @@ export default function CrimeForm({
   } = useQuery(getCrimeTypes(supabase));
 
   return (
-    <>
+    <div className="flex w-full flex-col gap-5">
       <FormField
         control={form.control}
         name="description"
@@ -65,7 +65,7 @@ export default function CrimeForm({
             <FormControl>
               <Textarea
                 placeholder=""
-                className="min-h-30 resize-none"
+                className="min-h-30 w-full resize-none"
                 {...field}
               />
             </FormControl>
@@ -295,6 +295,6 @@ export default function CrimeForm({
           </FormItem>
         )}
       />
-    </>
+    </div>
   );
 }

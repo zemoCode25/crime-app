@@ -109,7 +109,10 @@ export default function MyForm() {
       <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
         <StepNavigation setStep={setStep} step={step} form={form} />
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="w-full py-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="mx-auto w-fit space-y-5 py-4"
+          >
             {step === 0 && <CrimeForm form={form} />}
             {step === 1 && (
               <PersonInformation form={form} formFieldArray={formFieldArray} />

@@ -33,13 +33,22 @@ export default function MapBox() {
 
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
-        style: "mapbox://styles/mapbox/streets-v12",
+        style: "mapbox://styles/mapbox/streets-v11",
         center: center,
         zoom: zoom,
       });
 
       // ✅ Handle load success
       mapRef.current.on("load", () => {
+        if (!mapRef.current) return;
+        mapRef.current.addSource("mapbox-dem", {
+          type: "raster-dem",
+          url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+          tileSize: 512,
+          maxzoom: 14,
+        });
+        // Add the DEM source as a terrain layer
+        mapRef.current.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
         setIsLoaded(true);
         setError(null);
       });
@@ -49,6 +58,10 @@ export default function MapBox() {
         setError(e.error?.message || "Map failed to load");
         setIsLoaded(false);
       });
+
+      new mapboxgl.Marker({ color: "red", draggable: true })
+        .setLngLat(INITIAL_CENTER)
+        .addTo(mapRef.current);
 
       // ✅ Optimize move event with throttling
       let moveTimeout: NodeJS.Timeout;
@@ -86,17 +99,17 @@ export default function MapBox() {
   }
 
   return (
-    <div className="relative h-[400px] w-full">
+    <div className="relative h-[20rem] w-[25rem] overflow-hidden rounded-lg border border-gray-300 p-4">
       {/* ✅ Loading indicator */}
       {!isLoaded && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-100">
+        <div className="absolute inset-4 z-50 flex items-center justify-center rounded bg-gray-100">
           <div className="text-center">
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
             <p className="mt-2 text-gray-600">Loading map...</p>
           </div>
         </div>
       )}
-      <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
+      <div ref={mapContainerRef} className="z-0 h-full w-full rounded" />
     </div>
   );
 }
