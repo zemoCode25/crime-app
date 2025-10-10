@@ -28,6 +28,8 @@ export default function MapBox() {
 
     if (mapRef.current || !mapContainerRef.current) return;
 
+    console.log("Initializing map...");
+
     try {
       mapboxgl.accessToken = apiKey;
 
@@ -59,13 +61,18 @@ export default function MapBox() {
         setIsLoaded(false);
       });
 
-      new mapboxgl.Marker({ color: "red", draggable: true })
+      const marker = new mapboxgl.Marker({ color: "red", draggable: true })
         .setLngLat(INITIAL_CENTER)
         .addTo(mapRef.current);
 
+      marker.on("dragend", () => {
+        const coordinates = marker.getLngLat();
+        console.log(`Marker moved to: ${coordinates.lng}, ${coordinates.lat}`);
+      });
+
       // ✅ Optimize move event with throttling
       let moveTimeout: NodeJS.Timeout;
-      mapRef.current.on("moveend", () => {
+      mapRef.current.on("dragend", () => {
         // Use moveend instead of move
         if (!mapRef.current) return;
 
