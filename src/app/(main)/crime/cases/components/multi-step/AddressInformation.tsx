@@ -60,6 +60,7 @@ export default function AddressInformation({
         <label className="mb-2 block text-sm font-medium">Location</label>
         <Input
           placeholder="Enter location"
+          className="w-full"
           {...form.register("crime_location")}
         />
       </div>

@@ -1,8 +1,8 @@
 import { FormSchemaType } from "@/types/form-schema"
 
 export const defaultValues: FormSchemaType = {
-      report_datetime: new Date().toISOString(),
-      incident_datetime: new Date().toISOString(),
+      report_datetime: new Date(),
+      incident_datetime: new Date(),
       description: "",
       crime_type: 1,
       case_status: "under investigation",

@@ -21,28 +21,21 @@ export async function getTableCrimeCases(client: TypedSupabaseClient) {
     .order("id", { ascending: true });
 }
 
-export async function getCrimeCaseById(
-  client: TypedSupabaseClient,
-  caseId: number
-) {
-  return client
+export async function getCrimeCaseById(client: TypedSupabaseClient, caseId: number) {
+  const result = await client
     .from("crime_case")
-    .select(
-      `
-      id,
-      crime_type,
-      case_status,
+    .select(`
+      *,
+      location (*),
       case_person (
-        case_role,
-        person_profile ( 
-          first_name, 
-          last_name 
-        )
+        *,
+        person_profile (*)
       )
-      `
-    ).eq("id", caseId)
-  }
-      
+    `)
+    .eq("id", caseId)
+    .single();
+  return result;
+}
 
 export async function createCrimeCaseTransaction(
   client: TypedSupabaseClient,

@@ -38,12 +38,6 @@ import Complainant from "./InvolvementForms/Complainant";
 import Witness from "./InvolvementForms/Witness";
 import { formSchema, type FormSchemaType } from "@/types/form-schema";
 import { X } from "lucide-react";
-// Combo box to select for suspect, complainant, witness
-// Button to add person information
-// ComboBox for role selection
-// Suspect (weapon_used, motive)
-// complainant (narrative, person-selection)
-// witness (testimony, person-selection)
 
 export default function PersonInformation({
   form,
@@ -55,7 +49,7 @@ export default function PersonInformation({
   const { fields, append, remove } = formFieldArray;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       {fields.map((field, index) => {
         const currentRole = form.watch(`persons.${index}.case_role`);
         return (
