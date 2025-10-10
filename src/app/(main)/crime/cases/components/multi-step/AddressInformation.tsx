@@ -70,17 +70,8 @@ export default function AddressInformation({
   useEffect(() => {
     form.setValue("lat", coordinates.lat, { shouldValidate: true });
     form.setValue("long", coordinates.long, { shouldValidate: true });
-
-    console.log("Updated coordinates:", coordinates);
+    console.log("Updated form from coordinates:", coordinates);
   }, [coordinates, form]);
-
-  // ✅ Sync local state when form values change from other sources
-  useEffect(() => {
-    setCoordinates({
-      lat: lat || 14.3731,
-      long: long || 121.0218,
-    });
-  }, [lat, long]);
 
   return (
     <div className="w-full p-4">
