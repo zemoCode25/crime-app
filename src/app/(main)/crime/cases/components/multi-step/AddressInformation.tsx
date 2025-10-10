@@ -58,7 +58,7 @@ export default function AddressInformation({
 }) {
   const [coordinates, setCoordinates] = useState<Coordinates>({
     lat: 14.3731,
-    lng: 121.0218,
+    long: 121.0218,
   });
 
   return (
@@ -140,6 +140,8 @@ export default function AddressInformation({
           </FormItem>
         )}
       />
+      <Input className="hidden" {...form.register("lat")} />
+      <Input className="hidden" {...form.register("long")} />
     </div>
   );
 }
