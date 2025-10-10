@@ -31,6 +31,8 @@ import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ErrorMessage } from "@hookform/error-message";
+import { useState } from "react";
+import { Coordinates } from "@/types/map";
 
 const Map = dynamic(() => import("./Map"), {
   ssr: false, // ✅ prevent SSR errors
@@ -54,6 +56,11 @@ export default function AddressInformation({
 }: {
   form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
 }) {
+  const [coordinates, setCoordinates] = useState<Coordinates>({
+    lat: 14.3731,
+    lng: 121.0218,
+  });
+
   return (
     <div className="w-full p-4">
       <div className="mb-4">
@@ -64,7 +71,7 @@ export default function AddressInformation({
           {...form.register("crime_location")}
         />
       </div>
-      <Map />
+      <Map coordinates={coordinates} />
       <div className="mt-4 mb-4">
         <label className="mb-2 block text-sm font-medium">Landmark</label>
         <Input placeholder="Enter landmark" {...form.register("landmark")} />

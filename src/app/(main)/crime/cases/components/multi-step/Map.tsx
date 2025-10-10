@@ -3,19 +3,19 @@
 import { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { Coordinates } from "@/types/map";
 
 const INITIAL_CENTER: [number, number] = [121.0218, 14.3731];
 const INITIAL_ZOOM = 20;
 
-export default function MapBox() {
+export default function MapBox({ coordinates }: { coordinates: Coordinates }) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const initialCenter: [number, number] = [coordinates.long, coordinates.lat];
 
   // ✅ Add error and loading states
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [center, setCenter] = useState(INITIAL_CENTER);
-  const [zoom, setZoom] = useState(INITIAL_ZOOM);
 
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -36,8 +36,8 @@ export default function MapBox() {
       mapRef.current = new mapboxgl.Map({
         container: mapContainerRef.current,
         style: "mapbox://styles/mapbox/streets-v11",
-        center: center,
-        zoom: zoom,
+        center: initialCenter,
+        zoom: INITIAL_ZOOM,
       });
 
       // ✅ Handle load success
@@ -65,25 +65,25 @@ export default function MapBox() {
         .setLngLat(INITIAL_CENTER)
         .addTo(mapRef.current);
 
-      marker.on("move", () => {
+      marker.on("dragend", () => {
         const coordinates = marker.getLngLat();
         console.log(`Marker moved to: ${coordinates.lng}, ${coordinates.lat}`);
       });
 
       // ✅ Optimize move event with throttling
-      let moveTimeout: NodeJS.Timeout;
-      mapRef.current.on("dragend", () => {
-        // Use moveend instead of move
-        if (!mapRef.current) return;
+      // let moveTimeout: NodeJS.Timeout;
+      // mapRef.current.on("dragend", () => {
+      //   // Use moveend instead of move
+      //   if (!mapRef.current) return;
 
-        clearTimeout(moveTimeout);
-        moveTimeout = setTimeout(() => {
-          const mapCenter = mapRef.current!.getCenter();
-          const mapZoom = mapRef.current!.getZoom();
-          setCenter([mapCenter.lng, mapCenter.lat]);
-          setZoom(mapZoom);
-        }, 200);
-      });
+      //   clearTimeout(moveTimeout);
+      //   moveTimeout = setTimeout(() => {
+      //     const mapCenter = mapRef.current!.getCenter();
+      //     const mapZoom = mapRef.current!.getZoom();
+      //     setCenter([mapCenter.lng, mapCenter.lat]);
+      //     setZoom(mapZoom);
+      //   }, 200);
+      // });
     } catch (err) {
       setError("Failed to initialize map");
     }
