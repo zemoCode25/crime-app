@@ -65,7 +65,7 @@ export default function MapBox() {
         .setLngLat(INITIAL_CENTER)
         .addTo(mapRef.current);
 
-      marker.on("dragend", () => {
+      marker.on("move", () => {
         const coordinates = marker.getLngLat();
         console.log(`Marker moved to: ${coordinates.lng}, ${coordinates.lat}`);
       });
