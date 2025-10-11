@@ -335,13 +335,16 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
             <Badge
               key={crimeTypeLabel}
               variant="outline"
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 rounded-sm border border-neutral-300 px-2 py-1 dark:border-orange-900"
             >
               {crimeTypeLabel}
-              <X
-                className="h-3 w-3 cursor-pointer hover:text-red-500"
+              <Button
+                variant="ghost"
+                className="h-3 w-3 cursor-pointer"
                 onClick={() => removeCrimeTypeFilter(crimeTypeLabel)}
-              />
+              >
+                <X />
+              </Button>
             </Badge>
           ))}
         </div>
