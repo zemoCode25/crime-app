@@ -71,6 +71,32 @@ export function DataTable({ columns, data }: DataTableProps) {
   const supabase = useSupabaseBrowser();
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
 
+  const table = useReactTable<CrimeTableRow>({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      sorting,
+      columnFilters,
+      globalFilter,
+    },
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: "includesString",
+    // ✅ Custom filter functions
+    filterFns: {
+      multiSelect: (row, columnId, filterValue: string[]) => {
+        if (!filterValue || filterValue.length === 0) return true;
+        const cellValue = row.getValue(columnId) as string;
+        return filterValue.includes(cellValue);
+      },
+    },
+  });
+
   // ✅ Handle status selection
   const handleStatusToggle = (statusValue: string) => {
     setSelectedStatuses((prev) => {
@@ -121,32 +147,6 @@ export function DataTable({ columns, data }: DataTableProps) {
   const removeCrimeTypeFilter = (crimeTypeLabel: string) => {
     handleCrimeTypeToggle(crimeTypeLabel);
   };
-
-  const table = useReactTable<CrimeTableRow>({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    state: {
-      sorting,
-      columnFilters,
-      globalFilter,
-    },
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: "includesString",
-    // ✅ Custom filter functions
-    filterFns: {
-      multiSelect: (row, columnId, filterValue: string[]) => {
-        if (!filterValue || filterValue.length === 0) return true;
-        const cellValue = row.getValue(columnId) as string;
-        return filterValue.includes(cellValue);
-      },
-    },
-  });
 
   return (
     <div className="overflow-hidden rounded-sm border p-4 shadow-sm dark:border-orange-900 dark:bg-[var(--dark-card)] dark:shadow-none">
@@ -301,14 +301,20 @@ export function DataTable({ columns, data }: DataTableProps) {
             return (
               <Badge
                 key={statusValue}
-                variant="secondary"
-                className="flex items-center gap-1"
+                variant="outline"
+                className="flex items-center gap-1 rounded-sm border border-neutral-300 px-2 py-1 dark:border-orange-900"
               >
                 {status?.label}
-                <X
-                  className="h-3 w-3 cursor-pointer hover:text-red-500"
-                  onClick={() => removeStatusFilter(statusValue)}
-                />
+                <Button
+                  variant="ghost"
+                  className="z-index h-3 w-3 cursor-pointer"
+                  onClick={() => {
+                    console.log("Removing status:", statusValue);
+                    removeStatusFilter(statusValue);
+                  }}
+                >
+                  <X />
+                </Button>
               </Badge>
             );
           })}
