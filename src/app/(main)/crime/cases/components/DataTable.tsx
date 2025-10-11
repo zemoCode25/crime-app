@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -50,6 +50,8 @@ import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { Toaster } from "react-hot-toast";
 import UpdateCrimeCase from "./UpdateCrimeCase";
 import { CrimeTableRow } from "@/app/(main)/crime/cases/components/columns";
+import { createColumns } from "./columns";
+import { useCrimeType } from "@/context/CrimeTypeProvider";
 
 // ✅ Use specific type instead of generic
 interface DataTableProps {
@@ -57,7 +59,16 @@ interface DataTableProps {
   data: CrimeTableRow[];
 }
 
-export function DataTable({ columns, data }: DataTableProps) {
+export function DataTable({ data }: { data: CrimeTableRow[] }) {
+  // ✅ Hook called at component level (correct!)
+  const { crimeTypeConverter } = useCrimeType();
+
+  // ✅ Create columns with the converter injected
+  const columns = useMemo(
+    () => createColumns(crimeTypeConverter),
+    [crimeTypeConverter],
+  );
+
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState<string>("");

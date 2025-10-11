@@ -18,7 +18,7 @@ export function CrimeTypeProvider({ children }: { children: React.ReactNode }) {
   // Function to convert crime type code to string
   const crimeTypeConverter = (code: number) => {
     const crimeType = crimeTypes?.find((type) => type.id === code);
-    return crimeType ? crimeType.label : "Unknown";
+    return crimeType?.label ?? "Unknown";
   };
 
   return (
