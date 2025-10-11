@@ -1,16 +1,10 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-} from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal } from "lucide-react";
 import { CaseStatus } from "@/types/form-schema";
 import { Button } from "@/components/ui/button";
+import { useCrimeType } from "@/context/CrimeTypeProvider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,38 +25,24 @@ export type CrimeTableRow = {
 export const columns: ColumnDef<CrimeTableRow>[] = [
   {
     accessorKey: "id",
-    header: "ID",
+    header: "Case ID",
     cell: ({ row }) => {
       return <div className="font-medium">{`CASE-${row.getValue("id")}`}</div>;
     },
   },
   {
     accessorKey: "crime_type",
-    header: "Crime Type",
+    header: "Type",
     cell: ({ row }) => {
-      const crimeType = row.getValue("crime_type") as number | null;
+      const { crimeTypeConverter } = useCrimeType();
+      const crimeTypeId = row.getValue("crime_type") as number | null;
+      const crimeType = crimeTypeConverter(crimeTypeId || 0);
       return <div>{crimeType || "Unknown"}</div>;
     },
   },
   {
     accessorKey: "case_status",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="!p-0 text-left font-bold"
-      >
-        Status
-        {/* ✅ Dynamic sort icon */}
-        {column.getIsSorted() === "desc" ? (
-          <ArrowDown className="ml-2 h-4 w-4" />
-        ) : column.getIsSorted() === "asc" ? (
-          <ArrowUp className="ml-2 h-4 w-4" />
-        ) : (
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        )}
-      </Button>
-    ),
+    header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("case_status") as string | null;
       return <div className="capitalize">{status || "Unknown"}</div>;
