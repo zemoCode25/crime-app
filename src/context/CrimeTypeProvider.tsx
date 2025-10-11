@@ -1,3 +1,4 @@
+"use client";
 import { createContext, useContext } from "react";
 import useSupabaseBrowser from "@/server/supabase/client";
 import { getCrimeTypes } from "@/server/queries/crime-type";

@@ -4,6 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal } from "lucide-react";
 import { CaseStatus } from "@/types/form-schema";
 import { Button } from "@/components/ui/button";
+import { useCrimeType } from "@/context/CrimeTypeProvider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +34,9 @@ export const columns: ColumnDef<CrimeTableRow>[] = [
     accessorKey: "crime_type",
     header: "Type",
     cell: ({ row }) => {
-      const crimeType = row.getValue("crime_type") as number | null;
+      const { crimeTypeConverter } = useCrimeType();
+      const crimeTypeId = row.getValue("crime_type") as number | null;
+      const crimeType = crimeTypeConverter(crimeTypeId || 0);
       return <div>{crimeType || "Unknown"}</div>;
     },
   },
