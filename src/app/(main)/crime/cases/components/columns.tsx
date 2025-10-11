@@ -39,6 +39,12 @@ export const columns: ColumnDef<CrimeTableRow>[] = [
       const crimeType = crimeTypeConverter(crimeTypeId || 0);
       return <div>{crimeType || "Unknown"}</div>;
     },
+    // ✅ Add custom filter function
+    filterFn: (row, columnId, filterValue: string[]) => {
+      if (!filterValue || filterValue.length === 0) return true;
+      const cellValue = row.getValue(columnId) as string;
+      return filterValue.includes(cellValue);
+    },
   },
   {
     accessorKey: "case_status",
@@ -48,6 +54,12 @@ export const columns: ColumnDef<CrimeTableRow>[] = [
       return <div className="capitalize">{status || "Unknown"}</div>;
     },
     enableGlobalFilter: true,
+    // ✅ Add custom filter function
+    filterFn: (row, columnId, filterValue: string[]) => {
+      if (!filterValue || filterValue.length === 0) return true;
+      const cellValue = row.getValue(columnId) as string;
+      return filterValue.includes(cellValue);
+    },
   },
   {
     accessorKey: "complainant",

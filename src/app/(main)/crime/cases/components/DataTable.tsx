@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 import {
   Command,
@@ -38,7 +39,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronsUpDownIcon, CirclePlus } from "lucide-react";
+import { ChevronsUpDownIcon, CirclePlus, X, FilterX } from "lucide-react";
 import { STATUSES } from "@/constants/crime-case";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -48,7 +49,7 @@ import { getCrimeTypes } from "@/server/queries/crime-type";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { Toaster } from "react-hot-toast";
 import UpdateCrimeCase from "./UpdateCrimeCase";
-import { CrimeTableRow } from "@/app/(main)/crime/cases/components/columns"; // Import your type
+import { CrimeTableRow } from "@/app/(main)/crime/cases/components/columns";
 
 // ✅ Use specific type instead of generic
 interface DataTableProps {
@@ -62,11 +63,64 @@ export function DataTable({ columns, data }: DataTableProps) {
   const [globalFilter, setGlobalFilter] = useState<string>("");
   const [statusOpen, setStatusOpen] = useState(false);
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
-  const [value, setValue] = useState("");
+
+  // ✅ Multi-select status state
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedCrimeTypes, setSelectedCrimeTypes] = useState<string[]>([]);
 
   const supabase = useSupabaseBrowser();
-
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
+
+  // ✅ Handle status selection
+  const handleStatusToggle = (statusValue: string) => {
+    setSelectedStatuses((prev) => {
+      const newStatuses = prev.includes(statusValue)
+        ? prev.filter((s) => s !== statusValue)
+        : [...prev, statusValue];
+
+      // Update table filter
+      table
+        .getColumn("case_status")
+        ?.setFilterValue(newStatuses.length > 0 ? newStatuses : undefined);
+
+      return newStatuses;
+    });
+  };
+
+  // ✅ Handle crime type selection
+  const handleCrimeTypeToggle = (crimeTypeLabel: string) => {
+    setSelectedCrimeTypes((prev) => {
+      const newTypes = prev.includes(crimeTypeLabel)
+        ? prev.filter((t) => t !== crimeTypeLabel)
+        : [...prev, crimeTypeLabel];
+
+      // Update table filter
+      table
+        .getColumn("crime_type")
+        ?.setFilterValue(newTypes.length > 0 ? newTypes : undefined);
+
+      return newTypes;
+    });
+  };
+
+  // ✅ Clear all filters
+  const clearAllFilters = () => {
+    setGlobalFilter("");
+    setSelectedStatuses([]);
+    setSelectedCrimeTypes([]);
+    table.resetColumnFilters();
+    table.resetGlobalFilter();
+  };
+
+  // ✅ Remove individual status filter
+  const removeStatusFilter = (statusValue: string) => {
+    handleStatusToggle(statusValue);
+  };
+
+  // ✅ Remove individual crime type filter
+  const removeCrimeTypeFilter = (crimeTypeLabel: string) => {
+    handleCrimeTypeToggle(crimeTypeLabel);
+  };
 
   const table = useReactTable<CrimeTableRow>({
     data,
@@ -84,13 +138,21 @@ export function DataTable({ columns, data }: DataTableProps) {
     },
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: "includesString",
+    // ✅ Custom filter functions
+    filterFns: {
+      multiSelect: (row, columnId, filterValue: string[]) => {
+        if (!filterValue || filterValue.length === 0) return true;
+        const cellValue = row.getValue(columnId) as string;
+        return filterValue.includes(cellValue);
+      },
+    },
   });
 
   return (
     <div className="overflow-hidden rounded-sm border p-4 shadow-sm dark:border-orange-900 dark:bg-[var(--dark-card)] dark:shadow-none">
       <Toaster position="top-right" />
 
-      <div className="-between flex flex-col items-start gap-4 py-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col items-start gap-4 py-4 sm:flex-row sm:items-center">
         {/* Search and Filter */}
         <div className="flex w-full flex-col gap-2 md:flex-row">
           <Input
@@ -99,8 +161,10 @@ export function DataTable({ columns, data }: DataTableProps) {
             onChange={(e) => setGlobalFilter(e.target.value)}
             className="w-full sm:max-w-[17rem]"
           />
-          {/* filter status and types */}
+
+          {/* Filter Controls */}
           <div className="flex gap-2">
+            {/* Status Filter */}
             <Popover open={statusOpen} onOpenChange={setStatusOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -109,8 +173,11 @@ export function DataTable({ columns, data }: DataTableProps) {
                   aria-expanded={statusOpen}
                   className="w-fit justify-between bg-transparent"
                 >
-                  {value ? (
-                    STATUSES.find((status) => status.value === value)?.label
+                  {selectedStatuses.length > 0 ? (
+                    <span className="flex items-center gap-1">
+                      <CirclePlus />
+                      <p>Status ({selectedStatuses.length})</p>
+                    </span>
                   ) : (
                     <span className="flex items-center gap-1">
                       <CirclePlus /> <p>Status</p>
@@ -121,20 +188,24 @@ export function DataTable({ columns, data }: DataTableProps) {
               </PopoverTrigger>
               <PopoverContent className="w-[200px] p-0">
                 <Command>
-                  <CommandInput placeholder={`Select status`} />
+                  <CommandInput placeholder="Select status" />
                   <CommandList>
-                    <CommandEmpty>No framework found.</CommandEmpty>
+                    <CommandEmpty>No status found.</CommandEmpty>
                     <CommandGroup>
                       {STATUSES.map((status) => (
                         <CommandItem
                           key={status.value}
                           value={status.value}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                          }}
+                          onSelect={() => handleStatusToggle(status.value)}
                         >
-                          <Checkbox id={status.value} />
-                          <Label htmlFor={status.value}>{status.label}</Label>
+                          <Checkbox
+                            id={status.value}
+                            checked={selectedStatuses.includes(status.value)}
+                            onChange={() => handleStatusToggle(status.value)}
+                          />
+                          <Label htmlFor={status.value} className="ml-2">
+                            {status.label}
+                          </Label>
                         </CommandItem>
                       ))}
                     </CommandGroup>
@@ -142,6 +213,8 @@ export function DataTable({ columns, data }: DataTableProps) {
                 </Command>
               </PopoverContent>
             </Popover>
+
+            {/* Crime Type Filter */}
             <Popover open={crimeTypeOpen} onOpenChange={setCrimeTypeOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -150,9 +223,11 @@ export function DataTable({ columns, data }: DataTableProps) {
                   aria-expanded={crimeTypeOpen}
                   className="w-fit justify-between bg-transparent"
                 >
-                  {value ? (
-                    crimeTypes?.find((crimeType) => crimeType.label === value)
-                      ?.label
+                  {selectedCrimeTypes.length > 0 ? (
+                    <span className="flex items-center gap-1">
+                      <CirclePlus />
+                      <p>Type ({selectedCrimeTypes.length})</p>
+                    </span>
                   ) : (
                     <span className="flex items-center gap-1">
                       <CirclePlus /> <p>Type</p>
@@ -163,7 +238,7 @@ export function DataTable({ columns, data }: DataTableProps) {
               </PopoverTrigger>
               <PopoverContent className="w-[200px] p-0">
                 <Command>
-                  <CommandInput placeholder={`Select type`} />
+                  <CommandInput placeholder="Select type" />
                   <CommandList>
                     <CommandEmpty>No crime type found.</CommandEmpty>
                     <CommandGroup>
@@ -171,13 +246,24 @@ export function DataTable({ columns, data }: DataTableProps) {
                         <CommandItem
                           key={crimeType.label}
                           value={crimeType.label || ""}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                          }}
+                          onSelect={() =>
+                            handleCrimeTypeToggle(crimeType.label || "")
+                          }
                         >
-                          <Checkbox id={crimeType?.label || ""} />
-                          <Label htmlFor={crimeType?.label || ""}>
-                            {crimeType?.label}
+                          <Checkbox
+                            id={crimeType.label || ""}
+                            checked={selectedCrimeTypes.includes(
+                              crimeType.label || "",
+                            )}
+                            onChange={() =>
+                              handleCrimeTypeToggle(crimeType.label || "")
+                            }
+                          />
+                          <Label
+                            htmlFor={crimeType.label || ""}
+                            className="ml-2"
+                          >
+                            {crimeType.label}
                           </Label>
                         </CommandItem>
                       ))}
@@ -186,11 +272,65 @@ export function DataTable({ columns, data }: DataTableProps) {
                 </Command>
               </PopoverContent>
             </Popover>
+
+            {/* Clear All Filters Button */}
+            {(selectedStatuses.length > 0 ||
+              selectedCrimeTypes.length > 0 ||
+              globalFilter) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="h-9 px-2 text-xs"
+              >
+                <FilterX className="mr-2 h-4 w-4" />
+                Clear filters
+              </Button>
+            )}
           </div>
         </div>
         <AddCrimeCase />
       </div>
 
+      {/* ✅ Filter Badges */}
+      {(selectedStatuses.length > 0 || selectedCrimeTypes.length > 0) && (
+        <div className="flex flex-wrap gap-2 pb-4">
+          {/* Status Badges */}
+          {selectedStatuses.map((statusValue) => {
+            const status = STATUSES.find((s) => s.value === statusValue);
+            return (
+              <Badge
+                key={statusValue}
+                variant="secondary"
+                className="flex items-center gap-1"
+              >
+                {status?.label}
+                <X
+                  className="h-3 w-3 cursor-pointer hover:text-red-500"
+                  onClick={() => removeStatusFilter(statusValue)}
+                />
+              </Badge>
+            );
+          })}
+
+          {/* Crime Type Badges */}
+          {selectedCrimeTypes.map((crimeTypeLabel) => (
+            <Badge
+              key={crimeTypeLabel}
+              variant="outline"
+              className="flex items-center gap-1"
+            >
+              {crimeTypeLabel}
+              <X
+                className="h-3 w-3 cursor-pointer hover:text-red-500"
+                onClick={() => removeCrimeTypeFilter(crimeTypeLabel)}
+              />
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      {/* Table */}
       <div>
         <Table>
           <TableHeader>
@@ -231,8 +371,6 @@ export function DataTable({ columns, data }: DataTableProps) {
                       ))}
                     </TableRow>
                   </DialogTrigger>
-
-                  {/* ✅ TypeScript knows this is CrimeTableRow with id property */}
                   <UpdateCrimeCase caseId={row.original.id} />
                 </Dialog>
               ))
