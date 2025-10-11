@@ -2,10 +2,11 @@
 
 import { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
+import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "mapbox-gl/dist/mapbox-gl.css";
+import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { Coordinates } from "@/types/map";
 
-const INITIAL_CENTER: [number, number] = [121.0218, 14.3731];
 const INITIAL_ZOOM = 20;
 
 interface MapBoxProps {
@@ -18,22 +19,18 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const initialCenter: [number, number] = [coordinates.long, coordinates.lat];
 
-  // ✅ Add error and loading states
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const apiKey = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-    // ✅ Better error checking
     if (!apiKey) {
       setError("Mapbox access token is missing");
       return;
     }
 
     if (mapRef.current || !mapContainerRef.current) return;
-
-    console.log("Initializing map...");
 
     try {
       mapboxgl.accessToken = apiKey;
@@ -45,22 +42,21 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
         zoom: INITIAL_ZOOM,
       });
 
-      // ✅ Handle load success
       mapRef.current.on("load", () => {
         if (!mapRef.current) return;
+
         mapRef.current.addSource("mapbox-dem", {
           type: "raster-dem",
           url: "mapbox://mapbox.mapbox-terrain-dem-v1",
           tileSize: 512,
           maxzoom: 14,
         });
-        // Add the DEM source as a terrain layer
+
         mapRef.current.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
         setIsLoaded(true);
         setError(null);
       });
 
-      // ✅ Handle errors
       mapRef.current.on("error", (e) => {
         setError(e.error?.message || "Map failed to load");
         setIsLoaded(false);
@@ -74,6 +70,34 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
         const coordinates = marker.getLngLat();
         setCoordinates({ lat: coordinates.lat, long: coordinates.lng });
       });
+
+      // ✅ Fix: Create geocoder without mapboxgl property first
+      const geocoder = new MapboxGeocoder({
+        accessToken: apiKey,
+        marker: false, // ✅ Disable geocoder's built-in marker since we have our own
+        placeholder: "Search for places",
+        proximity: {
+          longitude: initialCenter[0],
+          latitude: initialCenter[1],
+        },
+      });
+
+      // ✅ Add event listener for geocoder results
+      geocoder.on("result", (e) => {
+        const [lng, lat] = e.result.center;
+        setCoordinates({ lat, long: lng });
+
+        // Update our custom marker position
+        marker.setLngLat([lng, lat]);
+
+        // Fly to the location
+        mapRef.current?.flyTo({
+          center: [lng, lat],
+          zoom: 16,
+        });
+      });
+
+      mapRef.current.addControl(geocoder, "top-left");
     } catch (err) {
       setError("Failed to initialize map");
     }
@@ -86,7 +110,6 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
     };
   }, []);
 
-  // ✅ Better error UI
   if (error) {
     return (
       <div className="flex h-[400px] w-full items-center justify-center border border-red-200 bg-red-50">
@@ -96,17 +119,16 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
   }
 
   return (
-    <div className="relative h-[20rem] w-[25rem] overflow-hidden rounded-lg border border-gray-300 p-4">
-      {/* ✅ Loading indicator */}
+    <div className="relative h-[20rem] w-[25rem] overflow-hidden rounded-lg border border-gray-300">
       {!isLoaded && (
-        <div className="absolute inset-4 z-50 flex items-center justify-center rounded bg-gray-100">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-100">
           <div className="text-center">
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
             <p className="mt-2 text-gray-600">Loading map...</p>
           </div>
         </div>
       )}
-      <div ref={mapContainerRef} className="z-0 h-full w-full rounded" />
+      <div ref={mapContainerRef} className="h-full w-full" />
     </div>
   );
 }
