@@ -1,14 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-} from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal } from "lucide-react";
 import { CaseStatus } from "@/types/form-schema";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,7 +24,7 @@ export type CrimeTableRow = {
 export const columns: ColumnDef<CrimeTableRow>[] = [
   {
     accessorKey: "id",
-    header: "ID",
+    header: "Case ID",
     cell: ({ row }) => {
       return <div className="font-medium">{`CASE-${row.getValue("id")}`}</div>;
     },
