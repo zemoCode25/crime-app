@@ -31,7 +31,7 @@ export const columns: ColumnDef<CrimeTableRow>[] = [
   },
   {
     accessorKey: "crime_type",
-    header: "Crime Type",
+    header: "Type",
     cell: ({ row }) => {
       const crimeType = row.getValue("crime_type") as number | null;
       return <div>{crimeType || "Unknown"}</div>;
@@ -39,23 +39,7 @@ export const columns: ColumnDef<CrimeTableRow>[] = [
   },
   {
     accessorKey: "case_status",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="!p-0 text-left font-bold"
-      >
-        Status
-        {/* ✅ Dynamic sort icon */}
-        {column.getIsSorted() === "desc" ? (
-          <ArrowDown className="ml-2 h-4 w-4" />
-        ) : column.getIsSorted() === "asc" ? (
-          <ArrowUp className="ml-2 h-4 w-4" />
-        ) : (
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        )}
-      </Button>
-    ),
+    header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("case_status") as string | null;
       return <div className="capitalize">{status || "Unknown"}</div>;
