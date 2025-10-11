@@ -22,7 +22,10 @@ export type CrimeTableRow = {
   complainant: string;
 };
 
-export const columns: ColumnDef<CrimeTableRow>[] = [
+// ✅ Function that creates columns with dependencies injected
+export const createColumns = (
+  crimeTypeConverter: (id: number) => string | null,
+): ColumnDef<CrimeTableRow>[] => [
   {
     accessorKey: "id",
     header: "Case ID",
@@ -34,16 +37,17 @@ export const columns: ColumnDef<CrimeTableRow>[] = [
     accessorKey: "crime_type",
     header: "Type",
     cell: ({ row }) => {
-      const { crimeTypeConverter } = useCrimeType();
+      const { crimeTypeConverter } = useCrimeType(); // ✅ Hook in React component context
       const crimeTypeId = row.getValue("crime_type") as number | null;
       const crimeType = crimeTypeConverter(crimeTypeId || 0);
       return <div>{crimeType || "Unknown"}</div>;
     },
-    // ✅ Add custom filter function
+    // ✅ Now we can use the injected converter (no hooks!)
     filterFn: (row, columnId, filterValue: string[]) => {
       if (!filterValue || filterValue.length === 0) return true;
-      const cellValue = row.getValue(columnId) as string;
-      return filterValue.includes(cellValue);
+      const crimeTypeId = row.getValue(columnId) as number | null;
+      const cellCrimeType = crimeTypeConverter(crimeTypeId || 0);
+      return filterValue.includes(cellCrimeType || "Unknown");
     },
   },
   {
@@ -54,11 +58,10 @@ export const columns: ColumnDef<CrimeTableRow>[] = [
       return <div className="capitalize">{status || "Unknown"}</div>;
     },
     enableGlobalFilter: true,
-    // ✅ Add custom filter function
     filterFn: (row, columnId, filterValue: string[]) => {
       if (!filterValue || filterValue.length === 0) return true;
-      const cellValue = row.getValue(columnId) as string;
-      return filterValue.includes(cellValue);
+      const cellValue = row.getValue(columnId) as string | null;
+      return filterValue.includes(cellValue || "Unknown");
     },
   },
   {
@@ -70,7 +73,6 @@ export const columns: ColumnDef<CrimeTableRow>[] = [
         className="!p-0 text-left font-bold"
       >
         Complainant
-        {/* ✅ Dynamic sort icon based on current sort state */}
         {column.getIsSorted() === "desc" ? (
           <ArrowDown className="ml-2 h-4 w-4" />
         ) : column.getIsSorted() === "asc" ? (
@@ -95,7 +97,6 @@ export const columns: ColumnDef<CrimeTableRow>[] = [
         className="!p-0 text-left font-bold"
       >
         Suspect
-        {/* ✅ Dynamic sort icon based on current sort state */}
         {column.getIsSorted() === "desc" ? (
           <ArrowDown className="ml-2 h-4 w-4" />
         ) : column.getIsSorted() === "asc" ? (
@@ -138,3 +139,6 @@ export const columns: ColumnDef<CrimeTableRow>[] = [
     },
   },
 ];
+
+// ✅ Keep backward compatibility (without filter functions)
+export const columns: ColumnDef<CrimeTableRow>[] = createColumns(() => null);
