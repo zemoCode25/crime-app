@@ -290,9 +290,8 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
               globalFilter) && (
               <Button
                 variant="ghost"
-                size="sm"
                 onClick={clearAllFilters}
-                className="h-9 px-2 text-xs"
+                className="h-9 border border-neutral-300 bg-transparent px-2 text-base hover:bg-neutral-200/50 dark:border-orange-900"
               >
                 <FilterX className="mr-2 h-4 w-4" />
                 Clear filters
