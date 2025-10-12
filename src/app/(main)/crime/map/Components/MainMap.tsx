@@ -28,13 +28,13 @@ const redIcon = new L.Icon({
 export default function AddressInformation() {
   return (
     <MapContainer
-      center={[14.3798, 121.0249]} // Alabang, Muntinlupa
+      center={[14.3731, 121.0218]} // Alabang, Muntinlupa
       zoom={13}
       scrollWheelZoom={true}
       className="z-0 h-dvh w-full rounded-lg shadow-md"
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <Marker position={[14.3794, 121.0249]} icon={redIcon}>
+      <Marker position={[14.3731, 121.0218]} icon={redIcon}>
         <Popup className="!gap-2">
           <div className="flex flex-col gap-2">
             <div>
