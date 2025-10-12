@@ -52,8 +52,8 @@ export default function ChartSection({
   dateRange: DateRange | undefined;
 }) {
   return (
-    <div className="flex justify-between gap-4 rounded-sm border border-neutral-300 bg-white p-4">
-      <div className="flex w-full flex-col gap-2">
+    <div className="flex justify-between gap-4 rounded-sm p-1">
+      <div className="flex w-full flex-col justify-center gap-2 rounded-sm border border-neutral-300 bg-white p-2">
         <Tabs defaultValue="account" className="max-w-[30rem]">
           <TabsList className="w-full gap-5 bg-neutral-200/50 dark:bg-neutral-900">
             <TabsTrigger
@@ -78,7 +78,7 @@ export default function ChartSection({
           <TabsContent value="">Make changes to your account here.</TabsContent>
           <TabsContent value="password">Change your password here.</TabsContent>
         </Tabs>
-        <CardContent className="flex h-full w-full flex-col justify-center border-neutral-300 bg-white p-0">
+        <CardContent className="flex h-full w-full flex-col justify-center bg-white p-0">
           <ChartContainer config={chartConfig} className="h-[10rem] w-full">
             <ResponsiveContainer>
               <AreaChart

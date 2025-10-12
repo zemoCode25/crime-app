@@ -56,7 +56,7 @@ export default function CrimeTypeChart() {
   }, []);
 
   return (
-    <div className="flex h-full w-[40%] flex-col rounded-md border border-neutral-300 p-4">
+    <div className="flex h-full w-[40%] flex-col rounded-md border border-neutral-300 bg-white p-4">
       <div className="items-center pb-0">
         <CardTitle>Crime type chart</CardTitle>
         <CardDescription>January - June 2025</CardDescription>
