@@ -69,8 +69,6 @@ export async function deleteCrimeCaseTransaction(
   client: TypedSupabaseClient,
   caseId: number
 ) {
-  return client.rpc('delete_crime_case_transaction', {
-    case_id: caseId
-  });
+  return client.from('crime_case').delete().eq('id', caseId);
 }
 
