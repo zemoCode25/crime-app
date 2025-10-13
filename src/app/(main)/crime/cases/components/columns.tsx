@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useDeleteCrimeCase } from "@/hooks/crime-case/useMutateCase";
 
 export type CrimeTableRow = {
   id: number;
@@ -116,6 +117,13 @@ export const createColumns = (
     id: "actions",
     cell: ({ row }) => {
       const crime = row.original;
+      const deleteMutation = useDeleteCrimeCase(); // ✅ Hook called during render
+
+      const handleDeleteClick = async () => {
+        // ✅ Just USE the mutation, don't create it here
+        await deleteMutation.mutateAsync({ id: crime.id });
+      };
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -128,10 +136,14 @@ export const createColumns = (
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => console.log("Delete case", crime.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteClick();
+              }}
+              disabled={deleteMutation.isPending} // ✅ Show loading state
               className="hover:bg-red-500 hover:text-white"
             >
-              Delete
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
