@@ -19,7 +19,7 @@ export default function StepNavigation({
   const stepTitleMap: Record<number, string> = {
     0: "Crime Information",
     1: "Person Information",
-    2: "Address Information",
+    2: "Location Information",
     3: "Additional Notes",
   };
 

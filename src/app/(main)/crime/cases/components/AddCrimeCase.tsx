@@ -12,14 +12,14 @@ import StepNavigation from "./StepNavigation";
 import AddressInformation from "./multi-step/AddressInformation";
 import MainButton from "@/components/utils/MainButton";
 import { formSchema, type FormSchemaType } from "@/types/form-schema";
-import { CrimeCaseMutation } from "@/hooks/crime-case/useMutateCase";
 import { defaultValues } from "@/lib/crime-case";
+import { useCreateCrimeCase } from "@/hooks/crime-case/useMutateCase";
 
 export default function MyForm() {
   const [step, setStep] = useState(0);
 
   // ✅ Use TanStack Query mutation instead of direct function call
-  const crimeCaseMutation = CrimeCaseMutation("create");
+  const crimeCaseMutation = useCreateCrimeCase();
 
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
@@ -111,7 +111,7 @@ export default function MyForm() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="mx-auto w-fit space-y-5 py-4"
+            className="mx-auto w-full space-y-5 py-4"
           >
             {step === 0 && <CrimeForm form={form} />}
             {step === 1 && (

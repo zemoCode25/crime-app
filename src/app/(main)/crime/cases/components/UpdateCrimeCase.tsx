@@ -12,7 +12,7 @@ import StepNavigation from "./StepNavigation";
 import AddressInformation from "./multi-step/AddressInformation";
 import MainButton from "@/components/utils/MainButton";
 import { formSchema, type FormSchemaType } from "@/types/form-schema";
-import { CrimeCaseMutation } from "@/hooks/crime-case/useMutateCase";
+import { useUpdateCrimeCase } from "@/hooks/crime-case/useMutateCase";
 import { defaultValues } from "@/lib/crime-case";
 import { useCrimeCase } from "@/hooks/crime-case/useCrimeCase";
 
@@ -20,7 +20,7 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
   const [step, setStep] = useState(0);
 
   const { data: crimeData, isLoading } = useCrimeCase(caseId);
-  const crimeCaseMutation = CrimeCaseMutation("update");
+  const crimeCaseMutation = useUpdateCrimeCase();
 
   // ✅ Initialize form with empty defaults first
   const form = useForm<FormSchemaType>({
@@ -191,6 +191,7 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
 
       // ✅ Trigger the mutation
       await crimeCaseMutation.mutateAsync({
+        id: caseId,
         crimeCase,
         location,
         persons,

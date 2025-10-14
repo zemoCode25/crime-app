@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal } from "lucide-react";
 import { CaseStatus } from "@/types/form-schema";
@@ -13,6 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useDeleteCrimeCase } from "@/hooks/crime-case/useMutateCase";
+import DeleteModal from "@/components/delete-modal";
 
 export type CrimeTableRow = {
   id: number;
@@ -115,9 +118,14 @@ export const createColumns = (
   {
     id: "actions",
     cell: ({ row }) => {
+      const [openDropdown, setOpenDropdown] = useState(false);
       const crime = row.original;
+      function closeDropdown() {
+        setOpenDropdown(false);
+      }
+
       return (
-        <DropdownMenu>
+        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
               <span className="sr-only">Open menu</span>
@@ -128,10 +136,12 @@ export const createColumns = (
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => console.log("Delete case", crime.id)}
-              className="hover:bg-red-500 hover:text-white"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
             >
-              Delete
+              <DeleteModal caseId={crime.id} closeDropdown={closeDropdown} />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

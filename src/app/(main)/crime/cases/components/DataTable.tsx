@@ -54,11 +54,6 @@ import { createColumns } from "./columns";
 import { useCrimeType } from "@/context/CrimeTypeProvider";
 
 // ✅ Use specific type instead of generic
-interface DataTableProps {
-  columns: ColumnDef<CrimeTableRow, any>[];
-  data: CrimeTableRow[];
-}
-
 export function DataTable({ data }: { data: CrimeTableRow[] }) {
   // ✅ Hook called at component level (correct!)
   const { crimeTypeConverter } = useCrimeType();

@@ -75,14 +75,22 @@ export default function AddressInformation({
 
   return (
     <div className="w-full p-4">
-      <div className="mb-4">
-        <label className="mb-2 block text-sm font-medium">Location</label>
-        <Input
-          placeholder="Enter location"
-          className="w-full"
-          {...form.register("crime_location")}
-        />
-      </div>
+      <FormField
+        control={form.control}
+        name="crime_location"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Location</FormLabel>
+            <FormControl>
+              <Input placeholder="Location" className="w-full" {...field} />
+            </FormControl>
+            <FormDescription className="text-xs">
+              Specify the exact location of the crime
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
       <Map coordinates={coordinates} setCoordinates={setCoordinates} />
 
