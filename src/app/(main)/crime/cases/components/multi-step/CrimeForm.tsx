@@ -24,10 +24,8 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { UseFormReturn } from "react-hook-form";
 // constants
 import { STATUSES } from "@/constants/crime-case";
-import { formSchema, type FormSchemaType } from "@/types/form-schema";
 // tanstack
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getCrimeTypes } from "@/server/queries/crime-type";

@@ -29,7 +29,7 @@ import { Check, ChevronsUpDown } from "lucide-react";
 import Calendar22 from "@/components/calendar-22";
 import { cn } from "@/lib/utils";
 import "react-phone-number-input/style.css";
-import { UseFieldArrayReturn, UseFormReturn } from "react-hook-form";
+import { UseFieldArrayReturn } from "react-hook-form";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { CASE_ROLES } from "@/constants/personal-information";
 import { useEffect, useState } from "react";

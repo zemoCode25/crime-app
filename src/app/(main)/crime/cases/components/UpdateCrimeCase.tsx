@@ -183,12 +183,6 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
         testimony: person.testimony?.trim() || null,
       }));
 
-      console.log("Submitting form with values:", {
-        crimeCase,
-        location,
-        persons,
-      });
-
       // ✅ Trigger the mutation
       await crimeCaseMutation.mutateAsync({
         id: caseId,
@@ -208,18 +202,16 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
 
   return (
     <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
-      <StepNavigation setStep={setStep} step={step} form={form} />
       <Form {...form}>
+        <StepNavigation setStep={setStep} step={step} />
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="mx-auto w-fit space-y-5 py-4"
         >
-          {step === 0 && <CrimeForm form={form} />}
-          {step === 1 && (
-            <PersonInformation form={form} formFieldArray={formFieldArray} />
-          )}
-          {step === 2 && <AddressInformation form={form} />}
-          {step === 3 && <AdditionalNotes form={form} />}
+          {step === 0 && <CrimeForm />}
+          {step === 1 && <PersonInformation formFieldArray={formFieldArray} />}
+          {step === 2 && <AddressInformation />}
+          {step === 3 && <AdditionalNotes />}
 
           {/* ✅ Submit button for last step */}
           {step === 3 && (

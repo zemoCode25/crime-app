@@ -107,8 +107,8 @@ export default function MyForm() {
         </MainButton>
       </DialogTrigger>
       <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
-        <StepNavigation setStep={setStep} step={step} form={form} />
         <Form {...form}>
+          <StepNavigation setStep={setStep} step={step} />
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="mx-auto w-full space-y-5 py-4"
