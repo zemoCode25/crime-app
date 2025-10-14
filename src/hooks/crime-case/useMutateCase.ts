@@ -21,11 +21,6 @@ type UpdateCrimeCaseInput = {
   location: LocationData;
   persons: PersonData[];
 };
-
-type DeleteCrimeCaseInput = {
-  id: number;
-};
-
 // ✅ CREATE HOOK
 export function useCreateCrimeCase() {
   const supabase = useSupabaseBrowser();
@@ -101,6 +96,7 @@ export function useUpdateCrimeCase() {
 
       const result = await updateCrimeCaseTransaction(supabase, id, crimeCase, location, persons);
 
+      console.log('Update result:', result);
       if (!result || result.error) {
         throw new Error(result?.error?.message || 'Failed to update crime case');
       }
@@ -111,6 +107,9 @@ export function useUpdateCrimeCase() {
       toast.loading('Updating crime case...', { id: 'update-crime-case' });
     },
     onSuccess: (data) => {
+      if(data.error) {
+        throw new Error(data.error);
+      }
       toast.dismiss('update-crime-case');
       toast.success('Crime case updated successfully!');
       
@@ -157,7 +156,7 @@ export function useDeleteCrimeCase() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id }: DeleteCrimeCaseInput) => {
+    mutationFn: async ({ id }: { id: number }) => {
       if (!supabase) {
         throw new Error('Database connection error. Please try again.');
       }

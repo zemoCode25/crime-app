@@ -67,8 +67,7 @@ export default function LocationInformation() {
   useEffect(() => {
     form.setValue("lat", coordinates.lat, { shouldValidate: true });
     form.setValue("long", coordinates.long, { shouldValidate: true });
-    console.log("Updated form from coordinates:", coordinates);
-  }, [coordinates, form]);
+  }, [coordinates]);
 
   return (
     <div className="w-full p-4">

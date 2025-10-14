@@ -367,27 +367,30 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <Dialog key={row.id}>
-                  <DialogTrigger asChild>
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                      className="cursor-pointer hover:bg-neutral-200/50"
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </DialogTrigger>
-                  <UpdateCrimeCase caseId={row.original.id} />
-                </Dialog>
-              ))
+              table.getRowModel().rows.map((row) => {
+                console.log("Rendering row:", typeof row.original.id);
+                return (
+                  <Dialog key={row.id}>
+                    <DialogTrigger asChild>
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && "selected"}
+                        className="cursor-pointer hover:bg-neutral-200/50"
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </DialogTrigger>
+                    <UpdateCrimeCase caseId={row.original.id} />
+                  </Dialog>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell

@@ -1,6 +1,18 @@
 import { TypedSupabaseClient } from "@/types/supabase-client";
 import { CrimeCaseData, LocationData, PersonData } from "@/types/crime-case";
 
+const TABLES = [
+  'crime_case',
+  'location',
+  'case_person',
+  'person_profile'
+] as const;
+
+
+TABLES.map(table => {
+  console.log(`Table: ${table}`);
+});
+
 export async function getTableCrimeCases(client: TypedSupabaseClient) {
   return client
     .from("crime_case")
@@ -57,6 +69,9 @@ export async function updateCrimeCaseTransaction(
   locationData: LocationData,
   personsData: PersonData[]
 ) {
+  console.log('Updating crime case with ID:', caseId);
+  console.log('Case ID type:', typeof caseId);
+  
   return client.rpc('update_crime_case_transaction', {
     case_id: caseId,
     case_data: JSON.parse(JSON.stringify(caseData)),
@@ -71,4 +86,3 @@ export async function deleteCrimeCaseTransaction(
 ) {
   return client.from('crime_case').delete().eq('id', caseId);
 }
-
