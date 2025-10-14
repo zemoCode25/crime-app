@@ -65,7 +65,7 @@ export default function CrimeForm({
             <FormControl>
               <Textarea
                 placeholder=""
-                className="min-h-30 w-full resize-none"
+                className="min-h-40 w-full resize-none"
                 {...field}
               />
             </FormControl>
@@ -220,7 +220,7 @@ export default function CrimeForm({
                 </Command>
               </PopoverContent>
             </Popover>
-            <FormDescription>
+            <FormDescription className="text-xs">
               This is the language that will be used in the dashboard.
             </FormDescription>
             <FormMessage />

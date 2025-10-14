@@ -18,7 +18,7 @@ export async function getTableCrimeCases(client: TypedSupabaseClient) {
       )
       `
     )
-    .order("id", { ascending: true });
+    .order("id", { ascending: false });
 }
 
 export async function getCrimeCaseById(client: TypedSupabaseClient, caseId: number) {

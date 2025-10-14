@@ -111,7 +111,7 @@ export default function MyForm() {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="mx-auto w-fit space-y-5 py-4"
+            className="mx-auto w-full space-y-5 py-4"
           >
             {step === 0 && <CrimeForm form={form} />}
             {step === 1 && (
