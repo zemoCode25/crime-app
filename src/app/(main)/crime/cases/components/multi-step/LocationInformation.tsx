@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { ErrorMessage } from "@hookform/error-message";
 import { useEffect, useState } from "react";
 import { Coordinates } from "@/types/map";
+import { useFormContext } from "react-hook-form";
 
 const Map = dynamic(() => import("./Map"), {
   ssr: false, // ✅ prevent SSR errors
@@ -52,12 +53,8 @@ type Barangay = {
     | "Tunasan";
 };
 
-export default function AddressInformation({
-  form,
-}: {
-  form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
-}) {
-  // ✅ Watch specific fields efficiently
+export default function LocationInformation() {
+  const form = useFormContext<FormSchemaType>();
   const lat = form.getValues("lat");
   const long = form.getValues("long");
 

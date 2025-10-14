@@ -9,7 +9,7 @@ import PersonInformation from "./multi-step/PersonInformation";
 import AdditionalNotes from "./multi-step/AdditionalNotes";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import StepNavigation from "./StepNavigation";
-import AddressInformation from "./multi-step/AddressInformation";
+import AddressInformation from "./multi-step/LocationInformation";
 import MainButton from "@/components/utils/MainButton";
 import { formSchema, type FormSchemaType } from "@/types/form-schema";
 import { useUpdateCrimeCase } from "@/hooks/crime-case/useMutateCase";

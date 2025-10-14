@@ -9,7 +9,7 @@ import PersonInformation from "./multi-step/PersonInformation";
 import AdditionalNotes from "./multi-step/AdditionalNotes";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import StepNavigation from "./StepNavigation";
-import AddressInformation from "./multi-step/AddressInformation";
+import LocationInformation from "./multi-step/LocationInformation";
 import MainButton from "@/components/utils/MainButton";
 import { formSchema, type FormSchemaType } from "@/types/form-schema";
 import { defaultValues } from "@/lib/crime-case";
@@ -113,12 +113,12 @@ export default function MyForm() {
             onSubmit={form.handleSubmit(onSubmit)}
             className="mx-auto w-full space-y-5 py-4"
           >
-            {step === 0 && <CrimeForm form={form} />}
+            {step === 0 && <CrimeForm />}
             {step === 1 && (
-              <PersonInformation form={form} formFieldArray={formFieldArray} />
+              <PersonInformation formFieldArray={formFieldArray} />
             )}
-            {step === 2 && <AddressInformation form={form} />}
-            {step === 3 && <AdditionalNotes form={form} />}
+            {step === 2 && <LocationInformation />}
+            {step === 3 && <AdditionalNotes />}
 
             {/* ✅ Submit button for last step */}
             {step === 3 && (

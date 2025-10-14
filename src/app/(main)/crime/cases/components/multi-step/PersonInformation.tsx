@@ -38,16 +38,15 @@ import Complainant from "./InvolvementForms/Complainant";
 import Witness from "./InvolvementForms/Witness";
 import { formSchema, type FormSchemaType } from "@/types/form-schema";
 import { X } from "lucide-react";
+import { useFormContext } from "react-hook-form";
 
 export default function PersonInformation({
-  form,
   formFieldArray,
 }: {
-  form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
   formFieldArray: UseFieldArrayReturn<FormSchemaType, "persons", "id">;
 }) {
   const { fields, append, remove } = formFieldArray;
-
+  const form = useFormContext<FormSchemaType>();
   return (
     <div className="flex w-full flex-col gap-4">
       {fields.map((field, index) => {
