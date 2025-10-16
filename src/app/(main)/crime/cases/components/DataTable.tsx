@@ -71,8 +71,8 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
 
   // ✅ Multi-select status state
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [selectedCrimeTypes, setSelectedCrimeTypes] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]); // [open, closed]
+  const [selectedCrimeTypes, setSelectedCrimeTypes] = useState<string[]>([]); // [Theft, Assault]
 
   const supabase = useSupabaseBrowser();
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
@@ -93,12 +93,11 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
     },
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: "includesString",
-    // ✅ Custom filter functions
     filterFns: {
-      multiSelect: (row, columnId, filterValue: string[]) => {
+      filterRows: (row, columnId, filterValue: string[]) => {
         if (!filterValue || filterValue.length === 0) return true;
-        const cellValue = row.getValue(columnId) as string;
-        return filterValue.includes(cellValue);
+        const cellValue = row.getValue(columnId) as string | null;
+        return filterValue.includes(cellValue || "Unknown");
       },
     },
   });

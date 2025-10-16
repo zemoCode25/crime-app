@@ -52,26 +52,7 @@ export function useCreateCrimeCase() {
       console.log('Crime case create successful:', data);
     },
     onError: (error) => {
-      toast.dismiss('create-crime-case');
-      
-      if (error instanceof Error) {
-        const errorMessage = error.message;
-        
-        if (errorMessage.includes('duplicate')) {
-          toast.error('A similar crime case already exists');
-        } else if (errorMessage.includes('constraint')) {
-          toast.error('Invalid data provided. Please check your inputs.');
-        } else if (errorMessage.includes('permission')) {
-          toast.error("You don't have permission to perform this action");
-        } else if (errorMessage.includes('network')) {
-          toast.error('Network error. Please check your connection and try again.');
-        } else {
-          toast.error(`Failed to create crime case: ${errorMessage}`);
-        }
-      } else {
-        toast.error('An unexpected error occurred. Please try again.');
-      }
-      
+      toast.dismiss('create-crime-case');  
       console.error('Crime case create error:', error);
     },
     retry: (failureCount, error) => {
@@ -117,27 +98,11 @@ export function useUpdateCrimeCase() {
       queryClient.invalidateQueries({ queryKey: ['crime-case'] });
       
       console.log('Crime case update successful:', data);
+
+
     },
     onError: (error) => {
       toast.dismiss('update-crime-case');
-      
-      if (error instanceof Error) {
-        const errorMessage = error.message;
-        
-        if (errorMessage.includes('duplicate')) {
-          toast.error('A similar crime case already exists');
-        } else if (errorMessage.includes('constraint')) {
-          toast.error('Invalid data provided. Please check your inputs.');
-        } else if (errorMessage.includes('permission')) {
-          toast.error("You don't have permission to perform this action");
-        } else if (errorMessage.includes('network')) {
-          toast.error('Network error. Please check your connection and try again.');
-        } else {
-          toast.error(`Failed to update crime case: ${errorMessage}`);
-        }
-      } else {
-        toast.error('An unexpected error occurred. Please try again.');
-      }
       
       console.error('Crime case update error:', error);
     },
