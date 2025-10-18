@@ -26,7 +26,7 @@ export default function EmergencyCard({
   return (
     <div
       className={cn(
-        "flex w-full flex-col !gap-0 rounded-sm border border-neutral-300 bg-white px-6 py-4 shadow-sm sm:w-[calc(33.333%_-_1rem)]",
+        "flex w-full flex-col gap-2 rounded-sm border border-neutral-300 bg-white px-6 py-4 shadow-sm sm:w-[calc(33.333%_-_1rem)]",
         "dark:border-orange-900/30 dark:bg-[var(--dark-card)] dark:shadow-none",
         className,
       )}

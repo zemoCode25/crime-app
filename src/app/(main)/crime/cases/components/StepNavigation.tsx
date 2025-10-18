@@ -4,24 +4,22 @@ import { Button } from "@/components/ui/button";
 import { UseFormReturn } from "react-hook-form";
 import { FormSchemaType } from "@/types/form-schema";
 import toast from "react-hot-toast";
+import { useFormContext } from "react-hook-form";
 
 interface StepNavigationProps {
   step: number;
   setStep: React.Dispatch<React.SetStateAction<number>>;
-  form: UseFormReturn<FormSchemaType>; // ✅ Add form prop
 }
 
-export default function StepNavigation({
-  step,
-  setStep,
-  form,
-}: StepNavigationProps) {
+export default function StepNavigation({ step, setStep }: StepNavigationProps) {
   const stepTitleMap: Record<number, string> = {
     0: "Crime Information",
     1: "Person Information",
     2: "Location Information",
     3: "Additional Notes",
   };
+
+  const form = useFormContext<FormSchemaType>();
 
   // ✅ Function to validate current step
   async function validateCurrentStep(): Promise<boolean> {

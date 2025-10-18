@@ -38,14 +38,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "CasePerson_crime_id_fkey"
+            foreignKeyName: "case_person_crime_id_fkey"
             columns: ["crime_id"]
             isOneToOne: false
             referencedRelation: "crime_case"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "CasePerson_person_profile_id_fkey"
+            foreignKeyName: "case_person_person_profile_id_fkey"
             columns: ["person_profile_id"]
             isOneToOne: false
             referencedRelation: "person_profile"
@@ -274,14 +274,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "Suspect_case_person_id_fkey"
+            foreignKeyName: "suspect_case_person_id_fkey"
             columns: ["case_person_id"]
             isOneToOne: false
             referencedRelation: "case_person"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "Suspect_id_fkey"
+            foreignKeyName: "suspect_id_fkey"
             columns: ["id"]
             isOneToOne: true
             referencedRelation: "case_person"
@@ -354,6 +354,15 @@ export type Database = {
           _user_id: string
         }
         Returns: undefined
+      }
+      update_crime_case_transaction: {
+        Args: {
+          case_data: Json
+          case_id: number
+          location_data: Json
+          persons_data: Json[]
+        }
+        Returns: Json
       }
     }
     Enums: {

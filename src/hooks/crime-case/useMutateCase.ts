@@ -21,11 +21,6 @@ type UpdateCrimeCaseInput = {
   location: LocationData;
   persons: PersonData[];
 };
-
-type DeleteCrimeCaseInput = {
-  id: number;
-};
-
 // ✅ CREATE HOOK
 export function useCreateCrimeCase() {
   const supabase = useSupabaseBrowser();
@@ -57,26 +52,7 @@ export function useCreateCrimeCase() {
       console.log('Crime case create successful:', data);
     },
     onError: (error) => {
-      toast.dismiss('create-crime-case');
-      
-      if (error instanceof Error) {
-        const errorMessage = error.message;
-        
-        if (errorMessage.includes('duplicate')) {
-          toast.error('A similar crime case already exists');
-        } else if (errorMessage.includes('constraint')) {
-          toast.error('Invalid data provided. Please check your inputs.');
-        } else if (errorMessage.includes('permission')) {
-          toast.error("You don't have permission to perform this action");
-        } else if (errorMessage.includes('network')) {
-          toast.error('Network error. Please check your connection and try again.');
-        } else {
-          toast.error(`Failed to create crime case: ${errorMessage}`);
-        }
-      } else {
-        toast.error('An unexpected error occurred. Please try again.');
-      }
-      
+      toast.dismiss('create-crime-case');  
       console.error('Crime case create error:', error);
     },
     retry: (failureCount, error) => {
@@ -101,6 +77,7 @@ export function useUpdateCrimeCase() {
 
       const result = await updateCrimeCaseTransaction(supabase, id, crimeCase, location, persons);
 
+      console.log('Update result:', result);
       if (!result || result.error) {
         throw new Error(result?.error?.message || 'Failed to update crime case');
       }
@@ -111,6 +88,9 @@ export function useUpdateCrimeCase() {
       toast.loading('Updating crime case...', { id: 'update-crime-case' });
     },
     onSuccess: (data) => {
+      if(data.error) {
+        throw new Error(data.error);
+      }
       toast.dismiss('update-crime-case');
       toast.success('Crime case updated successfully!');
       
@@ -118,27 +98,11 @@ export function useUpdateCrimeCase() {
       queryClient.invalidateQueries({ queryKey: ['crime-case'] });
       
       console.log('Crime case update successful:', data);
+
+
     },
     onError: (error) => {
       toast.dismiss('update-crime-case');
-      
-      if (error instanceof Error) {
-        const errorMessage = error.message;
-        
-        if (errorMessage.includes('duplicate')) {
-          toast.error('A similar crime case already exists');
-        } else if (errorMessage.includes('constraint')) {
-          toast.error('Invalid data provided. Please check your inputs.');
-        } else if (errorMessage.includes('permission')) {
-          toast.error("You don't have permission to perform this action");
-        } else if (errorMessage.includes('network')) {
-          toast.error('Network error. Please check your connection and try again.');
-        } else {
-          toast.error(`Failed to update crime case: ${errorMessage}`);
-        }
-      } else {
-        toast.error('An unexpected error occurred. Please try again.');
-      }
       
       console.error('Crime case update error:', error);
     },
@@ -157,7 +121,7 @@ export function useDeleteCrimeCase() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id }: DeleteCrimeCaseInput) => {
+    mutationFn: async ({ id }: { id: number }) => {
       if (!supabase) {
         throw new Error('Database connection error. Please try again.');
       }

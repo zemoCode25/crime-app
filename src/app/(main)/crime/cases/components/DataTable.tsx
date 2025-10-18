@@ -71,8 +71,8 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
 
   // ✅ Multi-select status state
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
-  const [selectedCrimeTypes, setSelectedCrimeTypes] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]); // [open, closed]
+  const [selectedCrimeTypes, setSelectedCrimeTypes] = useState<string[]>([]); // [Theft, Assault]
 
   const supabase = useSupabaseBrowser();
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
@@ -93,12 +93,11 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
     },
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: "includesString",
-    // ✅ Custom filter functions
     filterFns: {
-      multiSelect: (row, columnId, filterValue: string[]) => {
+      filterRows: (row, columnId, filterValue: string[]) => {
         if (!filterValue || filterValue.length === 0) return true;
-        const cellValue = row.getValue(columnId) as string;
-        return filterValue.includes(cellValue);
+        const cellValue = row.getValue(columnId) as string | null;
+        return filterValue.includes(cellValue || "Unknown");
       },
     },
   });
@@ -367,27 +366,30 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <Dialog key={row.id}>
-                  <DialogTrigger asChild>
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                      className="cursor-pointer hover:bg-neutral-200/50"
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  </DialogTrigger>
-                  <UpdateCrimeCase caseId={row.original.id} />
-                </Dialog>
-              ))
+              table.getRowModel().rows.map((row) => {
+                console.log("Rendering row:", typeof row.original.id);
+                return (
+                  <Dialog key={row.id}>
+                    <DialogTrigger asChild>
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && "selected"}
+                        className="cursor-pointer hover:bg-neutral-200/50"
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </DialogTrigger>
+                    <UpdateCrimeCase caseId={row.original.id} />
+                  </Dialog>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell

@@ -2,14 +2,13 @@
 import { useState, useEffect } from "react"; // ✅ Add useEffect
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus } from "lucide-react";
 import { Form } from "@/components/ui/form";
 import CrimeForm from "./multi-step/CrimeForm";
 import PersonInformation from "./multi-step/PersonInformation";
 import AdditionalNotes from "./multi-step/AdditionalNotes";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { DialogContent } from "@/components/ui/dialog";
 import StepNavigation from "./StepNavigation";
-import AddressInformation from "./multi-step/AddressInformation";
+import LocationInformation from "./multi-step/LocationInformation";
 import MainButton from "@/components/utils/MainButton";
 import { formSchema, type FormSchemaType } from "@/types/form-schema";
 import { useUpdateCrimeCase } from "@/hooks/crime-case/useMutateCase";
@@ -109,10 +108,6 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
         ],
       };
 
-      console.log("Transformed formData:", formData); // Debug the converted data
-      console.log("report_datetime type:", typeof formData.report_datetime); // Should be "object"
-      console.log("incident_datetime type:", typeof formData.incident_datetime); // Should be "object"
-
       // ✅ Reset form with converted data
       form.reset(formData);
     }
@@ -183,12 +178,6 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
         testimony: person.testimony?.trim() || null,
       }));
 
-      console.log("Submitting form with values:", {
-        crimeCase,
-        location,
-        persons,
-      });
-
       // ✅ Trigger the mutation
       await crimeCaseMutation.mutateAsync({
         id: caseId,
@@ -197,8 +186,14 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
         persons,
       });
 
-      // ✅ Reset form on success (mutation handles toast notifications)
-      form.reset();
+      if (crimeCaseMutation.isError) {
+        throw new Error("Failed to update crime case");
+      }
+
+      if (crimeCaseMutation.isSuccess) {
+        console.log("Crime case update successful");
+      }
+
       setStep(0);
     } catch (error) {
       // ✅ Error handling is managed by the mutation hook
@@ -208,18 +203,16 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
 
   return (
     <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
-      <StepNavigation setStep={setStep} step={step} form={form} />
       <Form {...form}>
+        <StepNavigation setStep={setStep} step={step} />
         <form
           onSubmit={form.handleSubmit(onSubmit)}
           className="mx-auto w-fit space-y-5 py-4"
         >
-          {step === 0 && <CrimeForm form={form} />}
-          {step === 1 && (
-            <PersonInformation form={form} formFieldArray={formFieldArray} />
-          )}
-          {step === 2 && <AddressInformation form={form} />}
-          {step === 3 && <AdditionalNotes form={form} />}
+          {step === 0 && <CrimeForm />}
+          {step === 1 && <PersonInformation formFieldArray={formFieldArray} />}
+          {step === 2 && <LocationInformation />}
+          {step === 3 && <AdditionalNotes />}
 
           {/* ✅ Submit button for last step */}
           {step === 3 && (
@@ -230,8 +223,8 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
                 disabled={crimeCaseMutation.isPending} // ✅ Use mutation loading state
               >
                 {crimeCaseMutation.isPending
-                  ? "Creating..."
-                  : "Create Crime Case"}
+                  ? "Updating..."
+                  : "Update Crime Case"}
               </MainButton>
             </div>
           )}

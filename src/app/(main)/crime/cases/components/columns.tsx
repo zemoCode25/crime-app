@@ -61,10 +61,10 @@ export const createColumns = (
       return <div className="capitalize">{status || "Unknown"}</div>;
     },
     enableGlobalFilter: true,
-    filterFn: (row, columnId, filterValue: string[]) => {
+    filterFn: (row, columnId, filterValue) => {
       if (!filterValue || filterValue.length === 0) return true;
-      const cellValue = row.getValue(columnId) as string | null;
-      return filterValue.includes(cellValue || "Unknown");
+      const status = row.getValue(columnId) as string | null;
+      return filterValue.includes(status || "Unknown");
     },
   },
   {

@@ -8,15 +8,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { UseFormReturn } from "react-hook-form";
-import { FormSchemaType } from "@/types/form-schema";
-import MainButton from "@/components/utils/MainButton";
+import { useFormContext } from "react-hook-form";
 
-export default function AdditionalNotes({
-  form,
-}: {
-  form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
-}) {
+export default function AdditionalNotes() {
+  const form = useFormContext();
+
   return (
     <>
       <FormField

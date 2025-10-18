@@ -24,10 +24,8 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { UseFormReturn } from "react-hook-form";
 // constants
 import { STATUSES } from "@/constants/crime-case";
-import { formSchema, type FormSchemaType } from "@/types/form-schema";
 // tanstack
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getCrimeTypes } from "@/server/queries/crime-type";
@@ -36,23 +34,17 @@ import Calendar24 from "@/components/calendar-24";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { useFormContext } from "react-hook-form";
 
 interface CaseStatus {
   value: string;
   label: string;
 }
 
-export default function CrimeForm({
-  form,
-}: {
-  form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
-}) {
+export default function CrimeForm() {
   const supabase = useSupabaseBrowser();
-  const {
-    data: crimeTypes,
-    isLoading,
-    isError,
-  } = useQuery(getCrimeTypes(supabase));
+  const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
+  const form = useFormContext();
 
   return (
     <div className="flex w-full flex-col gap-5">

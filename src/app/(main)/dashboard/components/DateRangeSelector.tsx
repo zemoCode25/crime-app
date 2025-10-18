@@ -209,7 +209,7 @@ export default function DateRangeSelector({
   };
 
   return (
-    <div className="flex flex-col gap-4 py-10">
+    <div className="flex flex-col gap-4">
       {/* Date Range Header */}
       <div className="flex items-center justify-between">
         {/* Date Range Selector */}
