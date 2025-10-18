@@ -1,5 +1,6 @@
 import MetricCard from "./MetricCard";
 import { DateRange } from "react-day-picker";
+import { Scan, Gavel, CirclePercent } from "lucide-react";
 
 export default function CardSection({
   dateRange,
@@ -7,7 +8,7 @@ export default function CardSection({
   dateRange: DateRange | undefined;
 }) {
   return (
-    <div className="flex flex-row flex-wrap gap-4 sm:gap-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
       <MetricCard
         title="Total Crimes"
         value={2}
@@ -16,6 +17,7 @@ export default function CardSection({
           percentage: 2,
           isPositive: false,
         }}
+        icon={Scan}
       />
 
       <MetricCard
@@ -26,6 +28,7 @@ export default function CardSection({
           percentage: 19,
           isPositive: true,
         }}
+        icon={CirclePercent}
       />
 
       <MetricCard
@@ -36,7 +39,6 @@ export default function CardSection({
           percentage: 2,
           isPositive: false,
         }}
-        className="md:w-[calc(27%-1.5rem)]"
       />
 
       <MetricCard
@@ -47,7 +49,7 @@ export default function CardSection({
           percentage: 2,
           isPositive: false,
         }}
-        className="md:w-[calc(23%-1.5rem)]"
+        icon={Gavel}
       />
     </div>
   );
