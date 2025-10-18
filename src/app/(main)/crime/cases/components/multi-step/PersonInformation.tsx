@@ -22,70 +22,35 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { sexes } from "@/constants/personal-information";
-import { civilStatus } from "@/constants/personal-information";
+import { SEXES } from "@/constants/personal-information";
+import { CIVIL_STATUSES } from "@/constants/personal-information";
 import { Button } from "@/components/ui/button";
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
+import { Check, ChevronsUpDown } from "lucide-react";
+import Calendar22 from "@/components/calendar-22";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import "react-phone-number-input/style.css";
-import { UseFieldArrayReturn, UseFormReturn } from "react-hook-form";
+import { UseFieldArrayReturn } from "react-hook-form";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { personInvolvementList } from "@/constants/personal-information";
+import { CASE_ROLES } from "@/constants/personal-information";
 import { useEffect, useState } from "react";
 import Suspect from "./InvolvementForms/Suspect";
 import Complainant from "./InvolvementForms/Complainant";
 import Witness from "./InvolvementForms/Witness";
-import { FormSchemaType } from "../../../../../../types/crime-case";
+import { formSchema, type FormSchemaType } from "@/types/form-schema";
 import { X } from "lucide-react";
-// Combo box to select for suspect, complainant, witness
-// Button to add person information
-// ComboBox for role selection
-// Suspect (weapon_used, motive)
-// complainant (narrative, person-selection)
-// witness (testimony, person-selection)
+import { useFormContext } from "react-hook-form";
 
-type TFormFieldArray = {
-  description: string;
-  crime_type: string;
-  case_status: string;
-  report_datetime: unknown;
-  incident_datetime: unknown;
-  persons: {
-    first_name: string;
-    last_name: string;
-    address: string;
-    civil_status: string;
-    contact_number: string;
-    sex: string;
-    birth_date: unknown;
-    case_role: string;
-    person_notified?: string | undefined;
-    related_contact?: string | undefined;
-    motive?: string | undefined;
-    weapon_used?: string | undefined;
-    narrative?: string | undefined;
-    testimony?: string | undefined;
-  }[];
-  investigator_notes?: string | undefined;
-  follow_up?: string | undefined;
-  remarks?: string | undefined;
-};
 export default function PersonInformation({
-  form,
   formFieldArray,
 }: {
-  form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
-  formFieldArray: UseFieldArrayReturn<TFormFieldArray, "persons", "id">;
+  formFieldArray: UseFieldArrayReturn<FormSchemaType, "persons", "id">;
 }) {
-  const [involvement, setInvolvement] = useState<string>("complainant");
-
   const { fields, append, remove } = formFieldArray;
-
+  const form = useFormContext<FormSchemaType>();
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       {fields.map((field, index) => {
+        const currentRole = form.watch(`persons.${index}.case_role`);
         return (
           <div key={field.id} className="flex flex-col gap-3">
             <div className="flex w-full items-center justify-between">
@@ -122,9 +87,8 @@ export default function PersonInformation({
                           )}
                         >
                           {field.value
-                            ? personInvolvementList.find(
-                                (personItem) =>
-                                  personItem.value === field.value,
+                            ? CASE_ROLES.find(
+                                (role) => role.value === field.value,
                               )?.label
                             : "Select involvement"}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -137,27 +101,26 @@ export default function PersonInformation({
                         <CommandList>
                           <CommandEmpty>No involvement found.</CommandEmpty>
                           <CommandGroup>
-                            {personInvolvementList.map((personItem) => (
+                            {CASE_ROLES?.map((role) => (
                               <CommandItem
-                                value={personItem.label}
-                                key={personItem.value}
+                                value={role.label}
+                                key={role.value}
                                 onSelect={() => {
-                                  setInvolvement(personItem.value);
                                   form.setValue(
                                     `persons.${index}.case_role`,
-                                    personItem.value,
+                                    role.value,
                                   );
                                 }}
                               >
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    personItem.value === field.value
+                                    role.value === field.value
                                       ? "opacity-100"
                                       : "opacity-0",
                                   )}
                                 />
-                                {personItem.label}
+                                {role.label}
                               </CommandItem>
                             ))}
                           </CommandGroup>
@@ -223,11 +186,11 @@ export default function PersonInformation({
               )}
             />
 
-            {involvement === "suspect" && <Suspect form={form} index={index} />}
-            {involvement === "complainant" && (
+            {currentRole === "suspect" && <Suspect form={form} index={index} />}
+            {currentRole === "complainant" && (
               <Complainant form={form} index={index} />
             )}
-            {involvement === "witness" && <Witness form={form} index={index} />}
+            {currentRole === "witness" && <Witness form={form} index={index} />}
 
             <FormField
               control={form.control}
@@ -247,7 +210,7 @@ export default function PersonInformation({
                           )}
                         >
                           {field.value
-                            ? civilStatus.find(
+                            ? CIVIL_STATUSES.find(
                                 (status) => status.value === field.value,
                               )?.label
                             : "Select civil status"}
@@ -261,7 +224,7 @@ export default function PersonInformation({
                         <CommandList>
                           <CommandEmpty>No civil status found.</CommandEmpty>
                           <CommandGroup>
-                            {civilStatus.map((status) => (
+                            {CIVIL_STATUSES.map((status) => (
                               <CommandItem
                                 value={status.label}
                                 key={status.value}
@@ -331,7 +294,7 @@ export default function PersonInformation({
                           )}
                         >
                           {field.value
-                            ? sexes.find((sex) => sex.value === field.value)
+                            ? SEXES.find((sex) => sex.value === field.value)
                                 ?.label
                             : "Select sex"}
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -344,7 +307,7 @@ export default function PersonInformation({
                         <CommandList>
                           <CommandEmpty>No sex found.</CommandEmpty>
                           <CommandGroup>
-                            {sexes.map((sex) => (
+                            {SEXES.map((sex) => (
                               <CommandItem
                                 value={sex.label}
                                 key={sex.value}
@@ -383,36 +346,18 @@ export default function PersonInformation({
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Date of birth</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-[240px] pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {field.value instanceof Date &&
-                          !isNaN(field.value.getTime()) ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={
-                          field.value instanceof Date ? field.value : undefined
-                        }
-                        onSelect={field.onChange}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <FormControl>
+                    <Calendar22
+                      value={
+                        field.value instanceof Date ? field.value : undefined
+                      }
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      placeholder="Pick a date"
+                      className="w-[100px] text-left"
+                    />
+                  </FormControl>
                   <FormDescription>
                     Your date of birth is used to calculate your age.
                   </FormDescription>
@@ -468,11 +413,17 @@ export default function PersonInformation({
             first_name: "",
             last_name: "",
             address: "",
-            civil_status: "",
+            civil_status: "single",
             contact_number: "",
-            sex: "",
+            sex: "male",
             birth_date: new Date(),
-            case_role: "",
+            case_role: "complainant",
+            motive: "",
+            weapon_used: "",
+            narrative: "",
+            testimony: "",
+            person_notified: "",
+            related_contact: "",
           })
         }
       >

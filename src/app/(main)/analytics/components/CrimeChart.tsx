@@ -35,7 +35,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { types, barangays } from "@/constants/crime-case";
+import { BARANGAY_OPTIONS_WITH_ALL } from "@/constants/crime-case";
 import { useState } from "react";
 
 export const description = "An area chart with gradient fill";

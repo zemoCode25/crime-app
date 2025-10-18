@@ -24,6 +24,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { DateRange } from "react-day-picker";
+import CrimeTypeChart from "@/app/(main)/analytics/components/CrimeTypePie";
+
 export const description = "An area chart with gradient fill";
 const chartData = [
   { month: "January", desktop: 186, mobile: 80 },
@@ -50,33 +52,33 @@ export default function ChartSection({
   dateRange: DateRange | undefined;
 }) {
   return (
-    <div>
-      <Tabs defaultValue="account" className="max-w-[30rem]">
-        <TabsList className="w-full gap-5 bg-neutral-200/50 dark:bg-neutral-900">
-          <TabsTrigger
-            value="account"
-            className="cursor-pointer active:bg-neutral-100"
-          >
-            Theft
-          </TabsTrigger>
-          <TabsTrigger value="assault" className="cursor-pointer">
-            Assault
-          </TabsTrigger>
-          <TabsTrigger value="homicide" className="cursor-pointer">
-            Homicide
-          </TabsTrigger>
-          <TabsTrigger value="fraud" className="cursor-pointer">
-            Fraud
-          </TabsTrigger>
-          <TabsTrigger value="burglary" className="cursor-pointer">
-            Burglary
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="">Make changes to your account here.</TabsContent>
-        <TabsContent value="password">Change your password here.</TabsContent>
-      </Tabs>
-      <div className="mt-4 w-full rounded-sm border border-neutral-300 bg-white py-6 shadow-sm dark:border-orange-900/30 dark:bg-[var(--dark-bg)] dark:shadow-none">
-        <CardContent>
+    <div className="flex justify-between gap-4 rounded-sm p-1">
+      <div className="flex w-full flex-col justify-center gap-2 rounded-sm border border-neutral-300 bg-white p-2">
+        <Tabs defaultValue="account" className="max-w-[30rem]">
+          <TabsList className="w-full gap-5 bg-neutral-200/50 dark:bg-neutral-900">
+            <TabsTrigger
+              value="account"
+              className="cursor-pointer active:bg-neutral-100"
+            >
+              Theft
+            </TabsTrigger>
+            <TabsTrigger value="assault" className="cursor-pointer">
+              Assault
+            </TabsTrigger>
+            <TabsTrigger value="homicide" className="cursor-pointer">
+              Homicide
+            </TabsTrigger>
+            <TabsTrigger value="fraud" className="cursor-pointer">
+              Fraud
+            </TabsTrigger>
+            <TabsTrigger value="burglary" className="cursor-pointer">
+              Burglary
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="">Make changes to your account here.</TabsContent>
+          <TabsContent value="password">Change your password here.</TabsContent>
+        </Tabs>
+        <CardContent className="flex h-full w-full flex-col justify-center bg-white p-0">
           <ChartContainer config={chartConfig} className="h-[10rem] w-full">
             <ResponsiveContainer>
               <AreaChart
@@ -137,21 +139,22 @@ export default function ChartSection({
               </AreaChart>
             </ResponsiveContainer>
           </ChartContainer>
-        </CardContent>
-        <CardFooter>
-          <div className="flex w-full items-start gap-2 text-sm">
-            <div className="grid gap-2">
-              <div className="flex items-center gap-2 leading-none font-medium">
-                Trending up by 5.2% this month{" "}
-                <TrendingUp className="h-4 w-4" />
-              </div>
-              <div className="text-muted-foreground flex items-center gap-2 leading-none">
-                January - June 2024
+          <CardFooter>
+            <div className="flex w-full items-start gap-2 text-sm">
+              <div className="grid gap-2">
+                <div className="flex items-center gap-2 leading-none font-medium">
+                  Trending up by 5.2% this month{" "}
+                  <TrendingUp className="h-4 w-4" />
+                </div>
+                <div className="text-muted-foreground flex items-center gap-2 leading-none">
+                  January - June 2024
+                </div>
               </div>
             </div>
-          </div>
-        </CardFooter>
+          </CardFooter>
+        </CardContent>
       </div>
+      <CrimeTypeChart />
     </div>
   );
 }

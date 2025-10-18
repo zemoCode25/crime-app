@@ -1,99 +1,37 @@
-export const types = [
-  {
-    label: "All types",
-    value: "all",
-  },
-  {
-    label: "Theft",
-    value: "theft",
-  },
-  {
-    label: "Threat",
-    value: "threat",
-  },
-  {
-    label: "Assault",
-    value: "assault",
-  },
-  {
-    label: "Fraud",
-    value: "fraud",
-  },
-  {
-    label: "Vandalism",
-    value: "vandalism",
-  },
-];
+export const STATUSES = [
+  {value: "open", label: "Open"},
+  {value: "under investigation", label: "Under Investigation"},
+  {value: "case settled", label: "Case Settled"},
+  {value: "lupon", label: "Lupon"},
+  {value: "direct filing", label: "Direct Filing"},
+  {value: "for record", label: "For Record"},
+  {value: "turn-over", label: "Turn-Over"}
+] as const;
 
-export const statuses = [
-  {
-    label: "Open",
-    value: "open",
-  },
-  {
-    label: "Under Investigation",
-    value: "Under Investigation",
-  },
-  {
-    label: "Case Settled",
-    value: "Case Settled",
-  },
-  {
-    label: "Lupon",
-    value: "Lupon",
-  },
-  {
-    label: "Direct Filing",
-    value: "Direct Filing",
-  },
-  {
-    label: "For record",
-    value: "For record",
-  },
-];
+export const BARANGAY_OPTIONS = [
+  {id: 1, value:"Poblacion"},
+  {id: 2, value:"Tunasan"},
+  {id: 3, value:"Putatan"},
+  {id: 4, value:"Bayanan"},
+  {id: 5, value:"Alabang"},
+  {id: 6, value:"Ayala Alabang"},
+  {id: 7, value:"Buli"},
+  {id: 8, value:"Cupang"},
+  {id: 9, value:"Sucat"}
+] as const;
 
-export const barangays = [
-  {
-    label: "All barangays",
-    value: "all",
-  },
-  {
-    label: "Alabang",
-    value: "alabang",
-  },
-  {
-    label: "Ayala-Alabang",
-    value: "ayala-alabang",
-  },
-  {
-    label: "Bayanan",
-    value: "bayanan",
-  },
-  {
-    label: "Buli",
-    value: "buli",
-  },
-  {
-    label: "Cupang",
-    value: "cupang",
-  },
-  {
-    label: "Putatan",
-    value: "putatan",
-  },
-  {
-    label: "Poblacion",
-    value: "poblacion",
-  },
-  {
-    label: "Sucat",
-    value: "sucat",
-  },
-  {
-    label: "Tunasan",
-    value: "tunasan",
-  },
-];
+export const BARANGAY_OPTIONS_WITH_ALL = [
+  {id: 0, value:"All barangays"},
+  {id: 1, value:"Poblacion"},
+  {id: 2, value:"Tunasan"},
+  {id: 3, value:"Putatan"},
+  {id: 4, value:"Bayanan"},
+  {id: 5, value:"Alabang"},
+  {id: 6, value:"Ayala Alabang"},
+  {id: 7, value:"Buli"},
+  {id: 8, value:"Cupang"},
+  {id: 9, value:"Sucat"}
+] as const;
 
 export const dateInterval = [
   {

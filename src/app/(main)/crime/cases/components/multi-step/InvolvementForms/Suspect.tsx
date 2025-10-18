@@ -8,7 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
-import { FormSchemaType } from "../../../../../../../types/crime-case";
+import { formSchema, type FormSchemaType } from "@/types/form-schema";
 
 export default function Suspect({
   form,

@@ -8,7 +8,7 @@ import { DateRange } from "react-day-picker";
 
 export default function DashboardPage() {
   return (
-    <section className="flex flex-col justify-between gap-4">
+    <section className="flex flex-col justify-between gap-4 px-8 py-4">
       <DateRangeSelector>
         {(dateRange: DateRange | undefined) => (
           <div className="flex flex-col gap-10">

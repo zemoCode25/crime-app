@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-
+import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal } from "lucide-react";
+import { CaseStatus } from "@/types/form-schema";
 import { Button } from "@/components/ui/button";
+import { useCrimeType } from "@/context/CrimeTypeProvider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,24 +14,59 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useDeleteCrimeCase } from "@/hooks/crime-case/useMutateCase";
+import DeleteModal from "@/components/delete-modal";
 
-type CrimeCaseItem = {
+export type CrimeTableRow = {
   id: number;
-  crime_type: "murder" | "assault" | "robbery" | "homicide" | "fraud" | null;
-  case_status:
-    | "Open"
-    | "Under Investigation"
-    | "Case Settled"
-    | "Lupon"
-    | "Direct filing"
-    | "For Record"
-    | "Turn-over"
-    | null;
+  crime_type: number | null;
+  case_status: CaseStatus | null;
   suspect: string;
   complainant: string;
 };
 
-export const columns: ColumnDef<CrimeCaseItem>[] = [
+// ✅ Function that creates columns with dependencies injected
+export const createColumns = (
+  crimeTypeConverter: (id: number) => string | null,
+): ColumnDef<CrimeTableRow>[] => [
+  {
+    accessorKey: "id",
+    header: "Case ID",
+    cell: ({ row }) => {
+      return <div className="font-medium">{`CASE-${row.getValue("id")}`}</div>;
+    },
+  },
+  {
+    accessorKey: "crime_type",
+    header: "Type",
+    cell: ({ row }) => {
+      const { crimeTypeConverter } = useCrimeType(); // ✅ Hook in React component context
+      const crimeTypeId = row.getValue("crime_type") as number | null;
+      const crimeType = crimeTypeConverter(crimeTypeId || 0);
+      return <div>{crimeType || "Unknown"}</div>;
+    },
+    // ✅ Now we can use the injected converter (no hooks!)
+    filterFn: (row, columnId, filterValue: string[]) => {
+      if (!filterValue || filterValue.length === 0) return true;
+      const crimeTypeId = row.getValue(columnId) as number | null;
+      const cellCrimeType = crimeTypeConverter(crimeTypeId || 0);
+      return filterValue.includes(cellCrimeType || "Unknown");
+    },
+  },
+  {
+    accessorKey: "case_status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue("case_status") as string | null;
+      return <div className="capitalize">{status || "Unknown"}</div>;
+    },
+    enableGlobalFilter: true,
+    filterFn: (row, columnId, filterValue) => {
+      if (!filterValue || filterValue.length === 0) return true;
+      const status = row.getValue(columnId) as string | null;
+      return filterValue.includes(status || "Unknown");
+    },
+  },
   {
     accessorKey: "complainant",
     header: ({ column }) => (
@@ -39,7 +76,13 @@ export const columns: ColumnDef<CrimeCaseItem>[] = [
         className="!p-0 text-left font-bold"
       >
         Complainant
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        {column.getIsSorted() === "desc" ? (
+          <ArrowDown className="ml-2 h-4 w-4" />
+        ) : column.getIsSorted() === "asc" ? (
+          <ArrowUp className="ml-2 h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        )}
       </Button>
     ),
     cell: ({ row }) => {
@@ -57,7 +100,13 @@ export const columns: ColumnDef<CrimeCaseItem>[] = [
         className="!p-0 text-left font-bold"
       >
         Suspect
-        <ArrowUpDown className="ml-2 h-4 w-4" />
+        {column.getIsSorted() === "desc" ? (
+          <ArrowDown className="ml-2 h-4 w-4" />
+        ) : column.getIsSorted() === "asc" ? (
+          <ArrowUp className="ml-2 h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        )}
       </Button>
     ),
     cell: ({ row }) => {
@@ -67,21 +116,16 @@ export const columns: ColumnDef<CrimeCaseItem>[] = [
     enableGlobalFilter: true,
   },
   {
-    accessorKey: "crime_type",
-    header: "Type",
-    cell: ({ row }) => <span>{row.original.crime_type}</span>,
-  },
-  {
-    accessorKey: "case_status",
-    header: "Status",
-    cell: ({ row }) => <span>{row.original.case_status}</span>,
-  },
-  {
     id: "actions",
     cell: ({ row }) => {
+      const [openDropdown, setOpenDropdown] = useState(false);
       const crime = row.original;
+      function closeDropdown() {
+        setOpenDropdown(false);
+      }
+
       return (
-        <DropdownMenu>
+        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
               <span className="sr-only">Open menu</span>
@@ -92,10 +136,12 @@ export const columns: ColumnDef<CrimeCaseItem>[] = [
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => console.log("Delete case", crime.id)}
-              className="hover:bg-red-500 hover:text-white"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
             >
-              Delete
+              <DeleteModal caseId={crime.id} closeDropdown={closeDropdown} />
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -103,3 +149,6 @@ export const columns: ColumnDef<CrimeCaseItem>[] = [
     },
   },
 ];
+
+// ✅ Keep backward compatibility (without filter functions)
+export const columns: ColumnDef<CrimeTableRow>[] = createColumns(() => null);
