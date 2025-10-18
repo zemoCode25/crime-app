@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/popover";
 import { ChevronsUpDownIcon, CirclePlus } from "lucide-react";
 import { useState } from "react";
-import MapWrapper from "./MapWrapper";
+import Map from "./MainMap";
 
 export default function MapSetting() {
   const [statusOpen, setStatusOpen] = useState(false);
@@ -75,10 +75,6 @@ export default function MapSetting() {
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="z-50 flex w-full flex-col gap-2 md:flex-row">
-        <Input
-          placeholder="Search person..."
-          className="w-full sm:max-w-[17rem]"
-        />
         {/* filter status and types */}
         <div className="flex gap-2">
           <Popover open={statusOpen} onOpenChange={setStatusOpen}>
@@ -171,7 +167,7 @@ export default function MapSetting() {
           </Popover>
         </div>
       </div>
-      <MapWrapper />
+      <Map />
     </div>
   );
 }

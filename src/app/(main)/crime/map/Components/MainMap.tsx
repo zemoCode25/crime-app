@@ -1,77 +1,140 @@
 "use client";
 
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-import { Button } from "@/components/ui/button";
+import { useRef, useEffect, useState } from "react";
+import mapboxgl from "mapbox-gl";
+import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
+import "mapbox-gl/dist/mapbox-gl.css";
+import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
+import { Coordinates } from "@/types/map";
 
-// Fix Leaflet icon URLs
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
+const INITIAL_ZOOM = 20;
 
-const redIcon = new L.Icon({
-  iconUrl:
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+interface MapBoxProps {
+  coordinates: Coordinates;
+}
 
-export default function AddressInformation() {
+export default function Map() {
+  const [coordinates, setCoordinates] = useState<Coordinates>({
+    lat: 14.3731,
+    long: 121.0218,
+  });
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const initialCenter: [number, number] = [coordinates.long, coordinates.lat];
+
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const apiKey = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+
+    if (!apiKey) {
+      setError("Mapbox access token is missing");
+      return;
+    }
+
+    if (mapRef.current || !mapContainerRef.current) return;
+
+    try {
+      mapboxgl.accessToken = apiKey;
+
+      mapRef.current = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: "mapbox://styles/mapbox/streets-v11",
+        center: initialCenter,
+        zoom: INITIAL_ZOOM,
+      });
+
+      mapRef.current.on("load", () => {
+        if (!mapRef.current) return;
+
+        mapRef.current.addSource("mapbox-dem", {
+          type: "raster-dem",
+          url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+          tileSize: 512,
+          maxzoom: 14,
+        });
+
+        mapRef.current.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+        setIsLoaded(true);
+        setError(null);
+      });
+
+      mapRef.current.on("error", (e) => {
+        setError(e.error?.message || "Map failed to load");
+        setIsLoaded(false);
+      });
+
+      const marker = new mapboxgl.Marker({ color: "red", draggable: true })
+        .setLngLat(initialCenter)
+        .addTo(mapRef.current);
+
+      marker.on("dragend", () => {
+        const coordinates = marker.getLngLat();
+        setCoordinates({ lat: coordinates.lat, long: coordinates.lng });
+      });
+
+      // ✅ Fix: Create geocoder without mapboxgl property first
+      const geocoder = new MapboxGeocoder({
+        accessToken: apiKey,
+        marker: false, // ✅ Disable geocoder's built-in marker since we have our own
+        placeholder: "Search for places",
+        proximity: {
+          longitude: initialCenter[0],
+          latitude: initialCenter[1],
+        },
+      });
+
+      // ✅ Add event listener for geocoder results
+      geocoder.on("result", (e) => {
+        const [lng, lat] = e.result.center;
+        setCoordinates({ lat, long: lng });
+
+        // Update our custom marker position
+        marker.setLngLat([lng, lat]);
+
+        // Fly to the location
+        mapRef.current?.flyTo({
+          center: [lng, lat],
+          zoom: 16,
+        });
+      });
+
+      mapRef.current.addControl(geocoder, "top-left");
+    } catch (err) {
+      setError("Failed to initialize map");
+    }
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  if (error) {
+    return (
+      <div className="flex h-[400px] w-full items-center justify-center border border-red-200 bg-red-50">
+        <p className="text-red-600">{error}</p>
+      </div>
+    );
+  }
+
   return (
-    <MapContainer
-      center={[14.3731, 121.0218]} // Alabang, Muntinlupa
-      zoom={13}
-      scrollWheelZoom={true}
-      className="z-0 h-dvh w-full rounded-lg shadow-md"
-    >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <Marker position={[14.3731, 121.0218]} icon={redIcon}>
-        <Popup className="!gap-2">
-          <div className="flex flex-col gap-2">
-            <div>
-              <label className="font-semibold">Case Task:</label>
-              <p className="!my-0">CASE-20250902-0001</p>
-            </div>
-            <div>
-              <label className="font-semibold">Description:</label>
-              <p className="!my-0">Crime description goes here.</p>
-            </div>
-            <div>
-              <label className="font-semibold">Address:</label>
-              <p className="!my-0">Crime address goes here.</p>
-            </div>
-            <Button className="bg-orange-600">View Details</Button>
+    <div className="relative h-[calc(100dvh-10rem)] w-dvw overflow-hidden rounded-lg border border-gray-300">
+      {!isLoaded && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-100">
+          <div className="text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+            <p className="mt-2 text-gray-600">Loading map...</p>
           </div>
-        </Popup>
-      </Marker>
-      <Marker position={[14.3798, 121.0249]}>
-        <Popup className="!gap-2">
-          <div className="flex flex-col gap-2">
-            <div>
-              <label className="font-semibold">Case Task:</label>
-              <p className="!my-0">CASE-20250902-0001</p>
-            </div>
-            <div>
-              <label className="font-semibold">Description:</label>
-              <p className="!my-0">Crime description goes here.</p>
-            </div>
-            <div>
-              <label className="font-semibold">Address:</label>
-              <p className="!my-0">Crime address goes here.</p>
-            </div>
-            <Button className="bg-orange-600">View Details</Button>
-          </div>
-        </Popup>
-      </Marker>
-    </MapContainer>
+        </div>
+      )}
+      <div ref={mapContainerRef} className="h-full w-full" />
+      <div className="fixed top-12 right-0 bottom-0 w-[30dvw] bg-white p-4 shadow-lg">
+        {JSON.stringify(coordinates)}
+      </div>
+    </div>
   );
 }
