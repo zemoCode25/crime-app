@@ -3,8 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
-import { Coordinates } from "@/types/map";
+import { Coordinates, SelectedLocation } from "@/types/map";
 
 const INITIAL_ZOOM = 20;
 const INITIAL_COORDINATES: Coordinates = { lat: 14.3731, long: 121.0218 };
@@ -21,34 +20,57 @@ async function reverseGeocodeMapbox(lat: number, lng: number, apiKey: string) {
 
     const data = await response.json();
 
-    console.log("Mapbox API Response:", data);
-
     if (data.features && data.features.length > 0) {
       return data.features[0].place_name;
     } else {
       console.error("No address found for coordinates:", { lat, lng });
-      return `${lat.toFixed(6)}, ${lng.toFixed(6)}`; // ✅ Fallback to coordinates
+      return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     }
   } catch (error) {
     console.error("Reverse geocoding failed:", error);
-    return `${lat.toFixed(6)}, ${lng.toFixed(6)}`; // ✅ Fallback to coordinates
+    return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
   }
 }
 
-export default function Map() {
+// ✅ Add props interface
+interface MapProps {
+  selectedLocation?: SelectedLocation | null;
+  onLocationChange?: (location: SelectedLocation) => void;
+}
+
+export default function Map({ selectedLocation, onLocationChange }: MapProps) {
   const [coordinates, setCoordinates] =
     useState<Coordinates>(INITIAL_COORDINATES);
-  const [address, setAddress] = useState<string | null>(null); // ✅ Add address state
-  const [loading, setLoading] = useState(false); // ✅ Add loading state
+  const [address, setAddress] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const markerRef = useRef<mapboxgl.Marker | null>(null); // ✅ Keep marker reference
+  const markerRef = useRef<mapboxgl.Marker | null>(null);
 
   const initialCenter: [number, number] = [coordinates.long, coordinates.lat];
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ✅ Effect to handle selectedLocation prop changes
+  useEffect(() => {
+    if (selectedLocation && mapRef.current && markerRef.current) {
+      // Update coordinates state
+      setCoordinates({ lat: selectedLocation.lat, long: selectedLocation.lng });
+      setAddress(selectedLocation.address);
+
+      // Move marker to new location
+      markerRef.current.setLngLat([selectedLocation.lng, selectedLocation.lat]);
+
+      // Fly to new location
+      mapRef.current.flyTo({
+        center: [selectedLocation.lng, selectedLocation.lat],
+        zoom: INITIAL_ZOOM,
+        duration: 2000,
+      });
+    }
+  }, [selectedLocation]);
 
   useEffect(() => {
     const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -90,30 +112,45 @@ export default function Map() {
         setIsLoaded(false);
       });
 
-      // ✅ Create marker and store reference
       const marker = new mapboxgl.Marker({ color: "red", draggable: true })
         .setLngLat(initialCenter)
         .addTo(mapRef.current);
 
       markerRef.current = marker;
 
-      // ✅ Handle marker drag with proper async/await
       marker.on("dragend", async () => {
         const lngLat = marker.getLngLat();
+
+        const newLocation = {
+          lat: lngLat.lat,
+          lng: lngLat.lng,
+          address: "",
+        };
 
         setCoordinates({ lat: lngLat.lat, long: lngLat.lng });
         setLoading(true);
 
-        // ✅ Use Mapbox token, not Google token
         const addressResult = await reverseGeocodeMapbox(
           lngLat.lat,
           lngLat.lng,
-          MAPBOX_ACCESS_TOKEN, // ✅ Use Mapbox token
+          MAPBOX_ACCESS_TOKEN,
         );
 
+        newLocation.address = addressResult || "";
         setAddress(addressResult);
         setLoading(false);
+
+        // ✅ Notify parent component of location change
+        if (onLocationChange) {
+          onLocationChange(newLocation);
+        }
       });
+
+      reverseGeocodeMapbox(
+        coordinates.lat,
+        coordinates.long,
+        MAPBOX_ACCESS_TOKEN,
+      ).then(setAddress);
 
       mapRef.current.addControl(
         new mapboxgl.GeolocateControl({
@@ -135,7 +172,7 @@ export default function Map() {
         mapRef.current = null;
       }
     };
-  }, []); // ✅ Empty dependency array - only run once
+  }, []);
 
   if (error) {
     return (
@@ -158,11 +195,10 @@ export default function Map() {
 
       <div ref={mapContainerRef} className="h-full w-full" />
 
-      {/* ✅ Enhanced sidebar with better formatting */}
       <div className="fixed top-12 right-0 bottom-0 w-[30dvw] overflow-y-auto bg-white p-4 shadow-lg">
         <h3 className="mb-4 text-lg font-bold">Location Details</h3>
 
-        <div className="mt-12 space-y-4">
+        <div className="mt-12">
           <div>
             <p className="text-sm font-semibold text-gray-600">Coordinates:</p>
             <div className="mt-1 rounded bg-gray-50 p-2">

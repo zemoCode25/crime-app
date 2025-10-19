@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import Map from "./MainMap";
+import { SelectedLocation } from "@/types/map";
+import { STATUSES } from "@/constants/crime-case";
 
 export default function MapSetting() {
   const [statusOpen, setStatusOpen] = useState(false);
@@ -34,24 +36,11 @@ export default function MapSetting() {
   const [crimeTypeValue, setCrimeTypeValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<{
-    lat: number;
-    lng: number;
-    address: string;
-  } | null>(null);
+  const [selectedLocation, setSelectedLocation] =
+    useState<SelectedLocation | null>(null);
 
   const { suggestions, loading, searchLocation, retrieveLocation } =
     useMapboxSearch();
-
-  const statuses = [
-    { value: "open", label: "Open" },
-    { value: "under investigation", label: "Under Investigation" },
-    { value: "case settled", label: "Case Settled" },
-    { value: "lupon", label: "Lupon" },
-    { value: "direct filing", label: "Direct Filing" },
-    { value: "for record", label: "For Record" },
-    { value: "turn over", label: "Turn Over" },
-  ];
 
   const crimeTypes = [
     { value: "theft", label: "Theft" },
@@ -82,13 +71,80 @@ export default function MapSetting() {
       setSearchOpen(false);
 
       console.log("Selected location:", result);
-      // TODO: Update map center to these coordinates
     }
+  };
+
+  const handleLocationChange = (location: SelectedLocation) => {
+    setSelectedLocation(location);
   };
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <div className="z-50 flex w-full flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      <div className="z-50 flex w-full flex-col gap-2">
+        {/* ✅ Search Input - Fixed positioning */}
+        <div className="relative w-full max-w-md">
+          {" "}
+          {/* ✅ Added relative + max-w */}
+          <div className="relative">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search location in Muntinlupa City..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="pr-4 pl-10"
+            />
+          </div>
+          {/* ✅ Search Suggestions Dropdown - Now positioned correctly */}
+          {searchOpen && suggestions.length > 0 && (
+            <div className="absolute top-full right-0 left-0 z-50 mt-1 rounded-md border border-gray-200 bg-white shadow-lg">
+              <div className="max-h-80 overflow-y-auto">
+                {loading ? (
+                  <div className="p-4 text-center text-sm text-gray-500">
+                    Searching...
+                  </div>
+                ) : (
+                  suggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.mapbox_id}
+                      onClick={() =>
+                        handleSelectLocation(
+                          suggestion.mapbox_id,
+                          suggestion.name,
+                        )
+                      }
+                      className="w-full border-b border-gray-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-gray-50"
+                    >
+                      <div className="flex items-start gap-2">
+                        <MapPinIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-gray-900">
+                            {suggestion.name}
+                          </p>
+                          <p className="truncate text-xs text-gray-500">
+                            {suggestion.place_formatted}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+          {/* ✅ No results message */}
+          {searchOpen &&
+            !loading &&
+            suggestions.length === 0 &&
+            searchQuery.length > 2 && (
+              <div className="absolute top-full right-0 left-0 z-50 mt-1 rounded-md border border-gray-200 bg-white shadow-lg">
+                <div className="p-4 text-center text-sm text-gray-500">
+                  No locations found
+                </div>
+              </div>
+            )}
+        </div>
+
         {/* Filter status and types */}
         <div className="flex gap-2">
           <Popover open={statusOpen} onOpenChange={setStatusOpen}>
@@ -100,7 +156,7 @@ export default function MapSetting() {
                 className="w-fit justify-between bg-transparent"
               >
                 {statusValue ? (
-                  statuses.find((status) => status.value === statusValue)?.label
+                  STATUSES.find((status) => status.value === statusValue)?.label
                 ) : (
                   <span className="flex items-center gap-1">
                     <CirclePlus /> <p>Status</p>
@@ -115,7 +171,7 @@ export default function MapSetting() {
                 <CommandList>
                   <CommandEmpty>No status found.</CommandEmpty>
                   <CommandGroup>
-                    {statuses.map((status) => (
+                    {STATUSES.map((status) => (
                       <CommandItem
                         key={status.value}
                         value={status.value}
@@ -175,87 +231,27 @@ export default function MapSetting() {
             </PopoverContent>
           </Popover>
         </div>
-
-        {/* ✅ Custom Location Search */}
-        <div className="relative w-full md:w-96">
-          <div className="relative">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Search location in Muntinlupa City..."
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="pr-4 pl-10"
-            />
-          </div>
-
-          {/* Search Suggestions Dropdown */}
-          {searchOpen && suggestions.length > 0 && (
-            <div className="absolute top-full z-50 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
-              <div className="max-h-80 overflow-y-auto">
-                {loading ? (
-                  <div className="p-4 text-center text-sm text-gray-500">
-                    Searching...
-                  </div>
-                ) : (
-                  suggestions.map((suggestion) => (
-                    <button
-                      key={suggestion.mapbox_id}
-                      onClick={() =>
-                        handleSelectLocation(
-                          suggestion.mapbox_id,
-                          suggestion.name,
-                        )
-                      }
-                      className="w-full border-b border-gray-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-gray-50"
-                    >
-                      <div className="flex items-start gap-2">
-                        <MapPinIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-gray-900">
-                            {suggestion.name}
-                          </p>
-                          <p className="truncate text-xs text-gray-500">
-                            {suggestion.place_formatted}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-
-          {searchOpen &&
-            !loading &&
-            suggestions.length === 0 &&
-            searchQuery.length > 2 && (
-              <div className="absolute top-full z-50 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
-                <div className="p-4 text-center text-sm text-gray-500">
-                  No locations found
-                </div>
-              </div>
-            )}
-        </div>
       </div>
 
       {/* Display selected location */}
       {selectedLocation && (
-        <div className="rounded-md border border-blue-200 bg-blue-50 p-3">
-          <p className="text-xs font-medium text-blue-900">
+        <div className="rounded-md border border-orange-200 bg-orange-50 p-3">
+          <p className="text-xs font-medium text-orange-900">
             Selected Location:
           </p>
-          <p className="mt-1 text-sm text-blue-700">
+          <p className="mt-1 text-sm text-orange-700">
             {selectedLocation.address}
           </p>
-          <p className="mt-1 text-xs text-blue-600">
+          <p className="mt-1 text-xs text-orange-600">
             {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
           </p>
         </div>
       )}
 
-      <Map />
+      <Map
+        selectedLocation={selectedLocation}
+        onLocationChange={handleLocationChange}
+      />
     </div>
   );
 }
