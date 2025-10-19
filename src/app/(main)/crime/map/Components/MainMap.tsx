@@ -2,12 +2,12 @@
 
 import { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
-import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import { Coordinates } from "@/types/map";
 
 const INITIAL_ZOOM = 20;
+const INITIAL_COORDINATES: Coordinates = { lat: 14.3731, long: 121.0218 };
 
 async function reverseGeocodeMapbox(lat: number, lng: number, apiKey: string) {
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${apiKey}`;
@@ -36,10 +36,8 @@ async function reverseGeocodeMapbox(lat: number, lng: number, apiKey: string) {
 }
 
 export default function Map() {
-  const [coordinates, setCoordinates] = useState<Coordinates>({
-    lat: 14.3731,
-    long: 121.0218,
-  });
+  const [coordinates, setCoordinates] =
+    useState<Coordinates>(INITIAL_COORDINATES);
   const [address, setAddress] = useState<string | null>(null); // ✅ Add address state
   const [loading, setLoading] = useState(false); // ✅ Add loading state
 
@@ -117,23 +115,6 @@ export default function Map() {
         setLoading(false);
       });
 
-      // ✅ Get initial address
-      reverseGeocodeMapbox(
-        coordinates.lat,
-        coordinates.long,
-        MAPBOX_ACCESS_TOKEN,
-      ).then(setAddress);
-
-      const geocoder = new MapboxGeocoder({
-        accessToken: MAPBOX_ACCESS_TOKEN,
-        marker: false,
-        placeholder: "Search for places",
-        proximity: {
-          longitude: initialCenter[0],
-          latitude: initialCenter[1],
-        },
-      });
-
       mapRef.current.addControl(
         new mapboxgl.GeolocateControl({
           positionOptions: {
@@ -143,23 +124,6 @@ export default function Map() {
           showUserHeading: true,
         }),
       );
-
-      // ✅ Handle geocoder results
-      geocoder.on("result", (e) => {
-        const [lng, lat] = e.result.center;
-
-        setCoordinates({ lat, long: lng });
-        setAddress(e.result.place_name);
-
-        marker.setLngLat([lng, lat]);
-
-        mapRef.current?.flyTo({
-          center: [lng, lat],
-          zoom: 16,
-        });
-      });
-
-      mapRef.current.addControl(geocoder, "top-left");
     } catch (err) {
       console.error("Map initialization error:", err);
       setError("Failed to initialize map");
@@ -198,7 +162,7 @@ export default function Map() {
       <div className="fixed top-12 right-0 bottom-0 w-[30dvw] overflow-y-auto bg-white p-4 shadow-lg">
         <h3 className="mb-4 text-lg font-bold">Location Details</h3>
 
-        <div className="space-y-4">
+        <div className="mt-12 space-y-4">
           <div>
             <p className="text-sm font-semibold text-gray-600">Coordinates:</p>
             <div className="mt-1 rounded bg-gray-50 p-2">
