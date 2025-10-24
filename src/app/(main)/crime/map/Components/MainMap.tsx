@@ -184,7 +184,7 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
   }
 
   return (
-    <div className="relative h-[calc(100dvh-6rem)] w-[70dvw] overflow-hidden rounded-lg border border-gray-300">
+    <div className="relative h-[calc(100dvh-6rem)] w-full overflow-hidden rounded-lg border border-gray-300">
       {!isLoaded && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-100">
           <div className="text-center">
