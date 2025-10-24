@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates, SelectedLocation } from "@/types/map";
+import { FeatureCollection, Point, Feature } from "geojson";
 
 const INITIAL_ZOOM = 20;
 const INITIAL_COORDINATES: Coordinates = { lat: 14.3731, long: 121.0218 };
@@ -66,7 +67,7 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
       // Fly to new location
       mapRef.current.flyTo({
         center: [selectedLocation.lng, selectedLocation.lat],
-        zoom: INITIAL_ZOOM,
+        zoom: 16,
         duration: 2000,
       });
     }
@@ -183,7 +184,7 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
   }
 
   return (
-    <div className="relative h-[calc(100dvh-10rem)] w-dvw overflow-hidden rounded-lg border border-gray-300">
+    <div className="relative h-[calc(100dvh-6rem)] w-[70dvw] overflow-hidden rounded-lg border border-gray-300">
       {!isLoaded && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-100">
           <div className="text-center">
@@ -194,37 +195,6 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
       )}
 
       <div ref={mapContainerRef} className="h-full w-full" />
-
-      <div className="fixed top-12 right-0 bottom-0 w-[30dvw] overflow-y-auto bg-white p-4 shadow-lg">
-        <h3 className="mb-4 text-lg font-bold">Location Details</h3>
-
-        <div className="mt-12">
-          <div>
-            <p className="text-sm font-semibold text-gray-600">Coordinates:</p>
-            <div className="mt-1 rounded bg-gray-50 p-2">
-              <p className="font-mono text-xs">
-                Lat: {coordinates.lat.toFixed(6)}
-              </p>
-              <p className="font-mono text-xs">
-                Lng: {coordinates.long.toFixed(6)}
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold text-gray-600">Address:</p>
-            <div className="mt-1 rounded bg-gray-50 p-2">
-              {loading ? (
-                <p className="text-xs text-gray-500">Loading address...</p>
-              ) : address ? (
-                <p className="text-xs">{address}</p>
-              ) : (
-                <p className="text-xs text-gray-400">No address available</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
