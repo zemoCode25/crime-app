@@ -27,7 +27,12 @@ import {
   Search,
   X,
   MapPinned,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
+  CircleArrowOutUpRight,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 
 interface MapSettingProps {
@@ -53,6 +58,58 @@ export default function MapSetting({
     { value: "murder", label: "Murder" },
     { value: "assault", label: "Assault" },
   ];
+
+  const LOCATION_HAZARD_CONFIG: Record<
+    string,
+    {
+      label: string;
+      icon: LucideIcon;
+      colors: { bg: string; text: string; border: string };
+    }
+  > = {
+    low: {
+      label: "Low Risk Area",
+      icon: ShieldCheck,
+      colors: {
+        bg: "bg-green-100",
+        text: "text-green-800",
+        border: "border-green-900",
+      },
+    },
+    medium: {
+      label: "Medium Risk Area",
+      icon: ShieldAlert,
+      colors: {
+        bg: "bg-yellow-100",
+        text: "text-yellow-800",
+        border: "border-yellow-900",
+      },
+    },
+    high: {
+      label: "High Risk Area",
+      icon: ShieldX,
+      colors: {
+        bg: "bg-red-100",
+        text: "text-red-800",
+        border: "border-red-900",
+      },
+    },
+  };
+
+  function HazardWarning({ warningLevel }: { warningLevel: string }) {
+    const Icon = LOCATION_HAZARD_CONFIG[warningLevel]?.icon;
+    const colors = LOCATION_HAZARD_CONFIG[warningLevel]?.colors;
+    return (
+      <div
+        className={`flex items-center gap-2 rounded-md p-3 ${colors.bg} border ${colors.border} w-full justify-center`}
+      >
+        {Icon && <Icon className={`${colors.text} h-6 w-6 flex-shrink-0`} />}
+        <p className="text-sm font-semibold">
+          {LOCATION_HAZARD_CONFIG[warningLevel].label}
+        </p>
+      </div>
+    );
+  }
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
@@ -90,22 +147,29 @@ export default function MapSetting({
         <div className="space-y-2">
           <div className="flex flex-col gap-2">
             <div className="relative">
-              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input
-                id="location-search"
-                type="text"
-                placeholder="Search in Muntinlupa City..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="pr-10 pl-10"
-              />
+              <div className="flex items-center gap-2">
+                <div>
+                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <Input
+                    id="location-search"
+                    type="text"
+                    placeholder="Search in Muntinlupa City..."
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    className="pr-10 pl-10"
+                  />
+                </div>
+                <Button className="cursor-pointer rounded-md bg-orange-600 px-3 py-2.5 text-white hover:bg-orange-700">
+                  <CircleArrowOutUpRight className="h-4 w-4 text-white" />
+                </Button>
+              </div>
               {searchQuery && (
                 <button
                   onClick={() => {
                     setSearchQuery("");
                     setSearchOpen(false);
                   }}
-                  className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute top-1/2 right-15 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -250,23 +314,17 @@ export default function MapSetting({
         {/* Selected Location Display */}
         {selectedLocation && (
           <div className="w-full rounded-lg border border-orange-200 bg-orange-50 p-3">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <p className="mb-1 text-xs font-medium text-orange-900">
-                  <MapPinned className="mr-1 mb-1 inline-block h-4 w-4 text-orange-900" />
-                  Pinned Location
-                </p>
-                <p className="text-sm text-orange-900">
-                  {selectedLocation.address}
-                </p>
-                <p className="mt-1 font-mono text-xs text-orange-600">
-                  {selectedLocation.lat.toFixed(6)},{" "}
-                  {selectedLocation.lng.toFixed(6)}
-                </p>
-              </div>
-            </div>
+            <p className="text-sm text-orange-900">
+              {selectedLocation.address}
+            </p>
+            <p className="mt-1 font-mono text-xs text-orange-600">
+              <MapPinned className="mr-1 mb-1 inline-block h-4 w-4 text-orange-600" />
+              {selectedLocation.lat.toFixed(6)},{" "}
+              {selectedLocation.lng.toFixed(6)}
+            </p>
           </div>
         )}
+        <HazardWarning warningLevel="low" />
       </div>
     </div>
   );
