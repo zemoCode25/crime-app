@@ -45,9 +45,27 @@ export default function MapSetting({
   onLocationChange,
 }: MapSettingProps) {
   const [statusOpen, setStatusOpen] = useState(false);
+  const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [typeFilters, setTypeFilters] = useState<string[]>([]);
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+
+  const handleCheckboxChange = (
+    value: string,
+    setFilters: React.Dispatch<React.SetStateAction<string[]>>,
+  ) => {
+    setFilters((prevFilters) => {
+      if (prevFilters.includes(value)) {
+        console.log("Updated Filters:", statusFilters, typeFilters);
+        return prevFilters.filter((filter) => filter !== value);
+      } else {
+        return [...prevFilters, value];
+      }
+    });
+  };
+
+  console.log("Updated Filters:", statusFilters, typeFilters);
 
   const { suggestions, loading, searchLocation, retrieveLocation } =
     useMapboxSearch();
@@ -246,12 +264,14 @@ export default function MapSetting({
                         <CommandItem
                           key={status.value}
                           value={status.value}
-                          onSelect={() => {
-                            // TODO: Implement multi-select filter
-                            setStatusOpen(false);
-                          }}
+                          onSelect={() =>
+                            handleCheckboxChange(status.value, setStatusFilters)
+                          }
                         >
-                          <Checkbox id={status.value} />
+                          <Checkbox
+                            id={status.value}
+                            checked={statusFilters.includes(status.value)}
+                          />
                           <Label
                             htmlFor={status.value}
                             className="ml-2 cursor-pointer"
@@ -291,11 +311,16 @@ export default function MapSetting({
                           key={crimeType.value}
                           value={crimeType.value}
                           onSelect={() => {
-                            // TODO: Implement multi-select filter
-                            setCrimeTypeOpen(false);
+                            handleCheckboxChange(
+                              crimeType.value,
+                              setTypeFilters,
+                            );
                           }}
                         >
-                          <Checkbox id={crimeType.value} />
+                          <Checkbox
+                            id={crimeType.value}
+                            checked={typeFilters.includes(crimeType.value)}
+                          />
                           <Label
                             htmlFor={crimeType.value}
                             className="ml-2 cursor-pointer"
