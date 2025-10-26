@@ -2,17 +2,13 @@
 
 import * as React from "react";
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
   GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
   DiamondMinus,
+  LayoutDashboard,
+  ChartColumnIncreasing,
+  UserLock,
+  BellElectric,
+  Settings,
 } from "lucide-react";
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
@@ -42,6 +38,11 @@ const data = {
   ],
   navMain: [
     {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
       title: "Crime",
       url: "#",
       icon: DiamondMinus,
@@ -56,6 +57,26 @@ const data = {
           url: "/crime/map",
         },
       ],
+    },
+    {
+      title: "Analytics",
+      url: "/analytics",
+      icon: ChartColumnIncreasing,
+    },
+    {
+      title: "Manage Accounts",
+      url: "/manage-accounts",
+      icon: UserLock,
+    },
+    {
+      title: "Emergency",
+      url: "/emergency",
+      icon: BellElectric,
+    },
+    {
+      title: "Settings",
+      url: "/settings",
+      icon: Settings,
     },
   ],
 };
