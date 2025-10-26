@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/popover";
 import { useMapboxSearch } from "@/hooks/map/useMapboxSearch";
 import { STATUSES } from "@/constants/crime-case";
+import { BARANGAY_OPTIONS_WITH_ALL } from "@/constants/crime-case";
 import { SelectedLocation } from "@/types/map";
 import {
   ChevronsUpDownIcon,
@@ -33,7 +35,6 @@ import {
   CircleArrowOutUpRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useState } from "react";
 
 interface MapSettingProps {
   selectedLocation: SelectedLocation | null;
@@ -46,7 +47,9 @@ export default function MapSetting({
 }: MapSettingProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [barangayOpen, setBarangayOpen] = useState(false);
   const [typeFilters, setTypeFilters] = useState<string[]>([]);
+  const [barangayFilters, setBarangayFilters] = useState<string[]>([]);
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -119,10 +122,10 @@ export default function MapSetting({
     const colors = LOCATION_HAZARD_CONFIG[warningLevel]?.colors;
     return (
       <div
-        className={`flex items-center gap-2 rounded-md p-3 ${colors.bg} border ${colors.border} w-full justify-center`}
+        className={`flex items-center gap-2 rounded-md py-2 ${colors.bg} border ${colors.border} w-full justify-center`}
       >
-        {Icon && <Icon className={`${colors.text} h-6 w-6 flex-shrink-0`} />}
-        <p className="text-sm font-semibold">
+        {Icon && <Icon className={`${colors.text} h-5 w-5 flex-shrink-0`} />}
+        <p className={`text-sm font-semibold ${colors.text}`}>
           {LOCATION_HAZARD_CONFIG[warningLevel].label}
         </p>
       </div>
@@ -160,7 +163,7 @@ export default function MapSetting({
 
   return (
     <div className="w-[40%] overflow-y-auto rounded-l-sm border border-gray-300 bg-white/95 p-4 pr-4 backdrop-blur-sm">
-      <div className="space-y-4">
+      <div className="flex flex-col gap-2">
         {/* Search Section */}
         <div className="space-y-2">
           <div className="flex flex-col gap-2">
@@ -238,7 +241,7 @@ export default function MapSetting({
             </div>
           </div>
           {/* Filters Section */}
-          <div className="flex w-full gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {/* Status Filter */}
             <Popover open={statusOpen} onOpenChange={setStatusOpen}>
               <PopoverTrigger asChild>
@@ -246,10 +249,9 @@ export default function MapSetting({
                   variant="outline"
                   role="combobox"
                   aria-expanded={statusOpen}
-                  className="flex-1 justify-between"
+                  className="w-full justify-between"
                   size="sm"
                 >
-                  <CirclePlus className="mr-2 h-4 w-4" />
                   Status
                   <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -287,15 +289,14 @@ export default function MapSetting({
             </Popover>
             {/* Crime Type Filter */}
             <Popover open={crimeTypeOpen} onOpenChange={setCrimeTypeOpen}>
-              <PopoverTrigger asChild>
+              <PopoverTrigger asChild className="w-fit">
                 <Button
                   variant="outline"
                   role="combobox"
                   aria-expanded={crimeTypeOpen}
-                  className="flex-1 justify-between"
+                  className="w-full justify-between"
                   size="sm"
                 >
-                  <CirclePlus className="mr-2 h-4 w-4" />
                   Type
                   <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -334,6 +335,53 @@ export default function MapSetting({
                 </Command>
               </PopoverContent>
             </Popover>
+            <Popover open={barangayOpen} onOpenChange={setBarangayOpen}>
+              <PopoverTrigger asChild className="w-fit">
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={barangayOpen}
+                  className="w-full justify-between"
+                  size="sm"
+                >
+                  Barangay
+                  <ChevronsUpDownIcon className="!m-0 ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <Command>
+                  <CommandInput placeholder="Select barangay" />
+                  <CommandList>
+                    <CommandEmpty>No barangay found.</CommandEmpty>
+                    <CommandGroup className="max-h-36 overflow-auto">
+                      {BARANGAY_OPTIONS_WITH_ALL.map((barangay) => (
+                        <CommandItem
+                          key={barangay.value}
+                          value={barangay.value}
+                          onSelect={() => {
+                            handleCheckboxChange(
+                              barangay.value,
+                              setBarangayFilters,
+                            );
+                          }}
+                        >
+                          <Checkbox
+                            id={barangay.value}
+                            checked={barangayFilters.includes(barangay.value)}
+                          />
+                          <Label
+                            htmlFor={barangay.value}
+                            className="ml-2 cursor-pointer"
+                          >
+                            {barangay.value}
+                          </Label>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
         {/* Selected Location Display */}
@@ -349,7 +397,8 @@ export default function MapSetting({
             </p>
           </div>
         )}
-        <HazardWarning warningLevel="low" />
+        <HazardWarning warningLevel="medium" />
+        <div></div>
       </div>
     </div>
   );
