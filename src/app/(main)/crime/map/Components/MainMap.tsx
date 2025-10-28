@@ -4,7 +4,6 @@ import { useRef, useEffect, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates, SelectedLocation } from "@/types/map";
-import { FeatureCollection, Point, Feature } from "geojson";
 
 const INITIAL_ZOOM = 20;
 const INITIAL_COORDINATES: Coordinates = { lat: 14.3731, long: 121.0218 };
@@ -42,8 +41,8 @@ interface MapProps {
 export default function Map({ selectedLocation, onLocationChange }: MapProps) {
   const [coordinates, setCoordinates] =
     useState<Coordinates>(INITIAL_COORDINATES);
-  const [address, setAddress] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  const [zoom, setZoom] = useState<number>(INITIAL_ZOOM);
 
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -57,17 +56,13 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
   // ✅ Effect to handle selectedLocation prop changes
   useEffect(() => {
     if (selectedLocation && mapRef.current && markerRef.current) {
-      // Update coordinates state
-      setCoordinates({ lat: selectedLocation.lat, long: selectedLocation.lng });
-      setAddress(selectedLocation.address);
-
       // Move marker to new location
       markerRef.current.setLngLat([selectedLocation.lng, selectedLocation.lat]);
 
       // Fly to new location
       mapRef.current.flyTo({
         center: [selectedLocation.lng, selectedLocation.lat],
-        zoom: 16,
+        zoom: zoom,
         duration: 2000,
       });
     }
@@ -129,7 +124,6 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
         };
 
         setCoordinates({ lat: lngLat.lat, long: lngLat.lng });
-        setLoading(true);
 
         const addressResult = await reverseGeocodeMapbox(
           lngLat.lat,
@@ -138,20 +132,12 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
         );
 
         newLocation.address = addressResult || "";
-        setAddress(addressResult);
-        setLoading(false);
 
         // ✅ Notify parent component of location change
         if (onLocationChange) {
           onLocationChange(newLocation);
         }
       });
-
-      reverseGeocodeMapbox(
-        coordinates.lat,
-        coordinates.long,
-        MAPBOX_ACCESS_TOKEN,
-      ).then(setAddress);
 
       mapRef.current.addControl(
         new mapboxgl.GeolocateControl({
@@ -162,6 +148,10 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
           showUserHeading: true,
         }),
       );
+      mapRef.current.addControl(new mapboxgl.NavigationControl());
+      mapRef.current.on("zoomend", () => {
+        setZoom(mapRef.current?.getZoom() || INITIAL_ZOOM);
+      });
     } catch (err) {
       console.error("Map initialization error:", err);
       setError("Failed to initialize map");
@@ -184,7 +174,7 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
   }
 
   return (
-    <div className="relative h-[calc(100dvh-6rem)] w-full overflow-hidden rounded-lg border border-gray-300">
+    <div className="relative h-[calc(100dvh-11.5rem)] w-full overflow-hidden rounded-lg border border-gray-300">
       {!isLoaded && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-100">
           <div className="text-center">
