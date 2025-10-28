@@ -1,6 +1,7 @@
 "use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
@@ -10,7 +11,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -18,160 +18,175 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { ChevronsUpDownIcon, CirclePlus } from "lucide-react";
-import { useState } from "react";
-import MapWrapper from "./MapWrapper";
+import { useMapboxSearch } from "@/hooks/map/useMapboxSearch";
+import { STATUSES } from "@/constants/crime-case";
+import { BARANGAY_OPTIONS_WITH_ALL } from "@/constants/crime-case";
+import { SelectedLocation } from "@/types/map";
+import {
+  ChevronsUpDownIcon,
+  CirclePlus,
+  MapPinIcon,
+  Search,
+  X,
+  MapPinned,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
+  CircleArrowOutUpRight,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-export default function MapSetting() {
+interface MapSettingProps {
+  selectedLocation: SelectedLocation | null;
+  onLocationChange: (location: SelectedLocation | null) => void; // ✅ Single callback
+}
+
+export default function MapSetting({
+  selectedLocation,
+  onLocationChange,
+}: MapSettingProps) {
   const [statusOpen, setStatusOpen] = useState(false);
+  const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [barangayOpen, setBarangayOpen] = useState(false);
+  const [typeFilters, setTypeFilters] = useState<string[]>([]);
+  const [barangayFilters, setBarangayFilters] = useState<string[]>([]);
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
-  const [statusValue, setStatusValue] = useState("");
-  const [crimeTypeValue, setCrimeTypeValue] = useState("");
-  const statuses = [
-    {
-      value: "open",
-      label: "Open",
-    },
-    {
-      value: "under investigation",
-      label: "Under Investigation",
-    },
-    {
-      value: "case settled",
-      label: "Case Settled",
-    },
-    {
-      value: "lupon",
-      label: "Lupon",
-    },
-    {
-      value: "direct filing",
-      label: "Direct Filing",
-    },
-    {
-      value: "for record",
-      label: "For Record",
-    },
-    {
-      value: "turn over",
-      label: "Turn Over",
-    },
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  const handleCheckboxChange = (
+    value: string,
+    setFilters: React.Dispatch<React.SetStateAction<string[]>>,
+  ) => {
+    setFilters((prevFilters) => {
+      if (prevFilters.includes(value)) {
+        console.log("Updated Filters:", statusFilters, typeFilters);
+        return prevFilters.filter((filter) => filter !== value);
+      } else {
+        return [...prevFilters, value];
+      }
+    });
+  };
+
+  const { suggestions, loading, searchLocation, retrieveLocation } =
+    useMapboxSearch();
+
+  // ✅ Move to constants file or fetch from backend
+  const crimeTypes = [
+    { value: "theft", label: "Theft" },
+    { value: "murder", label: "Murder" },
+    { value: "assault", label: "Assault" },
   ];
 
-  const crimeTypes = [
+  const LOCATION_HAZARD_CONFIG: Record<
+    string,
     {
-      value: "theft",
-      label: "Theft",
+      label: string;
+      icon: LucideIcon;
+      colors: { bg: string; text: string; border: string };
+    }
+  > = {
+    low: {
+      label: "Low Risk Area",
+      icon: ShieldCheck,
+      colors: {
+        bg: "bg-green-100",
+        text: "text-green-800",
+        border: "border-green-900",
+      },
     },
-    {
-      value: "murder",
-      label: "Murder",
+    medium: {
+      label: "Medium Risk Area",
+      icon: ShieldAlert,
+      colors: {
+        bg: "bg-yellow-100",
+        text: "text-yellow-800",
+        border: "border-yellow-900",
+      },
     },
-    {
-      value: "assault",
-      label: "Assault",
+    high: {
+      label: "High Risk Area",
+      icon: ShieldX,
+      colors: {
+        bg: "bg-red-100",
+        text: "text-red-800",
+        border: "border-red-900",
+      },
     },
-  ];
+  };
+
+  function HazardWarning({ warningLevel }: { warningLevel: string }) {
+    const Icon = LOCATION_HAZARD_CONFIG[warningLevel]?.icon;
+    const colors = LOCATION_HAZARD_CONFIG[warningLevel]?.colors;
+    return (
+      <div
+        className={`flex items-center gap-2 rounded-md py-2 ${colors.bg} border ${colors.border} w-full justify-center`}
+      >
+        {Icon && <Icon className={`${colors.text} h-5 w-5 flex-shrink-0`} />}
+        <p className={`text-sm font-semibold ${colors.text}`}>
+          {LOCATION_HAZARD_CONFIG[warningLevel].label}
+        </p>
+      </div>
+    );
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (value.length > 2) {
+      searchLocation(value);
+      setSearchOpen(true);
+    } else {
+      setSearchOpen(false);
+    }
+  };
+
+  const handleSelectLocation = async (mapboxId: string, name: string) => {
+    const result = await retrieveLocation(mapboxId);
+
+    if (result) {
+      onLocationChange({
+        lat: result.coordinates.lat,
+        lng: result.coordinates.lng,
+        address: result.full_address,
+      });
+      setSearchQuery(name);
+      setSearchOpen(false);
+    }
+  };
+
+  const handleClearLocation = () => {
+    onLocationChange(null);
+    setSearchQuery("");
+  };
+
   return (
-    <div className="flex w-full flex-col gap-4">
-      <div className="z-50 flex w-full flex-col gap-2 md:flex-row">
-        <Input
-          placeholder="Search person..."
-          className="w-full sm:max-w-[17rem]"
-        />
-        {/* filter status and types */}
-        <div className="flex gap-2">
-          <Popover open={statusOpen} onOpenChange={setStatusOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={statusOpen}
-                className="w-fit justify-between bg-transparent"
-              >
-                {statusValue ? (
-                  statuses.find((status) => status.value === statusValue)?.label
-                ) : (
-                  <span className="flex items-center gap-1">
-                    <CirclePlus /> <p>Status</p>
-                  </span>
-                )}
-                <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
-              <Command>
-                <CommandInput placeholder={`Select status`} />
-                <CommandList>
-                  <CommandEmpty>No framework found.</CommandEmpty>
-                  <CommandGroup>
-                    {statuses.map((status) => (
-                      <CommandItem
-                        key={status.value}
-                        value={status.value}
-                        onMouseDown={(e) => {
-                          // Prevent Radix from closing the popover on click
-                          e.preventDefault();
-                        }}
-                      >
-                        <Checkbox id={status.value} />
-                        <Label htmlFor={status.value}>{status.label}</Label>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          <Popover open={crimeTypeOpen} onOpenChange={setCrimeTypeOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={crimeTypeOpen}
-                className="w-fit justify-between bg-transparent"
-              >
-                {crimeTypeValue ? (
-                  crimeTypes.find(
-                    (crimeType) => crimeType.value === crimeTypeValue,
-                  )?.label
-                ) : (
-                  <span className="flex items-center gap-1">
-                    <CirclePlus /> <p>Type</p>
-                  </span>
-                )}
-                <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0">
-              <Command>
-                <CommandInput placeholder={`Select status`} />
-                <CommandList>
-                  <CommandEmpty>No framework found.</CommandEmpty>
-                  <CommandGroup>
-                    {crimeTypes.map((crimeType) => (
-                      <CommandItem
-                        key={crimeType.value}
-                        value={crimeType.value}
-                        onMouseDown={(e) => {
-                          // Prevent Radix from closing the popover on click
-                          e.preventDefault();
-                        }}
-                      >
-                        <Checkbox id={crimeType.value} />
-                        <Label htmlFor={crimeType.value}>
-                          {crimeType.label}
-                        </Label>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+    <div className="w-[40%] overflow-y-auto rounded-l-sm border border-gray-300 bg-white/95 p-4 pr-4 backdrop-blur-sm">
+      <div className="flex flex-col gap-2">
+        {/* Selected Location Display */}
+        {selectedLocation && (
+          <div className="w-full rounded-lg border border-orange-200 bg-orange-50 p-3">
+            <p className="text-sm text-orange-900">
+              {selectedLocation.address}
+            </p>
+            <p className="mt-1 font-mono text-xs text-orange-600">
+              <MapPinned className="mr-1 mb-1 inline-block h-4 w-4 text-orange-600" />
+              {selectedLocation.lat.toFixed(6)},{" "}
+              {selectedLocation.lng.toFixed(6)}
+            </p>
+          </div>
+        )}
+        <HazardWarning warningLevel="medium" />
+        <div className="rounded-sm border border-yellow-900 p-2 text-sm">
+          <h2 className="font-semibold">AI Insights:</h2>
+          <p className="w-full">
+            This location falls within a mixed commercial-residential zone of
+            Alabang, known for high activity near major landmarks such as
+            Alabang Town Center and Madrigal Business Park. The area exhibits
+            moderate to high human mobility, especially during work hours (8 AM
+            – 7 PM).
+          </p>
         </div>
       </div>
-      <MapWrapper />
     </div>
   );
 }

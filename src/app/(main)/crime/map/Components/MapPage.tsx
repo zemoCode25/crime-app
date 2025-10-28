@@ -1,10 +1,10 @@
-import MapSetting from "./MapSetting";
+import MapContainer from "./MapContainer";
 
 export default function MapPage() {
   return (
-    <main className="px-1 py-4">
-      <h1 className="mb-4 text-2xl font-semibold">Map</h1>
-      <MapSetting />
+    <main className="pt-2 pl-11">
+      <h1 className="mb-2 text-2xl font-semibold">Map</h1>
+      <MapContainer />
     </main>
   );
 }
