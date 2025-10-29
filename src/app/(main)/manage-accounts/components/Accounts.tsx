@@ -23,7 +23,7 @@ import MainButton from "@/components/utils/MainButton";
 
 export default function Accounts() {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col px-10">
       <div className="flex justify-between">
         <Input
           placeholder="Search person..."

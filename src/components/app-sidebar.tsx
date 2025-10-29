@@ -83,11 +83,11 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
+    <Sidebar collapsible="icon" {...props} className="z-50">
+      <SidebarHeader className="!z-50">
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="!z-50">
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
