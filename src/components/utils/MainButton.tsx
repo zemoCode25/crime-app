@@ -10,7 +10,7 @@ export default function MainButton({
   return (
     <Button
       className={cn(
-        "bg-orange-600 text-white hover:bg-orange-700 focus:ring-orange-600 focus:ring-offset-orange-200 dark:bg-orange-600/90 hover:dark:bg-orange-700/90 dark:focus:ring-offset-orange-900",
+        "cursor-pointer bg-orange-600 text-white hover:bg-orange-700 focus:ring-orange-600 focus:ring-offset-orange-200 dark:bg-orange-600/90 hover:dark:bg-orange-700/90 dark:focus:ring-offset-orange-900",
         className, // let user override if needed
       )}
       {...props}
