@@ -8,7 +8,6 @@ const TABLES = [
   'person_profile'
 ] as const;
 
-
 TABLES.map(table => {
   console.log(`Table: ${table}`);
 });
@@ -48,6 +47,10 @@ export async function getCrimeCaseById(client: TypedSupabaseClient, caseId: numb
     .single();
   return result;
 }
+
+// ✅ Export the inferred type
+export type CrimeCaseByIdResult = Awaited<ReturnType<typeof getCrimeCaseById>>;
+export type CrimeCaseById = CrimeCaseByIdResult['data'];
 
 export async function createCrimeCaseTransaction(
   client: TypedSupabaseClient,

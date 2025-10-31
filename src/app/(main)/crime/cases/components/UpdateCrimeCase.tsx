@@ -207,7 +207,7 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
         <StepNavigation setStep={setStep} step={step} />
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="mx-auto w-fit space-y-5 py-4"
+          className="mx-auto w-full space-y-5 py-4"
         >
           {step === 0 && <CrimeForm />}
           {step === 1 && <PersonInformation formFieldArray={formFieldArray} />}

@@ -26,11 +26,7 @@ export default function Complainant({
           <FormItem>
             <FormLabel>Narrative</FormLabel>
             <FormControl>
-              <Textarea
-                placeholder="e.g. Dela Cruz"
-                className="min-h-30 resize-none"
-                {...field}
-              />
+              <Textarea className="min-h-50 resize-none" {...field} />
             </FormControl>
 
             <FormMessage />
