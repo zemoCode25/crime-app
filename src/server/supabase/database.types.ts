@@ -98,6 +98,7 @@ export type Database = {
           remarks: string | null
           report_datetime: string | null
           responder: string | null
+          user_id: number | null
           visibility: Database["public"]["Enums"]["visibility"] | null
         }
         Insert: {
@@ -115,6 +116,7 @@ export type Database = {
           remarks?: string | null
           report_datetime?: string | null
           responder?: string | null
+          user_id?: number | null
           visibility?: Database["public"]["Enums"]["visibility"] | null
         }
         Update: {
@@ -132,6 +134,7 @@ export type Database = {
           remarks?: string | null
           report_datetime?: string | null
           responder?: string | null
+          user_id?: number | null
           visibility?: Database["public"]["Enums"]["visibility"] | null
         }
         Relationships: [
@@ -147,6 +150,13 @@ export type Database = {
             columns: ["location_id"]
             isOneToOne: false
             referencedRelation: "location"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crime_case_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -172,6 +182,33 @@ export type Database = {
           id?: number
           label?: string | null
           name?: string | null
+        }
+        Relationships: []
+      }
+      invitation: {
+        Row: {
+          barangay: Database["public"]["Enums"]["barangay"] | null
+          created_at: string
+          created_by_id: number | null
+          expiraty_date_time: string | null
+          id: number
+          token: string | null
+        }
+        Insert: {
+          barangay?: Database["public"]["Enums"]["barangay"] | null
+          created_at?: string
+          created_by_id?: number | null
+          expiraty_date_time?: string | null
+          id?: number
+          token?: string | null
+        }
+        Update: {
+          barangay?: Database["public"]["Enums"]["barangay"] | null
+          created_at?: string
+          created_by_id?: number | null
+          expiraty_date_time?: string | null
+          id?: number
+          token?: string | null
         }
         Relationships: []
       }
@@ -289,8 +326,10 @@ export type Database = {
           },
         ]
       }
-      user: {
+      users: {
         Row: {
+          auth_user_id: string | null
+          avatar_image: string | null
           created_at: string
           email: string | null
           first_name: string | null
@@ -299,6 +338,8 @@ export type Database = {
           role: Database["public"]["Enums"]["roles"] | null
         }
         Insert: {
+          auth_user_id?: string | null
+          avatar_image?: string | null
           created_at?: string
           email?: string | null
           first_name?: string | null
@@ -307,6 +348,8 @@ export type Database = {
           role?: Database["public"]["Enums"]["roles"] | null
         }
         Update: {
+          auth_user_id?: string | null
+          avatar_image?: string | null
           created_at?: string
           email?: string | null
           first_name?: string | null
@@ -384,7 +427,7 @@ export type Database = {
         | "divorced"
         | "legally separated"
         | "annulled"
-      roles: "main_admin" | "sub_admin"
+      roles: "main_admin" | "system_admin" | "barangay_admin"
       sex: "male" | "female"
       status_enum:
         | "open"
@@ -542,7 +585,7 @@ export const Constants = {
         "legally separated",
         "annulled",
       ],
-      roles: ["main_admin", "sub_admin"],
+      roles: ["main_admin", "system_admin", "barangay_admin"],
       sex: ["male", "female"],
       status_enum: [
         "open",

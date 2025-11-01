@@ -143,7 +143,14 @@ export const createColumns = (
             >
               <DeleteModal caseId={crime.id} closeDropdown={closeDropdown} />
             </DropdownMenuItem>
-            <DropdownMenuItem className="flex w-full cursor-pointer items-center gap-2">
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = `/crime/cases/${crime.id}`;
+              }}
+              className="flex w-full cursor-pointer items-center gap-2"
+            >
               <Eye />
               View Details
             </DropdownMenuItem>
