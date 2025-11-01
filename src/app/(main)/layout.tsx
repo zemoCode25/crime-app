@@ -7,7 +7,7 @@ export default function Page({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="fixed top-0 right-0 left-0 flex h-16 shrink-0 items-center justify-end gap-2 border-b bg-neutral-50 pr-4 dark:bg-neutral-900">
+        <header className="fixed top-0 right-0 left-0 z-40 flex h-16 shrink-0 items-center justify-end gap-2 border-b bg-white pr-4 dark:bg-neutral-900">
           <ThemeToggle />
         </header>
         <div className="flex flex-1 flex-col gap-4 bg-neutral-100 pt-0 dark:bg-black">

@@ -20,16 +20,17 @@ import {
 import { MoreHorizontal } from "lucide-react";
 import React from "react";
 import MainButton from "@/components/utils/MainButton";
+import InviteUserDialog from "./InviteUserDialog";
 
 export default function Accounts() {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col px-10">
       <div className="flex justify-between">
         <Input
           placeholder="Search person..."
           className="w-full sm:max-w-[20rem]"
         />
-        <MainButton>Create Account</MainButton>
+        <InviteUserDialog />
       </div>
       <div className="mt-4 flex flex-col gap-8">
         <div className="rounded-lg border p-4">

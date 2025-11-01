@@ -14,8 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDeleteCrimeCase } from "@/hooks/crime-case/useMutateCase";
 import DeleteModal from "@/components/delete-modal";
+import { Eye } from "lucide-react";
 
 export type CrimeTableRow = {
   id: number;
@@ -142,6 +142,17 @@ export const createColumns = (
               }}
             >
               <DeleteModal caseId={crime.id} closeDropdown={closeDropdown} />
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = `/crime/cases/${crime.id}`;
+              }}
+              className="flex w-full cursor-pointer items-center gap-2"
+            >
+              <Eye />
+              View Details
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

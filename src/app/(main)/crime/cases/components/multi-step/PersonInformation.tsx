@@ -175,7 +175,7 @@ export default function PersonInformation({
                   <FormLabel>Address</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g. Southville 3 Poblacion, Muntinlupa City"
+                      placeholder="e.g. Poblacion, Muntinlupa City"
                       type="text"
                       {...field}
                     />
