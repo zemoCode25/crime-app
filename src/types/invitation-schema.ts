@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const InvitationSchema = z
   .object({
+    first_name: z.string().min(1, "First name is required").max(100),
+    last_name: z.string().min(1, "Last name is required").max(100),
     email: z
       .string()
       .min(1, "Email is required")

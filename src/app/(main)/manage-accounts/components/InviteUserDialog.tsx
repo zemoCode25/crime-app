@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-
 import { Button } from "@/components/ui/button";
 import MainButton from "@/components/utils/MainButton";
 import {
@@ -30,6 +29,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
 import { BARANGAY_OPTIONS_WITH_ALL } from "@/constants/crime-case";
+import { sendInvitation } from "@/server/actions/invitation";
 
 import {
   InvitationSchema,
@@ -50,6 +50,8 @@ export default function InviteUserDialog() {
   const form = useForm<InvitationForm>({
     resolver: zodResolver(InvitationSchema),
     defaultValues: {
+      first_name: "",
+      last_name: "",
       email: "",
       role: "system_admin",
       barangay: "",
@@ -60,12 +62,26 @@ export default function InviteUserDialog() {
   const role = form.watch("role");
 
   const onSubmit = async (values: InvitationForm) => {
-    // TODO: call your server action / API to send the invitation
-    // await inviteAdmin(values);
-    console.log("Invite payload:", values);
+    const res = await sendInvitation({
+      first_name: values.first_name,
+      last_name: values.last_name,
+      email: values.email,
+      role: values.role,
+      barangay: values.barangay || undefined,
+    });
 
-    // Optional: reset and close dialog on success
-    form.reset({ email: "", role: "system_admin", barangay: "" });
+    if (!res.ok) {
+      console.error(res.error);
+      return;
+    }
+
+    form.reset({
+      first_name: "",
+      last_name: "",
+      email: "",
+      role: "system_admin",
+      barangay: "",
+    });
     setOpen(false);
   };
 
@@ -79,12 +95,52 @@ export default function InviteUserDialog() {
         <DialogHeader>
           <DialogTitle>Invite an Admin</DialogTitle>
           <DialogDescription>
-            Enter the email address of the user you want to invite.
+            Enter the details of the user you want to invite.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+            {/* Name */}
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="first_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormFieldLabel>First name</FormFieldLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Juan"
+                        autoCapitalize="words"
+                        autoComplete="given-name"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="last_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormFieldLabel>Last name</FormFieldLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Dela Cruz"
+                        autoCapitalize="words"
+                        autoComplete="family-name"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             {/* Email */}
             <FormField
               control={form.control}
@@ -96,6 +152,7 @@ export default function InviteUserDialog() {
                     <Input
                       id="email"
                       inputMode="email"
+                      autoComplete="email"
                       placeholder="user@gmail.com"
                       {...field}
                     />
