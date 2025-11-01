@@ -4,7 +4,7 @@ interface EmailTemplateProps {
   firstName: string;
   lastName: string;
   role: "system_admin" | "barangay_admin";
-  barangay?: string;
+  barangay?: number;
   inviteLink: string;
 }
 
@@ -13,6 +13,7 @@ export function EmailTemplate({
   lastName,
   role,
   barangay,
+  inviteLink,
 }: EmailTemplateProps) {
   const isBarangayAdmin = role === "barangay_admin";
   const fullName = `${firstName} ${lastName}`;
@@ -52,7 +53,7 @@ export function EmailTemplate({
 
       <p>
         <a
-          href="#"
+          href={inviteLink}
           style={{
             display: "inline-block",
             backgroundColor: "#2563eb",

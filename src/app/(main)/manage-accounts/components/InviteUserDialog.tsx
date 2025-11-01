@@ -54,7 +54,7 @@ export default function InviteUserDialog() {
       last_name: "",
       email: "",
       role: "system_admin",
-      barangay: "",
+      barangay: 1,
     },
     mode: "onSubmit",
   });
@@ -80,7 +80,7 @@ export default function InviteUserDialog() {
       last_name: "",
       email: "",
       role: "system_admin",
-      barangay: "",
+      barangay: 1,
     });
     setOpen(false);
   };
@@ -199,11 +199,7 @@ export default function InviteUserDialog() {
                   <FormItem className="flex flex-col gap-2">
                     <FormFieldLabel>Barangay</FormFieldLabel>
                     <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        value={field.value}
-                      >
+                      <Select>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select a barangay" />
                         </SelectTrigger>
@@ -212,8 +208,11 @@ export default function InviteUserDialog() {
                             <SelectLabel>Select barangay</SelectLabel>
                             {BARANGAY_OPTIONS_WITH_ALL.map((barangay) => (
                               <SelectItem
+                                onSelect={() => {
+                                  form.setValue("barangay", barangay.id);
+                                }}
                                 key={barangay?.id}
-                                value={barangay?.value}
+                                value={String(barangay?.id)}
                               >
                                 {barangay?.value}
                               </SelectItem>

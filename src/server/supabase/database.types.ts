@@ -187,30 +187,42 @@ export type Database = {
       }
       invitation: {
         Row: {
-          barangay: Database["public"]["Enums"]["barangay"] | null
+          barangay: number | null
           consumed_datetime: string | null
           created_at: string
           created_by_id: number | null
+          email: string | null
           expiry_datetime: string | null
+          first_name: string | null
           id: number
+          last_name: string | null
+          role: Database["public"]["Enums"]["roles"] | null
           token: string | null
         }
         Insert: {
-          barangay?: Database["public"]["Enums"]["barangay"] | null
+          barangay?: number | null
           consumed_datetime?: string | null
           created_at?: string
           created_by_id?: number | null
+          email?: string | null
           expiry_datetime?: string | null
+          first_name?: string | null
           id?: number
+          last_name?: string | null
+          role?: Database["public"]["Enums"]["roles"] | null
           token?: string | null
         }
         Update: {
-          barangay?: Database["public"]["Enums"]["barangay"] | null
+          barangay?: number | null
           consumed_datetime?: string | null
           created_at?: string
           created_by_id?: number | null
+          email?: string | null
           expiry_datetime?: string | null
+          first_name?: string | null
           id?: number
+          last_name?: string | null
+          role?: Database["public"]["Enums"]["roles"] | null
           token?: string | null
         }
         Relationships: []

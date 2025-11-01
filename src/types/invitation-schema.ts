@@ -12,7 +12,7 @@ export const InvitationSchema = z
         message: "Only Gmail addresses are allowed",
       }),
     role: z.enum(["system_admin", "barangay_admin"] as const),
-    barangay: z.string().optional(),
+    barangay: z.number().optional(),
   })
   .refine((val) => (val.role === "barangay_admin" ? !!val.barangay : true), {
     path: ["barangay"],
