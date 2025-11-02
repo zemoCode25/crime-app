@@ -1,28 +1,52 @@
 "use client";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
-import { login } from "@/server/queries/auth";
-import { signInWithGoogle } from "@/server/queries/auth";
+import { login, signInWithGoogle } from "@/server/queries/auth";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+// Zod schema
+const LoginSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Enter a valid email"),
+  password: z.string().min(1, "Password is required"),
+});
+type LoginValues = z.infer<typeof LoginSchema>;
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  // Handle form submission
-  // Add Zod Validation with React Hook Form
-  async function handleSubmit(formData: FormData) {
-    await login(formData);
+  const [error, setError] = useState<string | null>(null);
+
+  const form = useForm<LoginValues>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: { email: "", password: "" },
+    mode: "onSubmit",
+  });
+
+  async function onSubmit(values: LoginValues) {
+    const fd = new FormData();
+    fd.append("email", values.email);
+    fd.append("password", values.password);
+    const result = await login(fd);
+    setError(result);
   }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8" action={handleSubmit}>
+          <form
+            className="p-6 md:p-8"
+            onSubmit={form.handleSubmit(onSubmit)}
+            noValidate
+          >
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
@@ -30,17 +54,32 @@ export function LoginForm({
                   Login to your Barangay Crime App account
                 </p>
               </div>
-              <div className="grid gap-3">
+
+              {error && (
+                <div className="rounded-md bg-red-50 px-4 py-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
+
+              {/* Email */}
+              <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  name="email"
                   placeholder="m@example.com"
-                  required
+                  autoComplete="email"
+                  {...form.register("email")}
                 />
+                {form.formState.errors.email && (
+                  <p className="text-sm text-red-600">
+                    {form.formState.errors.email.message}
+                  </p>
+                )}
               </div>
-              <div className="grid gap-3">
+
+              {/* Password */}
+              <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
                   <a
@@ -50,19 +89,33 @@ export function LoginForm({
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" name="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  {...form.register("password")}
+                />
+                {form.formState.errors.password && (
+                  <p className="text-sm text-red-600">
+                    {form.formState.errors.password.message}
+                  </p>
+                )}
               </div>
+
               <Button
                 type="submit"
                 className="w-full bg-orange-600 hover:bg-orange-700"
+                disabled={form.formState.isSubmitting}
               >
-                Login
+                {form.formState.isSubmitting ? "Logging in..." : "Login"}
               </Button>
+
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                 <span className="text-muted-foreground relative z-10 px-2">
                   OR
                 </span>
               </div>
+
               <div className="w-full">
                 <Button
                   variant="outline"
@@ -81,6 +134,7 @@ export function LoginForm({
               </div>
             </div>
           </form>
+
           <div className="bg-muted relative hidden md:block">
             <Image
               src="/img/muntinlupa-city-hall.jpg"
