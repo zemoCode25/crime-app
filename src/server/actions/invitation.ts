@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { EmailTemplate } from "@/components/utils/EmailTemplate";
 import { createInvitation } from "../queries/invitation";
 import { createClient } from "../supabase/server";
+import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 
 const resend = new Resend(process.env.RESEND_API_KEY!); // use secret, not NEXT_PUBLIC
 
@@ -36,20 +37,24 @@ export async function sendInvitation(input: InvitePayload) {
     }
   );
 
+
+
   if (invitationError || !invitation || !token) {
     return { ok: false, error: invitationError?.message || "Failed to create invitation" } as const;
   }
 
-  const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/activate-admin?token=${token}`;
+  const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/signup?token=${token}`;
 
   const { email, role, barangay } = parsed.data;
+
+  const barangayName = BARANGAY_OPTIONS.find(b => b.id === barangay)?.value;
 
   try {
     const { data, error } = await resend.emails.send({
       from: "crime-app <onboarding@resend.dev>",
       to: [email],
-      subject: `Invitation: ${role.replace("_", " ")}`,
-      react: EmailTemplate({ firstName: input?.first_name, lastName: input?.last_name, role, barangay, inviteLink }),
+      subject: `Invitation as an Administrator - Muntinlupa Crime Mapping System`,
+      react: EmailTemplate({ firstName: input?.first_name, lastName: input?.last_name, role, barangay: barangayName, inviteLink }),
     });
 
     if (error) return { ok: false, error: error.message } as const;

@@ -28,7 +28,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
-import { BARANGAY_OPTIONS_WITH_ALL } from "@/constants/crime-case";
+import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 import { sendInvitation } from "@/server/actions/invitation";
 
 import {
@@ -199,22 +199,26 @@ export default function InviteUserDialog() {
                   <FormItem className="flex flex-col gap-2">
                     <FormFieldLabel>Barangay</FormFieldLabel>
                     <FormControl>
-                      <Select>
+                      <Select
+                        // bind to RHF
+                        onValueChange={(v) => field.onChange(Number(v))}
+                        // Select expects string; convert number -> string
+                        value={
+                          field.value != null ? String(field.value) : undefined
+                        }
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select a barangay" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
                             <SelectLabel>Select barangay</SelectLabel>
-                            {BARANGAY_OPTIONS_WITH_ALL.map((barangay) => (
+                            {BARANGAY_OPTIONS.map((barangay) => (
                               <SelectItem
-                                onSelect={() => {
-                                  form.setValue("barangay", barangay.id);
-                                }}
-                                key={barangay?.id}
-                                value={String(barangay?.id)}
+                                key={barangay.id}
+                                value={String(barangay.id)}
                               >
-                                {barangay?.value}
+                                {barangay.value}
                               </SelectItem>
                             ))}
                           </SelectGroup>

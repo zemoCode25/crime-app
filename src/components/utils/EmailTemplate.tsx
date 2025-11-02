@@ -4,7 +4,7 @@ interface EmailTemplateProps {
   firstName: string;
   lastName: string;
   role: "system_admin" | "barangay_admin";
-  barangay?: number;
+  barangay?: string;
   inviteLink: string;
 }
 
