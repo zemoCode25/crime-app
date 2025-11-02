@@ -100,7 +100,7 @@ export default function LocationInformation() {
         name="barangay"
         render={({ field }) => (
           <FormItem className="flex flex-col">
-            <FormLabel>Type</FormLabel>
+            <FormLabel>Barangay</FormLabel>
             <Popover>
               <PopoverTrigger asChild>
                 <FormControl>
@@ -123,9 +123,9 @@ export default function LocationInformation() {
               </PopoverTrigger>
               <PopoverContent className="w-[200px] p-0">
                 <Command>
-                  <CommandInput placeholder="Search type..." />
+                  <CommandInput placeholder="Search barangay..." />
                   <CommandList>
-                    <CommandEmpty>No type found.</CommandEmpty>
+                    <CommandEmpty>No barangay found.</CommandEmpty>
                     <CommandGroup>
                       {BARANGAY_OPTIONS?.map((barangay) => (
                         <CommandItem
