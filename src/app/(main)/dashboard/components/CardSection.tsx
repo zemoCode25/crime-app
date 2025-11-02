@@ -12,6 +12,7 @@ import { type LucideIcon } from "lucide-react";
 interface MetricCardDefaults {
   title: string;
   icon?: LucideIcon;
+  bgColor?: string;
 }
 
 interface MetricCardSampleValues {
@@ -78,26 +79,32 @@ const defaultMetrics: MetricCardDefaults[] = [
   {
     title: "Total Reported Crimes",
     icon: Scan,
+    bgColor: "bg-blue-500",
   },
   {
     title: "Crime Rate",
     icon: CirclePercent,
+    bgColor: "bg-green-500",
   },
   {
     title: "Under Investigation",
     icon: ScanSearch,
+    bgColor: "bg-yellow-500",
   },
   {
     title: "Settled Case",
     icon: Gavel,
+    bgColor: "bg-gray-500",
   },
   {
     title: "Emergency Reports",
     icon: AlertTriangle,
+    bgColor: "bg-red-500",
   },
   {
     title: "Detected Heat Zones",
     icon: AlertTriangle,
+    bgColor: "bg-orange-500",
   },
 ];
 
@@ -115,6 +122,7 @@ export default function CardSection({
           value={sampleValues[index].value}
           trend={sampleValues[index].trend}
           icon={metric.icon}
+          color={metric.bgColor}
         />
       ))}
     </div>

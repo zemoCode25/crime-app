@@ -14,6 +14,7 @@ interface MetricCardProps {
   icon?: LucideIcon;
   iconColor?: string; // ✅ Add this
   customTrendIcon?: LucideIcon;
+  color?: string; // ✅ Add this
 }
 
 export default function MetricCard({
@@ -23,6 +24,7 @@ export default function MetricCard({
   className,
   icon: Icon,
   customTrendIcon: CustomTrendIcon,
+  color,
 }: MetricCardProps) {
   // Determine trend icon and color
   const getTrendIcon = () => {
@@ -55,7 +57,14 @@ export default function MetricCard({
         </h1>
 
         {/* ✅ Render icon with custom color */}
-        {Icon && <Icon className="text-black" />}
+        <span
+          className={cn(
+            "flex items-center justify-center rounded-sm p-1",
+            color,
+          )}
+        >
+          {Icon && <Icon className="text-white dark:text-orange-100" />}
+        </span>
       </div>
 
       <p className="mt-2 text-4xl font-bold text-gray-900 dark:text-orange-50">
