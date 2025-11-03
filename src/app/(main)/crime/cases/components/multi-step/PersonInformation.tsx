@@ -32,7 +32,6 @@ import "react-phone-number-input/style.css";
 import { UseFieldArrayReturn } from "react-hook-form";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { CASE_ROLES } from "@/constants/personal-information";
-import { useEffect, useState } from "react";
 import Suspect from "./InvolvementForms/Suspect";
 import Complainant from "./InvolvementForms/Complainant";
 import Witness from "./InvolvementForms/Witness";

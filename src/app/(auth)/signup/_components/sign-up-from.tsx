@@ -12,6 +12,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { redirect } from "next/navigation";
 
 // Zod schema (now also requires a number)
 const SignUpSchema = z.object({
