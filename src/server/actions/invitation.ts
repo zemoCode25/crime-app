@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { Resend } from "resend";
 import { EmailTemplate } from "@/components/utils/EmailTemplate";
-import { createInvitation } from "../queries/invitation";
+import { createInvitation, checkInvitationToken } from "../queries/invitation";
 import { createClient } from "../supabase/server";
 import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 
@@ -62,5 +62,26 @@ export async function sendInvitation(input: InvitePayload) {
   } catch (e: any) {
     return { ok: false, error: e?.message ?? "Failed to send invitation" } as const;
   }
+}
+
+export async function getInvitationForToken(token?: string) {
+  if (!token) {
+    return { ok: false, error: "missing_token" as const };
+  }
+
+  const supabase = await createClient();
+  const result = await checkInvitationToken(supabase, token);
+
+  if (!result.valid || !result.invitation) {
+    return { ok: false, error: result.reason } as const;
+  }
+
+  return {
+    ok: true,
+    data: {
+      ...result.invitation,
+      token,
+    },
+  } as const;
 }
 
