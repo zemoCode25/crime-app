@@ -1,15 +1,14 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/server/supabase/server";
+import { checkInvitationToken } from "@/server/queries/invitation";
 
 export async function login(formData: FormData) {
   const supabase = await createClient();
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
   const data = {
     email: formData.get("email") as string,
     password: formData.get("password") as string,
@@ -28,16 +27,31 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = await createClient();
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get("email") as string,
-    password: formData.get("password") as string,
-  };
+  const rawEmail = (formData.get("email") as string | null)?.trim();
+  const password = (formData.get("password") as string | null) ?? "";
+  const invitationToken = (formData.get("invitationToken") as string | null) ?? "";
 
-  const { error } = await supabase.auth.signUp(data);
+  if (!password || !invitationToken) {
+    redirect("/auth/auth-code-error");
+  }
 
-  // add handle submit and return error.message if there is an error.
+  const invitationResult = await checkInvitationToken(supabase, invitationToken);
+
+  if (!invitationResult.valid || !invitationResult.invitation?.email) {
+    redirect("/auth/auth-code-error");
+  }
+
+  const invitationEmail = invitationResult.invitation.email;
+
+  if (rawEmail && rawEmail.toLowerCase() !== invitationEmail.toLowerCase()) {
+    redirect("/auth/auth-code-error");
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email: invitationEmail,
+    password,
+  });
+
   if (error) {
     redirect("/error");
   }
@@ -46,26 +60,37 @@ export async function signup(formData: FormData) {
   redirect("/");
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(formData: FormData): Promise<void> {
   const supabase = await createClient();
 
-  // ✅ Get the base URL for redirects
+  const expectedEmail =
+    (formData.get("expectedEmail") as string | null)?.trim().toLowerCase() || undefined;
+  const invitationToken = (formData.get("invitationToken") as string | null)?.trim() || undefined;
+
   const origin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const searchParams = new URLSearchParams();
+  if (expectedEmail) searchParams.set("expectedEmail", expectedEmail);
+  if (invitationToken) searchParams.set("inviteToken", invitationToken);
+
+  const redirectTo =
+    `${origin}/auth/callback` + (searchParams.size ? `?${searchParams.toString()}` : "");
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${origin}/auth/callback`, // ✅ Where Google sends user after login
+      redirectTo,
+      ...(expectedEmail ? { queryParams: { login_hint: expectedEmail } } : {}),
     },
   });
 
   if (error) {
     console.error("OAuth error:", error);
-    return { error: error.message };
+    redirect("/auth/auth-code-error?reason=oauth_error");
   }
 
-  // ✅ Redirect to Google's OAuth page
-  if (data.url) {
-    redirect(data.url);
+  if (data?.url) {
+    redirect(data.url); // throws; satisfies Promise<void>
   }
+
+  redirect("/auth/auth-code-error?reason=no_redirect_url");
 }

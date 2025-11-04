@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, TablesInsert, Enums } from "@/server/supabase/database.types";
+import type { Database, TablesInsert } from "@/server/supabase/database.types";
 import { generateToken, hashToken } from "@/lib/utils";
 
 export async function createInvitation(
@@ -83,4 +83,55 @@ export async function updateInvitation(
     .single();
 
   return { data, error };
+}
+
+export async function checkInvitationToken(
+  client: SupabaseClient<Database>,
+  token: string
+) {
+  const trimmedToken = token.trim();
+  if (!trimmedToken) {
+    return { valid: false, reason: "missing_token" as const };
+  }
+
+  const hashedToken = hashToken(trimmedToken);
+
+  const { data, error } = await client
+    .from("invitation")
+    .select(
+      "id,email,role,first_name,last_name,barangay,created_by_id,expiry_datetime,consumed_datetime,created_at"
+    )
+    .eq("token", hashedToken)
+    .maybeSingle();
+
+  if (error) {
+    return { valid: false, reason: "db_error" as const, error };
+  }
+
+  if (!data) {
+    return { valid: false, reason: "not_found" as const };
+  }
+
+  const normalizedEmail = (data.email ?? "").trim().toLowerCase();
+  if (!normalizedEmail) {
+    return { valid: false, reason: "invalid_email" as const };
+  }
+
+  if (data.consumed_datetime) {
+    return { valid: false, reason: "consumed" as const };
+  }
+
+  const now = Date.now();
+  const expiresAt = data.expiry_datetime ? new Date(data.expiry_datetime).getTime() : 0;
+  if (!expiresAt || expiresAt <= now) {
+    return { valid: false, reason: "expired" as const };
+  }
+
+  return {
+    valid: true,
+    invitation: {
+      ...data,
+      email: normalizedEmail,
+    },
+  };
 }
