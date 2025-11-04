@@ -94,3 +94,25 @@ export async function signInWithGoogle(formData: FormData): Promise<void> {
 
   redirect("/auth/auth-code-error?reason=no_redirect_url");
 }
+
+export async function logInWithGoogle() {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback?next=/dashboard`,
+    },
+  });
+
+  if (error) {
+    console.error("OAuth error:", error);
+    redirect("/auth/auth-code-error?reason=oauth_error");
+  }
+
+  if (data?.url) {
+    redirect(data.url); // throws; satisfies Promise<void>
+  }
+
+  redirect("/auth/auth-code-error?reason=no_redirect_url");
+}

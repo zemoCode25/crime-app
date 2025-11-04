@@ -38,7 +38,7 @@ type InvitationContext = {
   first_name: string | null;
   last_name: string | null;
   barangay: number | null;
-  created_by_id: number | null;
+  created_by_id: string | null;
   expiry_datetime: string | null;
   consumed_datetime: string | null;
   created_at: string;
@@ -106,7 +106,8 @@ export function SignUpForm({
 
                 {!inviteValid && (
                   <p className="text-center text-sm text-red-600">
-                    Invitation link is invalid or has expired. Request a new invite.
+                    Invitation link is invalid or has expired. Request a new
+                    invite.
                   </p>
                 )}
 
@@ -179,7 +180,8 @@ export function SignUpForm({
                       <span className="text-muted-foreground">{strength}%</span>
                     </div>
                     <div className="text-muted-foreground mt-1 text-[11px]">
-                      Must be 8-30 chars and include uppercase, lowercase, number, and a special character.
+                      Must be 8-30 chars and include uppercase, lowercase,
+                      number, and a special character.
                     </div>
                   </div>
 
@@ -207,8 +209,16 @@ export function SignUpForm({
             </div>
 
             <form className="w-full" action={signInWithGoogle}>
-              <input type="hidden" name="expectedEmail" value={invitationEmail} />
-              <input type="hidden" name="invitationToken" value={invitationToken} />
+              <input
+                type="hidden"
+                name="expectedEmail"
+                value={invitationEmail}
+              />
+              <input
+                type="hidden"
+                name="invitationToken"
+                value={invitationToken}
+              />
               <Button
                 variant="outline"
                 type="submit"
