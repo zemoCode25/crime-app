@@ -344,7 +344,7 @@ export type Database = {
       }
       users: {
         Row: {
-          barangay: string | null
+          barangay: number | null
           contact_number: string | null
           created_at: string | null
           first_name: string | null
@@ -353,7 +353,7 @@ export type Database = {
           role: Database["public"]["Enums"]["roles"] | null
         }
         Insert: {
-          barangay?: string | null
+          barangay?: number | null
           contact_number?: string | null
           created_at?: string | null
           first_name?: string | null
@@ -362,7 +362,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["roles"] | null
         }
         Update: {
-          barangay?: string | null
+          barangay?: number | null
           contact_number?: string | null
           created_at?: string | null
           first_name?: string | null

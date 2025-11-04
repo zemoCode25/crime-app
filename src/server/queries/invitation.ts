@@ -87,9 +87,9 @@ export async function updateInvitation(
 
 export async function checkInvitationToken(
   client: SupabaseClient<Database>,
-  token: string
+  token?: string
 ) {
-  const trimmedToken = token.trim();
+  const trimmedToken = token?.trim();
   if (!trimmedToken) {
     return { valid: false, reason: "missing_token" as const };
   }
