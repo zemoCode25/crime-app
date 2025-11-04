@@ -6,6 +6,7 @@ import { EmailTemplate } from "@/components/utils/EmailTemplate";
 import { createInvitation, checkInvitationToken } from "../queries/invitation";
 import { createClient } from "../supabase/server";
 import { BARANGAY_OPTIONS } from "@/constants/crime-case";
+import { getUser } from "./getUser";
 
 const resend = new Resend(process.env.RESEND_API_KEY!); // use secret, not NEXT_PUBLIC
 
@@ -25,6 +26,13 @@ export async function sendInvitation(input: InvitePayload) {
   }
 
   const supabase = await createClient();
+  const activeUser = await getUser();
+
+  if (!activeUser) {
+    return { ok: false, error: "unauthenticated" as const } as const;
+  }
+
+  const userId = activeUser.id;
 
   const { data: invitation, error: invitationError, token } = await createInvitation(
     supabase,
@@ -34,9 +42,9 @@ export async function sendInvitation(input: InvitePayload) {
       last_name: parsed.data.last_name,
       role: parsed.data.role,
       barangay: parsed.data.barangay,
+      created_by_id: userId,
     }
   );
-
 
 
   if (invitationError || !invitation || !token) {
