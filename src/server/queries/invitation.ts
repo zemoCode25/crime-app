@@ -10,7 +10,7 @@ export async function createInvitation(
     first_name: string;
     last_name: string;
     barangay?: number;
-    created_by_id?: number;
+    created_by_id?: string;
     expiresInHours?: number; // default 72h
     token?: string; // optional custom token (plain)
   }
@@ -49,7 +49,7 @@ export async function updateInvitation(
     first_name?: string;
     last_name?: string;
     barangay?: number;
-    created_by_id?: number;
+    created_by_id?: string;
     expiresInHours?: number; // default 72h
     token?: string; // optional custom token (plain)
   }
@@ -87,9 +87,9 @@ export async function updateInvitation(
 
 export async function checkInvitationToken(
   client: SupabaseClient<Database>,
-  token: string
+  token?: string
 ) {
-  const trimmedToken = token.trim();
+  const trimmedToken = token?.trim();
   if (!trimmedToken) {
     return { valid: false, reason: "missing_token" as const };
   }

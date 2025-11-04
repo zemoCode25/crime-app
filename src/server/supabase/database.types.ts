@@ -152,13 +152,6 @@ export type Database = {
             referencedRelation: "location"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "crime_case_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
         ]
       }
       "crime-type": {
@@ -190,7 +183,7 @@ export type Database = {
           barangay: number | null
           consumed_datetime: string | null
           created_at: string
-          created_by_id: number | null
+          created_by_id: string | null
           email: string | null
           expiry_datetime: string | null
           first_name: string | null
@@ -203,7 +196,7 @@ export type Database = {
           barangay?: number | null
           consumed_datetime?: string | null
           created_at?: string
-          created_by_id?: number | null
+          created_by_id?: string | null
           email?: string | null
           expiry_datetime?: string | null
           first_name?: string | null
@@ -216,7 +209,7 @@ export type Database = {
           barangay?: number | null
           consumed_datetime?: string | null
           created_at?: string
-          created_by_id?: number | null
+          created_by_id?: string | null
           email?: string | null
           expiry_datetime?: string | null
           first_name?: string | null
@@ -225,7 +218,15 @@ export type Database = {
           role?: Database["public"]["Enums"]["roles"] | null
           token?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invitation_created_by_id_fkey"
+            columns: ["created_by_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       location: {
         Row: {
@@ -343,32 +344,29 @@ export type Database = {
       }
       users: {
         Row: {
-          auth_user_id: string | null
-          avatar_image: string | null
-          created_at: string
-          email: string | null
+          barangay: number | null
+          contact_number: string | null
+          created_at: string | null
           first_name: string | null
-          id: number
+          id: string
           last_name: string | null
           role: Database["public"]["Enums"]["roles"] | null
         }
         Insert: {
-          auth_user_id?: string | null
-          avatar_image?: string | null
-          created_at?: string
-          email?: string | null
+          barangay?: number | null
+          contact_number?: string | null
+          created_at?: string | null
           first_name?: string | null
-          id?: number
+          id: string
           last_name?: string | null
           role?: Database["public"]["Enums"]["roles"] | null
         }
         Update: {
-          auth_user_id?: string | null
-          avatar_image?: string | null
-          created_at?: string
-          email?: string | null
+          barangay?: number | null
+          contact_number?: string | null
+          created_at?: string | null
           first_name?: string | null
-          id?: number
+          id?: string
           last_name?: string | null
           role?: Database["public"]["Enums"]["roles"] | null
         }

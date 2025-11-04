@@ -6,7 +6,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
-import { login, signInWithGoogle } from "@/server/queries/auth";
+import {
+  login,
+  signInWithGoogle,
+  logInWithGoogle,
+} from "@/server/queries/auth";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -119,9 +123,9 @@ export function LoginForm({
               <div className="w-full">
                 <Button
                   variant="outline"
-                  type="submit"
+                  type="button"
                   className="w-full"
-                  formAction={signInWithGoogle}
+                  onClick={logInWithGoogle}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path

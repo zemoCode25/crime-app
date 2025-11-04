@@ -7,10 +7,7 @@ export const InvitationSchema = z
     email: z
       .string()
       .min(1, "Email is required")
-      .email("Enter a valid email")
-      .refine((v) => v.toLowerCase().endsWith("@gmail.com"), {
-        message: "Only Gmail addresses are allowed",
-      }),
+      .email("Enter a valid email"),
     role: z.enum(["system_admin", "barangay_admin"] as const),
     barangay: z.number().optional(),
   })
