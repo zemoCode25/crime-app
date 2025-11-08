@@ -1,7 +1,4 @@
 "use client";
-
-import { useState } from "react";
-import { useMapboxSearch } from "@/hooks/map/useMapboxSearch";
 import { SelectedLocation } from "@/types/map";
 import { MapPinned, ShieldCheck, ShieldAlert, ShieldX } from "lucide-react";
 import type { LucideIcon } from "lucide-react";

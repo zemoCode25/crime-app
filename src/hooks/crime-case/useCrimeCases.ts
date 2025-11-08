@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { getTableCrimeCases } from '@/server/queries/crime';
 import useSupabaseBrowser from '@/server/supabase/client';
+import type { CrimeCaseListItem, CrimeCaseListRecord } from '@/types/crime-case';
 
 // Helper function to format a person's full name
 function formatPersonName(firstName: string | null, lastName: string | null): string {
@@ -10,11 +11,17 @@ function formatPersonName(firstName: string | null, lastName: string | null): st
   return `${first} ${last}`.trim();
 }
 
-function transformCrimeCaseData(data: any[]) {
-  return data?.map((item) => {
+function transformCrimeCaseData(
+  data: CrimeCaseListRecord[] = [],
+): CrimeCaseListItem[] {
+  return data.map((item) => {
     // Find suspect and complainant from case_person array
-    const suspect = item.case_person?.find((cp: any) => cp.case_role === "suspect");
-    const complainant = item.case_person?.find((cp: any) => cp.case_role === "complainant");
+    const suspect = item.case_person?.find(
+      (cp) => cp.case_role === "suspect",
+    );
+    const complainant = item.case_person?.find(
+      (cp) => cp.case_role === "complainant",
+    );
 
     // Format names using helper function
     const suspectName = suspect?.person_profile 
@@ -32,7 +39,7 @@ function transformCrimeCaseData(data: any[]) {
       suspect: suspectName || "Unknown",
       complainant: complainantName || "Unknown",
     };
-  }) || [];
+  });
 }
 
 export function useCrimeCases() {

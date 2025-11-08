@@ -18,6 +18,7 @@ import {
 import { MoreHorizontal } from "lucide-react";
 import React from "react";
 import InviteUserDialog from "./InviteUserDialog";
+import Image from "next/image";
 
 export default function Accounts() {
   return (
@@ -94,9 +95,11 @@ export default function Accounts() {
               {[1, 2, 3].map((i) => (
                 <TableRow key={i} className="pl-40 hover:bg-neutral-200">
                   <TableCell className="flex items-center gap-4">
-                    <img
+                    <Image
                       src={`https://randomuser.me/api/portraits/men/${i + 10}.jpg`}
                       alt="User"
+                      width={48}
+                      height={48}
                       className="h-12 w-12 rounded-full border-2 border-orange-600"
                     />
                     <div>

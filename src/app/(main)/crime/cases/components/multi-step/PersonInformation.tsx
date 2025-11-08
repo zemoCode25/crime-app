@@ -186,7 +186,7 @@ export default function PersonInformation({
 
             {currentRole === "suspect" && <Suspect index={index} />}
             {currentRole === "complainant" && <Complainant index={index} />}
-            {currentRole === "witness" && <Witness form={form} index={index} />}
+            {currentRole === "witness" && <Witness index={index} />}
 
             <FormField
               control={form.control}

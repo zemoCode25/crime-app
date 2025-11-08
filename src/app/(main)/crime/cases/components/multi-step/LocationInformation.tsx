@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import dynamic from "next/dynamic";
 import { FormSchemaType } from "@/types/form-schema";
 import {
-  Form,
   FormControl,
   FormDescription,
   FormField,
@@ -66,7 +65,7 @@ export default function LocationInformation() {
   useEffect(() => {
     form.setValue("lat", coordinates.lat, { shouldValidate: true });
     form.setValue("long", coordinates.long, { shouldValidate: true });
-  }, [coordinates]);
+  }, [coordinates, form]);
 
   return (
     <div className="w-full p-4">

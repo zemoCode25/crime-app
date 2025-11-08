@@ -5,7 +5,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal } from "lucide-react";
 import { CaseStatus } from "@/types/form-schema";
 import { Button } from "@/components/ui/button";
-import { useCrimeType } from "@/context/CrimeTypeProvider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +24,52 @@ export type CrimeTableRow = {
   complainant: string;
 };
 
+type ActionsCellProps = {
+  crime: CrimeTableRow;
+};
+
+const ActionsCell = ({ crime }: ActionsCellProps) => {
+  const [openDropdown, setOpenDropdown] = useState(false);
+
+  function closeDropdown() {
+    setOpenDropdown(false);
+  }
+
+  return (
+    <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Open menu</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          <DeleteModal caseId={crime.id} closeDropdown={closeDropdown} />
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.href = `/crime/cases/${crime.id}`;
+          }}
+          className="flex w-full cursor-pointer items-center gap-2"
+        >
+          <Eye />
+          View Details
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 // ✅ Function that creates columns with dependencies injected
 export const createColumns = (
   crimeTypeConverter: (id: number) => string | null,
@@ -40,7 +85,6 @@ export const createColumns = (
     accessorKey: "crime_type",
     header: "Type",
     cell: ({ row }) => {
-      const { crimeTypeConverter } = useCrimeType(); // ✅ Hook in React component context
       const crimeTypeId = row.getValue("crime_type") as number | null;
       const crimeType = crimeTypeConverter(crimeTypeId || 0);
       return <div>{crimeType || "Unknown"}</div>;
@@ -117,49 +161,14 @@ export const createColumns = (
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const [openDropdown, setOpenDropdown] = useState(false);
-      const crime = row.original;
-      function closeDropdown() {
-        setOpenDropdown(false);
-      }
-
-      return (
-        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-            >
-              <DeleteModal caseId={crime.id} closeDropdown={closeDropdown} />
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.location.href = `/crime/cases/${crime.id}`;
-              }}
-              className="flex w-full cursor-pointer items-center gap-2"
-            >
-              <Eye />
-              View Details
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
+    cell: ({ row }) => <ActionsCell crime={row.original} />,
   },
 ];
 
 // ✅ Keep backward compatibility (without filter functions)
 export const columns: ColumnDef<CrimeTableRow>[] = createColumns(() => null);
+
+
+
+
+

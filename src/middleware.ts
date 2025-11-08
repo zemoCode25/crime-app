@@ -10,6 +10,8 @@ export async function middleware(request: NextRequest) {
 
 const protectedRoutes = ["/dashboard", "/settings"];
 
+console.log("PROTECTED ROUTES:", protectedRoutes);
+
 export const config = {
   matcher: [
     /*

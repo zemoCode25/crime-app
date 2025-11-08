@@ -88,14 +88,14 @@ export const personDataSchema = z.object({
 
 // Combined Form Schema
 export const formSchema = z.object({
-  // Case data
   ...caseDataSchema.shape,
-  // Location data
   ...locationDataSchema.shape,
-  // Persons array
   persons: z.array(personDataSchema),
 });
 
+export type CaseData = z.infer<typeof caseDataSchema>;
+export type LocationData = z.infer<typeof locationDataSchema>;
+export type PersonData = z.infer<typeof personDataSchema>;
 export type FormSchemaType = z.infer<typeof formSchema>;
 
 // ===== TYPE EXPORTS =====

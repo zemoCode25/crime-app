@@ -227,7 +227,6 @@ function Calendar({
         ),
         MonthGrid: ({ className, children, ...props }) => (
           <MonthGrid
-            children={children}
             className={className}
             displayYears={displayYears}
             startMonth={startMonth}
@@ -235,7 +234,9 @@ function Calendar({
             navView={navView}
             setNavView={setNavView}
             {...props}
-          />
+          >
+            {children}
+          </MonthGrid>
         ),
         ...components,
       }}
@@ -308,42 +309,46 @@ function Nav({
   const handlePreviousClick = React.useCallback(() => {
     if (!previousMonth) return;
     if (navView === "years") {
-      setDisplayYears((prev) => ({
-        from: prev.from - (prev.to - prev.from + 1),
-        to: prev.to - (prev.to - prev.from + 1),
-      }));
-      onPrevClick?.(
-        new Date(
-          displayYears.from - (displayYears.to - displayYears.from),
-          0,
-          1,
-        ),
-      );
+      let nextRangeStart: number | null = null;
+      setDisplayYears((prev) => {
+        const step = prev.to - prev.from + 1;
+        const nextRange = {
+          from: prev.from - step,
+          to: prev.to - step,
+        };
+        nextRangeStart = nextRange.from;
+        return nextRange;
+      });
+      if (nextRangeStart !== null) {
+        onPrevClick?.(new Date(nextRangeStart, 0, 1));
+      }
       return;
     }
     goToMonth(previousMonth);
     onPrevClick?.(previousMonth);
-  }, [previousMonth, goToMonth]);
+  }, [previousMonth, navView, setDisplayYears, onPrevClick, goToMonth]);
 
   const handleNextClick = React.useCallback(() => {
     if (!nextMonth) return;
     if (navView === "years") {
-      setDisplayYears((prev) => ({
-        from: prev.from + (prev.to - prev.from + 1),
-        to: prev.to + (prev.to - prev.from + 1),
-      }));
-      onNextClick?.(
-        new Date(
-          displayYears.from + (displayYears.to - displayYears.from),
-          0,
-          1,
-        ),
-      );
+      let nextRangeStart: number | null = null;
+      setDisplayYears((prev) => {
+        const step = prev.to - prev.from + 1;
+        const nextRange = {
+          from: prev.from + step,
+          to: prev.to + step,
+        };
+        nextRangeStart = nextRange.from;
+        return nextRange;
+      });
+      if (nextRangeStart !== null) {
+        onNextClick?.(new Date(nextRangeStart, 0, 1));
+      }
       return;
     }
     goToMonth(nextMonth);
     onNextClick?.(nextMonth);
-  }, [goToMonth, nextMonth]);
+  }, [nextMonth, navView, setDisplayYears, onNextClick, goToMonth]);
   return (
     <nav className={cn("flex items-center", className)}>
       <Button

@@ -67,9 +67,12 @@ export async function sendInvitation(input: InvitePayload) {
 
     if (error) return { ok: false, error: error.message } as const;
     return { ok: true, data } as const;
-  } catch (e: any) {
-    return { ok: false, error: e?.message ?? "Failed to send invitation" } as const;
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Failed to send invitation";
+    return { ok: false, error: message } as const;
   }
+
 }
 
 export async function getInvitationForToken(token?: string) {

@@ -47,8 +47,8 @@ export function UserProfilePage({
     try {
       console.log("Profile submit:", values);
       setError(null);
-    } catch (e: any) {
-      setError(e?.message ?? "Failed to save profile");
+    } catch (error) {
+      setError(`Failed to save profile: ${(error as Error).message}`);
     }
   }
 

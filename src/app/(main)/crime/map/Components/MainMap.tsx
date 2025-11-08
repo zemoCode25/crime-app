@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates, SelectedLocation } from "@/types/map";
@@ -48,7 +48,12 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
 
-  const initialCenter: [number, number] = [coordinates.long, coordinates.lat];
+  // ...existing code...
+  // const initialCenter: [number, number] = [coordinates.long, coordinates.lat];
+  const initialCenter = useMemo<[number, number]>(
+    () => [coordinates.long, coordinates.lat],
+    [coordinates.long, coordinates.lat]
+  );
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +71,7 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
         duration: 2000,
       });
     }
-  }, [selectedLocation]);
+  }, [selectedLocation, zoom]);
 
   useEffect(() => {
     const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -163,7 +168,7 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
         mapRef.current = null;
       }
     };
-  }, []);
+  }, [initialCenter, onLocationChange]);
 
   if (error) {
     return (
