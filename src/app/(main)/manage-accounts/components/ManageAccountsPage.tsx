@@ -8,6 +8,8 @@ export default async function ManageAccountsPage() {
     ? (pendingInvitationsResult.data ?? [])
     : [];
 
+  console.log("Pending Invitations:", pendingInvitations);
+
   return (
     <div className="px-1 py-4">
       <Accounts pendingInvitations={pendingInvitations} />

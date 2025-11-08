@@ -19,6 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface InvitationTableProps {
   invitations: PendingInvitation[];
@@ -118,9 +119,10 @@ export default function InvitationTable({ invitations }: InvitationTableProps) {
 
   return (
     <div className="mt-8 overflow-hidden rounded-sm border border-neutral-200 bg-white">
-      <button
+      <Button
         type="button"
-        className="flex w-full items-center justify-between border-b border-neutral-200 px-4 py-3 text-left"
+        variant={"ghost"}
+        className="flex w-full cursor-pointer items-center justify-between border-b border-neutral-200 !px-4 py-8 text-left"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-expanded={isOpen}
       >
@@ -135,7 +137,7 @@ export default function InvitationTable({ invitations }: InvitationTableProps) {
             isOpen ? "rotate-180" : "rotate-0"
           }`}
         />
-      </button>
+      </Button>
       {isOpen ? (
         <Table>
           <TableHeader>

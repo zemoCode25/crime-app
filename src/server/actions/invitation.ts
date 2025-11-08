@@ -110,8 +110,20 @@ export async function getInvitationForToken(token?: string) {
 }
 
 type InvitationQueryRow = Database["public"]["Tables"]["invitation"]["Row"] & {
-  created_by: Pick<Database["public"]["Tables"]["users"]["Row"], "first_name" | "last_name" | "id"> | null;
+  created_by:
+    | Pick<Database["public"]["Tables"]["users"]["Row"], "first_name" | "last_name" | "id">
+    | Pick<Database["public"]["Tables"]["users"]["Row"], "first_name" | "last_name" | "id">[]
+    | null;
 };
+
+function resolveCreatedBy(
+  createdBy: InvitationQueryRow["created_by"],
+) {
+  if (Array.isArray(createdBy)) {
+    return createdBy[0] ?? null;
+  }
+  return createdBy;
+}
 
 export async function getPendingInvitations() {
   const supabase = await createClient();
@@ -127,27 +139,25 @@ export async function getPendingInvitations() {
 
   const { data, error } = await supabase
     .from("invitation")
-    .select(
-      `
+    .select(`
+      id,
+      email,
+      first_name,
+      last_name,
+      role,
+      expiry_datetime,
+      created_at,
+      created_by_id,
+      consumed_datetime,
+      barangay,
+      created_by:users!invitation_created_by_id_fkey (
         id,
-        email,
         first_name,
-        last_name,
-        role,
-        expiry_datetime,
-        created_at,
-        created_by_id,
-        consumed_datetime,
-        barangay,
-        created_by:users!invitation_created_by_id_fkey (
-          id,
-          first_name,
-          last_name
-        )
-      `,
-    )
+        last_name
+      )
+    `)
     .is("consumed_datetime", null)
-    .gt("expiry_datetime", nowIso)
+    .gt("expiry_datetime", new Date().toISOString())
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -156,12 +166,12 @@ export async function getPendingInvitations() {
 
   const normalized: PendingInvitation[] =
     (data as InvitationQueryRow[] | null)?.map((row) => {
+      const createdBy = resolveCreatedBy(row.created_by);
+
       const inviteeName = [row.first_name, row.last_name]
-        .filter(Boolean)
         .join(" ")
         .trim();
-      const invitedByName = [row.created_by?.first_name, row.created_by?.last_name]
-        .filter(Boolean)
+      const invitedByName = [createdBy?.first_name, createdBy?.last_name]
         .join(" ")
         .trim();
 
@@ -183,6 +193,7 @@ export async function getPendingInvitations() {
       };
     }) ?? [];
 
+    console.log("data", data);
+
   return { ok: true, data: normalized } as const;
 }
-
