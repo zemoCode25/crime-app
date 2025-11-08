@@ -52,13 +52,13 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
   // const initialCenter: [number, number] = [coordinates.long, coordinates.lat];
   const initialCenter = useMemo<[number, number]>(
     () => [coordinates.long, coordinates.lat],
-    [coordinates.long, coordinates.lat]
+    [coordinates.long, coordinates.lat],
   );
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Effect to handle selectedLocation prop changes
+  // ✅ Effect to handle selectedLocation prop change
   useEffect(() => {
     if (selectedLocation && mapRef.current && markerRef.current) {
       // Move marker to new location
