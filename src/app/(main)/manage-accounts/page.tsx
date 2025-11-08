@@ -1,6 +1,7 @@
 import React from "react";
 import ManageAccountsPage from "./components/ManageAccountsPage";
 import { getUser } from "@/server/actions/getUser";
+import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
 

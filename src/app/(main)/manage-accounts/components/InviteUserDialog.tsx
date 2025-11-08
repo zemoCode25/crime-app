@@ -44,7 +44,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-export default function InviteUserDialog() {
+interface InviteUserDialogProps {
+  reinvalidatePath: () => Promise<void>;
+}
+
+export default function InviteUserDialog({
+  reinvalidatePath,
+}: InviteUserDialogProps) {
   const [open, setOpen] = useState(false);
 
   const form = useForm<InvitationForm>({
@@ -75,6 +81,8 @@ export default function InviteUserDialog() {
       return;
     }
 
+    await reinvalidatePath();
+
     form.reset({
       first_name: "",
       last_name: "",
@@ -88,7 +96,9 @@ export default function InviteUserDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <MainButton>Invite admin</MainButton>
+        <MainButton>
+          Invite admin <Send className="h-4 w-4" />
+        </MainButton>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[425px]">
