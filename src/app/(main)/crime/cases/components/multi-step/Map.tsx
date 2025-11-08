@@ -99,7 +99,7 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
 
       mapRef.current.addControl(geocoder, "top-left");
     } catch (err) {
-      setError("Failed to initialize map");
+      setError(`Failed to load map: ${(err as Error).message}`);
     }
 
     return () => {
@@ -108,7 +108,7 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
         mapRef.current = null;
       }
     };
-  }, []);
+  }, [initialCenter, setCoordinates]);
 
   if (error) {
     return (

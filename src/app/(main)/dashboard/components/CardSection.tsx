@@ -1,5 +1,4 @@
 import MetricCard from "./MetricCard";
-import { DateRange } from "react-day-picker";
 import {
   Scan,
   Gavel,
@@ -108,11 +107,7 @@ const defaultMetrics: MetricCardDefaults[] = [
   },
 ];
 
-export default function CardSection({
-  dateRange,
-}: {
-  dateRange: DateRange | undefined;
-}) {
+export default function CardSection() {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
       {defaultMetrics.map((metric, index) => (

@@ -26,7 +26,6 @@ export default function Calendar22({
   value,
   onChange,
   onBlur,
-  name,
   placeholder = "Select date",
   disabled = false,
   className,

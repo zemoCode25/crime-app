@@ -9,13 +9,6 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -58,7 +51,7 @@ export function Calendar23({
   disabled,
   fromYear = 2020,
   toYear = new Date().getFullYear(),
-  className,
+  // className,
 }: Calendar23Props) {
   const [open, setOpen] = React.useState(false);
   const [currentDate, setCurrentDate] = React.useState(new Date());

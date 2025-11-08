@@ -32,9 +32,10 @@ export function UserProfilePage({
 }: React.ComponentProps<"div">) {
   const [error, setError] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  // const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const avatarUrl = null; // Placeholder for avatar URL state
 
   const form = useForm<UserProfileValues>({
     resolver: zodResolver(UserProfileSchema),
@@ -75,15 +76,15 @@ export function UserProfilePage({
     const fd = new FormData();
     fd.append("avatar", file);
     setUploading(true);
-    const res = await uploadAvatarAction(fd);
-    setUploading(false);
+    // const res = await uploadAvatarAction(fd);
+    // setUploading(false);
 
-    if (!res.ok) {
-      setAvatarError(res.error);
-      return;
-    }
+    // if (!res.ok) {
+    //   setAvatarError(res.error);
+    //   return;
+    // }
 
-    setAvatarUrl(res.url);
+    // setAvatarUrl(res.url);
   };
 
   return (

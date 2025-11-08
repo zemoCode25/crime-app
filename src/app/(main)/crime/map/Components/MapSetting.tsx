@@ -1,39 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { useMapboxSearch } from "@/hooks/map/useMapboxSearch";
-import { STATUSES } from "@/constants/crime-case";
-import { BARANGAY_OPTIONS_WITH_ALL } from "@/constants/crime-case";
 import { SelectedLocation } from "@/types/map";
-import {
-  ChevronsUpDownIcon,
-  CirclePlus,
-  MapPinIcon,
-  Search,
-  X,
-  MapPinned,
-  ShieldCheck,
-  ShieldAlert,
-  ShieldX,
-  CircleArrowOutUpRight,
-} from "lucide-react";
+import { MapPinned, ShieldCheck, ShieldAlert, ShieldX } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface MapSettingProps {
@@ -43,40 +13,39 @@ interface MapSettingProps {
 
 export default function MapSetting({
   selectedLocation,
-  onLocationChange,
+  // onLocationChange,
 }: MapSettingProps) {
-  const [statusOpen, setStatusOpen] = useState(false);
-  const [statusFilters, setStatusFilters] = useState<string[]>([]);
-  const [barangayOpen, setBarangayOpen] = useState(false);
-  const [typeFilters, setTypeFilters] = useState<string[]>([]);
-  const [barangayFilters, setBarangayFilters] = useState<string[]>([]);
-  const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
+  // const [statusOpen, setStatusOpen] = useState(false);
+  // const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  // const [barangayOpen, setBarangayOpen] = useState(false);
+  // const [typeFilters, setTypeFilters] = useState<string[]>([]);
+  // const [barangayFilters, setBarangayFilters] = useState<string[]>([]);
+  // const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
+  // const [searchQuery, setSearchQuery] = useState("");
+  // const [searchOpen, setSearchOpen] = useState(false);
 
-  const handleCheckboxChange = (
-    value: string,
-    setFilters: React.Dispatch<React.SetStateAction<string[]>>,
-  ) => {
-    setFilters((prevFilters) => {
-      if (prevFilters.includes(value)) {
-        console.log("Updated Filters:", statusFilters, typeFilters);
-        return prevFilters.filter((filter) => filter !== value);
-      } else {
-        return [...prevFilters, value];
-      }
-    });
-  };
+  // const handleCheckboxChange = (
+  //   value: string,
+  //   setFilters: React.Dispatch<React.SetStateAction<string[]>>,
+  // ) => {
+  //   setFilters((prevFilters) => {
+  //     if (prevFilters.includes(value)) {
+  //       console.log("Updated Filters:", statusFilters, typeFilters);
+  //       return prevFilters.filter((filter) => filter !== value);
+  //     } else {
+  //       return [...prevFilters, value];
+  //     }
+  //   });
+  // };
 
-  const { suggestions, loading, searchLocation, retrieveLocation } =
-    useMapboxSearch();
+  // const { searchLocation, retrieveLocation } = useMapboxSearch();
 
   // ✅ Move to constants file or fetch from backend
-  const crimeTypes = [
-    { value: "theft", label: "Theft" },
-    { value: "murder", label: "Murder" },
-    { value: "assault", label: "Assault" },
-  ];
+  // const crimeTypes = [
+  //   { value: "theft", label: "Theft" },
+  //   { value: "murder", label: "Murder" },
+  //   { value: "assault", label: "Assault" },
+  // ];
 
   const LOCATION_HAZARD_CONFIG: Record<
     string,
@@ -130,34 +99,34 @@ export default function MapSetting({
     );
   }
 
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
-    if (value.length > 2) {
-      searchLocation(value);
-      setSearchOpen(true);
-    } else {
-      setSearchOpen(false);
-    }
-  };
+  // const handleSearchChange = (value: string) => {
+  //   setSearchQuery(value);
+  //   if (value.length > 2) {
+  //     searchLocation(value);
+  //     setSearchOpen(true);
+  //   } else {
+  //     setSearchOpen(false);
+  //   }
+  // };
 
-  const handleSelectLocation = async (mapboxId: string, name: string) => {
-    const result = await retrieveLocation(mapboxId);
+  // const handleSelectLocation = async (mapboxId: string, name: string) => {
+  //   const result = await retrieveLocation(mapboxId);
 
-    if (result) {
-      onLocationChange({
-        lat: result.coordinates.lat,
-        lng: result.coordinates.lng,
-        address: result.full_address,
-      });
-      setSearchQuery(name);
-      setSearchOpen(false);
-    }
-  };
+  //   if (result) {
+  //     onLocationChange({
+  //       lat: result.coordinates.lat,
+  //       lng: result.coordinates.lng,
+  //       address: result.full_address,
+  //     });
+  //     setSearchQuery(name);
+  //     setSearchOpen(false);
+  //   }
+  // };
 
-  const handleClearLocation = () => {
-    onLocationChange(null);
-    setSearchQuery("");
-  };
+  // const handleClearLocation = () => {
+  //   onLocationChange(null);
+  //   setSearchQuery("");
+  // };
 
   return (
     <div className="w-[40%] overflow-y-auto rounded-l-sm border border-gray-300 bg-white/95 p-4 pr-4 backdrop-blur-sm">

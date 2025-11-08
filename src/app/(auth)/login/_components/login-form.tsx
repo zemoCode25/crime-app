@@ -6,11 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
-import {
-  login,
-  signInWithGoogle,
-  logInWithGoogle,
-} from "@/server/queries/auth";
+import { login, logInWithGoogle } from "@/server/queries/auth";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";

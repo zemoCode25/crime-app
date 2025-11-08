@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useMapboxSearch } from "@/hooks/map/useMapboxSearch";
+import { SearchSuggestion, useMapboxSearch } from "@/hooks/map/useMapboxSearch";
 import {
   Command,
   CommandEmpty,
@@ -34,10 +34,7 @@ interface MapFiltersProps {
   onLocationChange: (location: SelectedLocation | null) => void; // ✅ Single callback
 }
 
-export default function MapFilters({
-  selectedLocation,
-  onLocationChange,
-}: MapFiltersProps) {
+export default function MapFilters({ onLocationChange }: MapFiltersProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [statusFilters, setStatusFilters] = useState<string[]>([]);
   const [barangayOpen, setBarangayOpen] = useState(false);
@@ -95,10 +92,10 @@ export default function MapFilters({
     }
   };
 
-  const handleClearLocation = () => {
-    onLocationChange(null);
-    setSearchQuery("");
-  };
+  // const handleClearLocation = () => {
+  //   onLocationChange(null);
+  //   setSearchQuery("");
+  // };
   return (
     <div>
       <div className="relative w-fit">
@@ -138,7 +135,7 @@ export default function MapFilters({
                   Searching...
                 </div>
               ) : suggestions.length > 0 ? (
-                suggestions.map((suggestion: any) => (
+                suggestions.map((suggestion: SearchSuggestion) => (
                   <button
                     key={suggestion.mapbox_id}
                     onClick={() =>

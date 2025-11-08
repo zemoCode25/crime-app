@@ -1,4 +1,4 @@
-import { number, z } from "zod";
+import { z } from "zod";
 
 // ===== ENUMS =====
 export const CrimeTypeEnum = z.enum(

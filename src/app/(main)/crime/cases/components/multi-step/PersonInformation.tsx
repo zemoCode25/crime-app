@@ -1,6 +1,5 @@
 "use client";
 import {
-  Form,
   FormControl,
   FormDescription,
   FormField,
@@ -35,7 +34,7 @@ import { CASE_ROLES } from "@/constants/personal-information";
 import Suspect from "./InvolvementForms/Suspect";
 import Complainant from "./InvolvementForms/Complainant";
 import Witness from "./InvolvementForms/Witness";
-import { formSchema, type FormSchemaType } from "@/types/form-schema";
+import { type FormSchemaType } from "@/types/form-schema";
 import { X } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 
@@ -185,10 +184,8 @@ export default function PersonInformation({
               )}
             />
 
-            {currentRole === "suspect" && <Suspect form={form} index={index} />}
-            {currentRole === "complainant" && (
-              <Complainant form={form} index={index} />
-            )}
+            {currentRole === "suspect" && <Suspect index={index} />}
+            {currentRole === "complainant" && <Complainant index={index} />}
             {currentRole === "witness" && <Witness form={form} index={index} />}
 
             <FormField
