@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import type { PendingInvitation } from "@/server/actions/invitation";
 import {
   flexRender,
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
+import { ChevronDown } from "lucide-react";
 
 interface InvitationTableProps {
   invitations: PendingInvitation[];
@@ -29,13 +30,11 @@ const columns: ColumnDef<PendingInvitation>[] = [
     header: "Invited User",
     cell: ({ row }) => (
       <div className="flex flex-col">
-        <span className="leading-tight font-medium">
-          {row.original.inviteeName}
-        </span>
+        <p className="leading-tight font-medium">{row.original.inviteeName}</p>
         {row.original.inviteeEmail ? (
-          <span className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-sm">
             {row.original.inviteeEmail}
-          </span>
+          </p>
         ) : null}
       </div>
     ),
@@ -52,14 +51,26 @@ const columns: ColumnDef<PendingInvitation>[] = [
   {
     accessorKey: "role",
     header: "Role",
-    cell: ({ row }) =>
-      row.original.role ? (
-        <Badge variant="secondary" className="capitalize">
-          {row.original.role.replace(/_/g, " ")}
-        </Badge>
-      ) : (
-        <span className="text-muted-foreground text-sm">—</span>
-      ),
+    cell: ({ row }) => {
+      const { role, barangayName } = row.original;
+      if (!role) {
+        return <span className="text-muted-foreground text-sm">-</span>;
+      }
+
+      return (
+        <div className="flex flex-col">
+          {role === "barangay_admin" ? (
+            <Badge variant="secondary" className="py-1 capitalize">
+              {`Assigned to ${barangayName ?? "Unknown Barangay"}`}
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="py-1 capitalize">
+              {role.replaceAll("_", " ")}
+            </Badge>
+          )}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "expiresAt",
@@ -70,11 +81,11 @@ const columns: ColumnDef<PendingInvitation>[] = [
 
 function ExpiryCell({ isoDate }: { isoDate?: string }) {
   if (!isoDate) {
-    return <span className="text-muted-foreground text-sm">—</span>;
+    return <span className="text-muted-foreground text-sm">-</span>;
   }
   const date = new Date(isoDate);
   if (Number.isNaN(date.getTime())) {
-    return <span className="text-muted-foreground text-sm">—</span>;
+    return <span className="text-muted-foreground text-sm">-</span>;
   }
   const relative = formatDistanceToNow(date, { addSuffix: true });
   return (
@@ -98,6 +109,7 @@ function ExpiryCell({ isoDate }: { isoDate?: string }) {
 }
 
 export default function InvitationTable({ invitations }: InvitationTableProps) {
+  const [isOpen, setIsOpen] = useState(true);
   const table = useReactTable({
     data: invitations,
     columns,
@@ -105,53 +117,70 @@ export default function InvitationTable({ invitations }: InvitationTableProps) {
   });
 
   return (
-    <div className="mt-8 overflow-hidden rounded-md border-neutral-200">
-      <div className="border-b border-neutral-200 py-3">
-        <h2 className="text-base font-semibold">Pending Invitations</h2>
-        <p className="text-muted-foreground text-sm">
-          Showing unanswered invites that have not expired yet.
-        </p>
-      </div>
-      <Table className="border bg-white">
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
+    <div className="mt-8 overflow-hidden rounded-sm border border-neutral-200 bg-white">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between border-b border-neutral-200 px-4 py-3 text-left"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-expanded={isOpen}
+      >
+        <div>
+          <h2 className="text-base font-semibold">Pending Invitations</h2>
+          <p className="text-muted-foreground text-sm">
+            Showing unanswered invites that have not expired yet.
+          </p>
+        </div>
+        <ChevronDown
+          className={`h-4 w-4 transition-transform ${
+            isOpen ? "rotate-180" : "rotate-0"
+          }`}
+        />
+      </button>
+      {isOpen ? (
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} className="px-4">
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
                 ))}
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="text-muted-foreground h-24 text-center text-sm"
-              >
-                No active invitations.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="px-4">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="text-muted-foreground h-24 text-center text-sm"
+                >
+                  No active invitations.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      ) : null}
     </div>
   );
 }

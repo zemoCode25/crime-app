@@ -28,6 +28,8 @@ export type PendingInvitation = {
   expiresAt: string;
   role: Database["public"]["Enums"]["roles"] | null;
   createdAt: string;
+  barangayId: number | null;
+  barangayName: string | null;
 };
 
 export async function sendInvitation(input: InvitePayload) {
@@ -136,6 +138,7 @@ export async function getPendingInvitations() {
         created_at,
         created_by_id,
         consumed_datetime,
+        barangay,
         created_by:users!invitation_created_by_id_fkey (
           id,
           first_name,
@@ -162,6 +165,11 @@ export async function getPendingInvitations() {
         .join(" ")
         .trim();
 
+      const barangayName = row.barangay
+        ? BARANGAY_OPTIONS.find((option) => option.id === row.barangay)?.value ??
+          null
+        : null;
+
       return {
         id: row.id,
         inviteeName: inviteeName || row.email || "Pending invite",
@@ -170,6 +178,8 @@ export async function getPendingInvitations() {
         expiresAt: row.expiry_datetime ?? "",
         role: row.role ?? null,
         createdAt: row.created_at ?? "",
+        barangayId: row.barangay ?? null,
+        barangayName,
       };
     }) ?? [];
 

@@ -3,9 +3,15 @@ import React from "react";
 import InviteUserDialog from "./InviteUserDialog";
 import InvitationTable from "./InvitationTable";
 import type { PendingInvitation } from "@/server/actions/invitation";
+import { revalidatePath as nextRevalidatePath } from "next/cache";
 
 interface AccountsProps {
   pendingInvitations: PendingInvitation[];
+}
+
+async function reinvalidatePath() {
+  "use server";
+  nextRevalidatePath("/(main)/manage-accounts/page");
 }
 
 export default function Accounts({ pendingInvitations }: AccountsProps) {
@@ -16,7 +22,7 @@ export default function Accounts({ pendingInvitations }: AccountsProps) {
           placeholder="Search person..."
           className="w-full sm:max-w-[20rem]"
         />
-        <InviteUserDialog />
+        <InviteUserDialog reinvalidatePath={reinvalidatePath} />
       </div>
       <InvitationTable invitations={pendingInvitations} />
     </div>
