@@ -1,5 +1,4 @@
 import MetricCard from "./MetricCard";
-import { DateRange } from "react-day-picker";
 import {
   Scan,
   Gavel,
@@ -8,6 +7,7 @@ import {
   ScanSearch,
 } from "lucide-react";
 import { type LucideIcon } from "lucide-react";
+import { DateRange } from "react-day-picker";
 
 interface MetricCardDefaults {
   title: string;
@@ -108,11 +108,14 @@ const defaultMetrics: MetricCardDefaults[] = [
   },
 ];
 
+interface CardSectionProps {
+  dateRange?: DateRange;
+}
+
 export default function CardSection({
-  dateRange,
-}: {
-  dateRange: DateRange | undefined;
-}) {
+  dateRange: _dateRange,
+}: CardSectionProps) {
+  console.log("Date Range in CardSection:", _dateRange);
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
       {defaultMetrics.map((metric, index) => (

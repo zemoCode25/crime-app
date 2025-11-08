@@ -3,6 +3,7 @@ import {Sex} from "@/types/form-schema"
 import {CivilStatus} from "@/types/form-schema"
 import {CaseRole} from "@/types/form-schema"
 import {Visibility} from "@/types/form-schema"  
+import type { Database } from "@/server/supabase/database.types"
 
 export interface CrimeCaseData {
   case_number?: string;
@@ -57,3 +58,36 @@ export interface CrimeCaseTransactionResult {
   message: string;
   error?: string;
 }
+
+export type CasePersonRecord =
+  Database["public"]["Tables"]["case_person"]["Row"] & {
+    person_profile: Database["public"]["Tables"]["person_profile"]["Row"] | null;
+    suspect?: Database["public"]["Tables"]["suspect"]["Row"] | null;
+    complainant?: Database["public"]["Tables"]["complainant"]["Row"] | null;
+    witness?: Database["public"]["Tables"]["witness"]["Row"] | null;
+  };
+
+type CasePersonWithProfile = Pick<
+  Database["public"]["Tables"]["case_person"]["Row"],
+  "case_role"
+> & {
+  person_profile: Pick<
+    Database["public"]["Tables"]["person_profile"]["Row"],
+    "first_name" | "last_name"
+  > | null;
+};
+
+export type CrimeCaseListRecord = Pick<
+  Database["public"]["Tables"]["crime_case"]["Row"],
+  "id" | "crime_type" | "case_status"
+> & {
+  case_person: CasePersonWithProfile[] | null;
+};
+
+export type CrimeCaseListItem = {
+  id: number;
+  crime_type: number | null;
+  case_status: CaseStatus | null;
+  suspect: string;
+  complainant: string;
+};

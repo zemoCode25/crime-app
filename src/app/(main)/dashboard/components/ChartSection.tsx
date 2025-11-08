@@ -9,14 +9,7 @@ import {
   XAxis,
   ResponsiveContainer,
 } from "recharts";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardContent, CardFooter } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -51,6 +44,7 @@ export default function ChartSection({
 }: {
   dateRange: DateRange | undefined;
 }) {
+  console.log("Date Range in ChartSection:", dateRange);
   return (
     <div className="flex justify-between gap-4 rounded-sm p-1">
       <div className="flex w-full flex-col justify-center gap-2 rounded-sm border border-neutral-300 bg-white p-2">

@@ -14,6 +14,7 @@ import { formSchema, type FormSchemaType } from "@/types/form-schema";
 import { useUpdateCrimeCase } from "@/hooks/crime-case/useMutateCase";
 import { defaultValues } from "@/lib/crime-case";
 import { useCrimeCase } from "@/hooks/crime-case/useCrimeCase";
+import type { CasePersonRecord } from "@/types/crime-case";
 
 export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
   const [step, setStep] = useState(0);
@@ -38,8 +39,28 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
     if (crimeData && !isLoading) {
       console.log("Raw crimeData from database:", crimeData); // Debug what you're getting
 
+      const mapCasePersonToFormPerson = (
+        casePerson: CasePersonRecord,
+      ): FormSchemaType["persons"][number] => ({
+        first_name: casePerson.person_profile?.first_name ?? "",
+        last_name: casePerson.person_profile?.last_name ?? "",
+        address: casePerson.person_profile?.address ?? "",
+        civil_status: casePerson.person_profile?.civil_status || "single",
+        contact_number: casePerson.person_profile?.contact_number ?? "",
+        sex: casePerson.person_profile?.sex || "male",
+        birth_date: casePerson.person_profile?.birth_date
+          ? new Date(casePerson.person_profile.birth_date)
+          : new Date(),
+        person_notified: casePerson.person_profile?.person_notified ?? "",
+        related_contact: casePerson.person_profile?.related_contact ?? "",
+        case_role: casePerson.case_role || "complainant",
+        motive: casePerson.suspect?.motive ?? "",
+        weapon_used: casePerson.suspect?.weapon_used ?? "",
+        narrative: casePerson.complainant?.narrative ?? "",
+        testimony: casePerson.witness?.testimony ?? "",
+      });
+
       const formData: FormSchemaType = {
-        // ✅ Convert string dates to Date objects
         report_datetime: crimeData.report_datetime
           ? new Date(crimeData.report_datetime)
           : new Date(),
@@ -55,40 +76,16 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
         investigator: crimeData.investigator || "",
         responder: crimeData.responder || "",
 
-        // ✅ Handle barangay conversion (number from DB to number for form)
         barangay: crimeData.location?.barangay || 1,
         visibility: crimeData.visibility || "private",
         crime_location: crimeData.location?.crime_location || "",
         landmark: crimeData.location?.landmark || "",
 
-        // ✅ Handle nullable pin field
         pin: crimeData.location?.pin ?? undefined,
         lat: crimeData.location?.lat || 0,
         long: crimeData.location?.long || 0,
 
-        // ✅ Transform case_person data to persons array
-        persons: crimeData.case_person?.map((casePerson: any) => ({
-          first_name: casePerson.person_profile?.first_name || "",
-          last_name: casePerson.person_profile?.last_name || "",
-          address: casePerson.person_profile?.address || "",
-          civil_status: casePerson.person_profile?.civil_status || "single",
-          contact_number: casePerson.person_profile?.contact_number || "",
-          sex: casePerson.person_profile?.sex || "male",
-
-          // ✅ Convert birth_date string to Date object
-          birth_date:
-            casePerson.person_profile?.birth_date &&
-            new Date(casePerson.person_profile.birth_date),
-
-          person_notified: casePerson.person_profile?.person_notified || "",
-          related_contact: casePerson.person_profile?.related_contact || "",
-          case_role: casePerson.case_role || "complainant",
-          motive: casePerson.suspect?.motive || "",
-          weapon_used: casePerson.suspect?.weapon_used || "",
-          narrative: casePerson.complainant?.narrative || "",
-          testimony: casePerson.witness?.testimony || "",
-        })) || [
-          // Default person if no persons in data
+        persons: crimeData.case_person?.map(mapCasePersonToFormPerson) || [
           {
             first_name: "",
             last_name: "",
@@ -108,12 +105,9 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
         ],
       };
 
-      // ✅ Reset form with converted data
       form.reset(formData);
     }
   }, [crimeData, isLoading, form]);
-
-  // ✅ Show loading while data is being fetched
   if (isLoading) {
     return (
       <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
@@ -125,7 +119,6 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
     );
   }
 
-  // ✅ Show error if data failed to load
   if (!crimeData && !isLoading) {
     return (
       <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">

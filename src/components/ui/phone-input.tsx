@@ -88,15 +88,18 @@ const CountrySelect = ({
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
   const [searchValue, setSearchValue] = React.useState("");
   const [isOpen, setIsOpen] = React.useState(false);
+  const handleOpenChange = React.useCallback((open: boolean) => {
+    setIsOpen(open);
+    if (open) {
+      setSearchValue("");
+    }
+  }, []);
 
   return (
     <Popover
       open={isOpen}
       modal
-      onOpenChange={(open) => {
-        setIsOpen(open);
-        open && setSearchValue("");
-      }}
+      onOpenChange={handleOpenChange}
     >
       <PopoverTrigger asChild>
         <Button

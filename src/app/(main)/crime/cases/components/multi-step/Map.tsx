@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useMemo } from "react";
 import mapboxgl from "mapbox-gl";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -17,7 +17,10 @@ interface MapBoxProps {
 export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const initialCenter: [number, number] = [coordinates.long, coordinates.lat];
+  const initialCenter = useMemo<[number, number]>(
+    () => [coordinates.long, coordinates.lat],
+    [coordinates.long, coordinates.lat],
+  );
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,7 +102,7 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
 
       mapRef.current.addControl(geocoder, "top-left");
     } catch (err) {
-      setError("Failed to initialize map");
+      setError(`Failed to load map: ${(err as Error).message}`);
     }
 
     return () => {
@@ -108,7 +111,7 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
         mapRef.current = null;
       }
     };
-  }, []);
+  }, [initialCenter, setCoordinates]);
 
   if (error) {
     return (

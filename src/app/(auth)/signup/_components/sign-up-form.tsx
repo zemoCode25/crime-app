@@ -54,9 +54,9 @@ export function SignUpForm({
   invitation?: InvitationContext;
   inviteToken?: string;
 }) {
+  const inviteValid = Boolean(invitation);
   const invitationEmail = invitation?.email ?? "";
   const invitationToken = invitation?.token ?? inviteToken ?? "";
-  const inviteValid = Boolean(invitation);
 
   const form = useForm<SignUpValues>({
     resolver: zodResolver(SignUpSchema),

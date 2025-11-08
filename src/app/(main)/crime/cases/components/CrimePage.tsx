@@ -2,7 +2,6 @@
 
 import { useCrimeCases } from "@/hooks/crime-case/useCrimeCases";
 import { DataTable } from "./DataTable";
-import { columns } from "./columns";
 
 export default function CrimePage() {
   const { data, isLoading, error } = useCrimeCases();

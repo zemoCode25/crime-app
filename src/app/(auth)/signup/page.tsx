@@ -4,9 +4,9 @@ import { getInvitationForToken } from "@/server/actions/invitation";
 export default async function SignUpPage({
   searchParams,
 }: {
-  searchParams: { token?: string };
+  searchParams: Promise<{ token?: string }>;
 }) {
-  const inviteToken = searchParams.token;
+  const { token: inviteToken } = await searchParams;
   const invitationResult = inviteToken
     ? await getInvitationForToken(inviteToken)
     : null;

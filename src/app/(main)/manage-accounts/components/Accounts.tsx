@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,14 +12,13 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { MoreHorizontal } from "lucide-react";
 import React from "react";
-import MainButton from "@/components/utils/MainButton";
 import InviteUserDialog from "./InviteUserDialog";
+import Image from "next/image";
 
 export default function Accounts() {
   return (
@@ -46,11 +44,11 @@ export default function Accounts() {
               {[1, 2, 3].map((i) => (
                 <TableRow key={i} className="pl-40 hover:bg-neutral-200">
                   <TableCell className="flex items-center gap-4">
-                    <img
+                    {/* <img
                       src={`https://randomuser.me/api/portraits/men/${i + 10}.jpg`}
                       alt="User"
                       className="h-12 w-12 rounded-full border-2 border-orange-600"
-                    />
+                    /> */}
                     <div>
                       <div className="font-semibold">John Doe {i}</div>
                       <div className="text-sm text-gray-500">
@@ -97,9 +95,11 @@ export default function Accounts() {
               {[1, 2, 3].map((i) => (
                 <TableRow key={i} className="pl-40 hover:bg-neutral-200">
                   <TableCell className="flex items-center gap-4">
-                    <img
+                    <Image
                       src={`https://randomuser.me/api/portraits/men/${i + 10}.jpg`}
                       alt="User"
+                      width={48}
+                      height={48}
                       className="h-12 w-12 rounded-full border-2 border-orange-600"
                     />
                     <div>
