@@ -135,3 +135,43 @@ export async function checkInvitationToken(
     },
   };
 }
+
+export async function getActiveInvitationForEmail(
+  client: SupabaseClient<Database>,
+  email?: string,
+) {
+  const normalizedEmail = email?.trim().toLowerCase();
+  if (!normalizedEmail) {
+    return { valid: false, reason: "invalid_email" as const };
+  }
+
+  const nowIso = new Date().toISOString();
+
+  const { data, error } = await client
+    .from("invitation")
+    .select(
+      "id,email,role,first_name,last_name,barangay,created_by_id,expiry_datetime,consumed_datetime,created_at"
+    )
+    .eq("email", normalizedEmail)
+    .is("consumed_datetime", null)
+    .gt("expiry_datetime", nowIso)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    return { valid: false, reason: "db_error" as const, error };
+  }
+
+  if (!data) {
+    return { valid: false, reason: "not_found" as const };
+  }
+
+  return {
+    valid: true,
+    invitation: {
+      ...data,
+      email: normalizedEmail,
+    },
+  } as const;
+}

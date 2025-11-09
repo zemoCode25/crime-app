@@ -4,7 +4,7 @@ import { type NextRequest } from "next/server";
 import { createClient } from "@/server/supabase/server";
 import { redirect } from "next/navigation";
 import { getUser } from "@/server/actions/getUser";
-import { checkInvitationToken } from "@/server/queries/invitation";
+import { checkInvitationToken, getActiveInvitationForEmail } from "@/server/queries/invitation";
 import { createServiceClient } from "@/server/supabase/service-client";
 import type { TablesInsert } from "@/server/supabase/database.types";
 
@@ -41,13 +41,14 @@ export async function GET(request: NextRequest) {
           redirect("/auth/auth-code-error?reason=invalid_invite");
         }
 
+        const invitation = invitationResult.invitation!;
         const serviceClient = createServiceClient();
         const userPayload: TablesInsert<"users"> = {
           id: user!.id,
-          role: invitationResult.invitation!.role,
-          first_name: invitationResult.invitation!.first_name,
-          last_name: invitationResult.invitation!.last_name,
-          barangay: invitationResult.invitation!.barangay,
+          role: invitation.role,
+          first_name: invitation.first_name,
+          last_name: invitation.last_name,
+          barangay: invitation.barangay,
         };
 
         const { error: upsertError } = await serviceClient
@@ -55,6 +56,7 @@ export async function GET(request: NextRequest) {
           .upsert(userPayload, { onConflict: "id" });
 
         if (upsertError) {
+          console.error("Failed to upsert user record during email confirm", upsertError);
           await supabase.auth.signOut();
           redirect("/auth/auth-code-error?reason=profile_setup_failed");
         }
@@ -62,11 +64,59 @@ export async function GET(request: NextRequest) {
         const { error: invitationUpdateError } = await serviceClient
           .from("invitation")
           .update({ consumed_datetime: new Date().toISOString() })
-          .eq("id", invitationResult.invitation!.id);
+          .eq("id", invitation.id);
 
         if (invitationUpdateError) {
+          console.error("Failed to mark invitation as consumed during email confirm", invitationUpdateError);
           await supabase.auth.signOut();
           redirect("/auth/auth-code-error?reason=profile_setup_failed");
+        }
+      } else {
+        // Fallback: No inviteToken in URL; try to resolve invitation by email
+        const user = await getUser();
+        const sessionEmail = user?.email?.toLowerCase() ?? null;
+
+        if (sessionEmail && user?.id) {
+          const invitationResult = await getActiveInvitationForEmail(
+            supabase,
+            sessionEmail,
+          );
+
+          if (!invitationResult.valid || !invitationResult.invitation) {
+            await (await createClient()).auth.signOut();
+            redirect("/auth/auth-code-error?reason=invalid_invite");
+          }
+
+          const invitation = invitationResult.invitation;
+          const serviceClient = createServiceClient();
+          const userPayload: TablesInsert<"users"> = {
+            id: user.id,
+            role: invitation.role,
+            first_name: invitation.first_name,
+            last_name: invitation.last_name,
+            barangay: invitation.barangay,
+          };
+
+          const { error: upsertError } = await serviceClient
+            .from("users")
+            .upsert(userPayload, { onConflict: "id" });
+
+          if (upsertError) {
+            console.error("Failed to upsert user record during email confirm (fallback)", upsertError);
+            await supabase.auth.signOut();
+            redirect("/auth/auth-code-error?reason=profile_setup_failed");
+          }
+
+          const { error: invitationUpdateError } = await serviceClient
+            .from("invitation")
+            .update({ consumed_datetime: new Date().toISOString() })
+            .eq("id", invitation.id);
+
+          if (invitationUpdateError) {
+            console.error("Failed to mark invitation as consumed during email confirm (fallback)", invitationUpdateError);
+            await supabase.auth.signOut();
+            redirect("/auth/auth-code-error?reason=profile_setup_failed");
+          }
         }
       }
 
