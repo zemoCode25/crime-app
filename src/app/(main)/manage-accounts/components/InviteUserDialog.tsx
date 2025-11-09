@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import MainButton from "@/components/utils/MainButton";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogClose,
@@ -30,6 +31,8 @@ import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
 import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 import { sendInvitation } from "@/server/actions/invitation";
+import toast from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 import {
   InvitationSchema,
@@ -43,15 +46,9 @@ import {
   FormLabel as FormFieldLabel,
   FormMessage,
 } from "@/components/ui/form";
-
-interface InviteUserDialogProps {
-  reinvalidatePath: () => Promise<void>;
-}
-
-export default function InviteUserDialog({
-  reinvalidatePath,
-}: InviteUserDialogProps) {
+export default function InviteUserDialog() {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   const form = useForm<InvitationForm>({
     resolver: zodResolver(InvitationSchema),
@@ -81,7 +78,9 @@ export default function InviteUserDialog({
       return;
     }
 
-    await reinvalidatePath();
+    toast.success("Invitation sent successfully!");
+
+    router.refresh();
 
     form.reset({
       first_name: "",

@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Toaster } from "react-hot-toast";
 
 interface InvitationTableProps {
   invitations: PendingInvitation[];
@@ -118,11 +119,12 @@ export default function InvitationTable({ invitations }: InvitationTableProps) {
   });
 
   return (
-    <div className="mt-8 overflow-hidden rounded-sm border border-neutral-200 bg-white">
+    <div className="overflow-hidden rounded-sm border border-neutral-200 bg-white">
+      <Toaster position="bottom-right" reverseOrder={false} />
       <Button
         type="button"
         variant={"ghost"}
-        className="flex w-full cursor-pointer items-center justify-between border-b border-neutral-200 !px-4 py-8 text-left"
+        className="flex w-full cursor-pointer items-center justify-between border-b border-neutral-200 !px-4 py-8 text-left hover:bg-white/90"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-expanded={isOpen}
       >
