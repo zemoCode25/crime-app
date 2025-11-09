@@ -120,7 +120,7 @@ export default function InvitationTable({ invitations }: InvitationTableProps) {
 
   return (
     <div className="overflow-hidden rounded-sm border border-neutral-200 bg-white">
-      <Toaster position="bottom-right" reverseOrder={false} />
+      <Toaster position="top-right" reverseOrder={false} />
       <Button
         type="button"
         variant={"ghost"}

@@ -8,7 +8,7 @@ import { getUser } from "@/server/actions/getUser";
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const next = url.searchParams.get("next") || "/user-profile";
+  const next = url.searchParams.get("next") || "/dashboard";
   const expectedEmail =
     url.searchParams.get("expectedEmail")?.trim().toLowerCase() || null;
   const inviteToken = url.searchParams.get("inviteToken")?.trim() || null;
@@ -104,7 +104,7 @@ export async function GET(request: Request) {
         }
       }
 
-      const safeNext = next.startsWith("/") ? next : "/user-profile";
+      const safeNext = next.startsWith("/") ? next : "/dashboard";
       return NextResponse.redirect(new URL(safeNext, request.url));
     }
   }

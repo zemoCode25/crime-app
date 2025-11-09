@@ -3,11 +3,16 @@ import { type NextRequest } from "next/server";
 
 import { createClient } from "@/server/supabase/server";
 import { redirect } from "next/navigation";
+import { getUser } from "@/server/actions/getUser";
+import { checkInvitationToken } from "@/server/queries/invitation";
+import { createServiceClient } from "@/server/supabase/service-client";
+import type { TablesInsert } from "@/server/supabase/database.types";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
+  const inviteToken = searchParams.get("inviteToken");
   // const next = searchParams.get("next") ?? "/";
 
   if (token_hash && type) {
@@ -18,7 +23,54 @@ export async function GET(request: NextRequest) {
       token_hash,
     });
     if (!error) {
-      // redirect user to specified redirect URL or root of app
+      // If this confirmation came from an invitation-based signup, finalize user profile
+      if (inviteToken) {
+        const user = await getUser();
+        const sessionEmail = user?.email?.toLowerCase() ?? null;
+
+        const invitationResult = await checkInvitationToken(supabase, inviteToken);
+        const invitationEmail = invitationResult.invitation?.email?.toLowerCase() ?? null;
+
+        if (
+          !invitationResult.valid ||
+          !invitationEmail ||
+          !user?.id ||
+          (sessionEmail && sessionEmail !== invitationEmail)
+        ) {
+          await supabase.auth.signOut();
+          redirect("/auth/auth-code-error?reason=invalid_invite");
+        }
+
+        const serviceClient = createServiceClient();
+        const userPayload: TablesInsert<"users"> = {
+          id: user!.id,
+          role: invitationResult.invitation!.role,
+          first_name: invitationResult.invitation!.first_name,
+          last_name: invitationResult.invitation!.last_name,
+          barangay: invitationResult.invitation!.barangay,
+        };
+
+        const { error: upsertError } = await serviceClient
+          .from("users")
+          .upsert(userPayload, { onConflict: "id" });
+
+        if (upsertError) {
+          await supabase.auth.signOut();
+          redirect("/auth/auth-code-error?reason=profile_setup_failed");
+        }
+
+        const { error: invitationUpdateError } = await serviceClient
+          .from("invitation")
+          .update({ consumed_datetime: new Date().toISOString() })
+          .eq("id", invitationResult.invitation!.id);
+
+        if (invitationUpdateError) {
+          await supabase.auth.signOut();
+          redirect("/auth/auth-code-error?reason=profile_setup_failed");
+        }
+      }
+
+      // redirect user to dashboard after successful confirmation
       redirect("/dashboard");
     }
   }
