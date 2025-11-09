@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import MainButton from "@/components/utils/MainButton";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogClose,
@@ -48,10 +49,9 @@ interface InviteUserDialogProps {
   reinvalidatePath: () => Promise<void>;
 }
 
-export default function InviteUserDialog({
-  reinvalidatePath,
-}: InviteUserDialogProps) {
+export default function InviteUserDialog() {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   const form = useForm<InvitationForm>({
     resolver: zodResolver(InvitationSchema),
@@ -81,7 +81,7 @@ export default function InviteUserDialog({
       return;
     }
 
-    await reinvalidatePath();
+    router.refresh();
 
     form.reset({
       first_name: "",
