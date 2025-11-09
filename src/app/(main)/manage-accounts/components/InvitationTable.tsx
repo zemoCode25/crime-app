@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Toaster } from "react-hot-toast";
 
 interface InvitationTableProps {
   invitations: PendingInvitation[];
@@ -119,6 +120,7 @@ export default function InvitationTable({ invitations }: InvitationTableProps) {
 
   return (
     <div className="overflow-hidden rounded-sm border border-neutral-200 bg-white">
+      <Toaster position="bottom-right" reverseOrder={false} />
       <Button
         type="button"
         variant={"ghost"}

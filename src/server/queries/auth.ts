@@ -76,6 +76,7 @@ export async function signup(formData: FormData) {
     role: invitationResult.invitation.role,
     first_name: invitationResult.invitation.first_name,
     last_name: invitationResult.invitation.last_name,
+    barangay: invitationResult.invitation.barangay,
   };
 
   const { error: userUpsertError } = await serviceClient

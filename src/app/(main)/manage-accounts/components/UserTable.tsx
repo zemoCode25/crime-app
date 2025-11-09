@@ -189,12 +189,10 @@ export default function UserTable({ data }: Props) {
           const role = row.original.role;
           const id = row.original.barangay;
           const name =
-            role === "barangay_admin" && id != null
-              ? (BARANGAY_OPTIONS.find((b) => b.id === id)?.value ?? "")
+            role === "barangay_admin"
+              ? BARANGAY_OPTIONS.find((b) => b.id === id)?.value
               : "";
-          return (
-            <span className="text-muted-foreground text-sm">{name || "-"}</span>
-          );
+          return <span className="text-sm">{name || "-"}</span>;
         },
         filterFn: (row, columnId, filterValue: string[]) => {
           if (!filterValue || filterValue.length === 0) return true;

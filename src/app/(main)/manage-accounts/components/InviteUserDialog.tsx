@@ -31,6 +31,8 @@ import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
 import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 import { sendInvitation } from "@/server/actions/invitation";
+import toast from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 
 import {
   InvitationSchema,
@@ -44,11 +46,6 @@ import {
   FormLabel as FormFieldLabel,
   FormMessage,
 } from "@/components/ui/form";
-
-interface InviteUserDialogProps {
-  reinvalidatePath: () => Promise<void>;
-}
-
 export default function InviteUserDialog() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -80,6 +77,8 @@ export default function InviteUserDialog() {
       console.error(res.error);
       return;
     }
+
+    toast.success("Invitation sent successfully!");
 
     router.refresh();
 
