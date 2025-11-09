@@ -4,8 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/server/supabase/server";
-import { createServiceClient } from "@/server/supabase/service-client";
-import type { TablesInsert } from "@/server/supabase/database.types";
 import { checkInvitationToken } from "@/server/queries/invitation";
 
 export async function login(formData: FormData) {
@@ -49,57 +47,26 @@ export async function signup(formData: FormData) {
     redirect("/auth/auth-code-error");
   }
 
-  const { data: signUpData, error } = await supabase.auth.signUp({
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const emailRedirectTo = `${origin}/auth/confirm?inviteToken=${encodeURIComponent(invitationToken)}`;
+
+  const { error } = await supabase.auth.signUp({
     email: invitationEmail,
     password,
+    options: {
+      emailRedirectTo,
+    },
   });
 
   if (error) {
     redirect("/error");
   }
 
-  const newUserId = signUpData?.user?.id;
-
-  if (!newUserId) {
-    redirect("/error");
-  }
-
-  const serviceClient = createServiceClient();
-  const invitationId = invitationResult.invitation.id;
-
-  if (!invitationId) {
-    redirect("/error");
-  }
-
-  const userPayload: TablesInsert<"users"> = {
-    id: newUserId,
-    role: invitationResult.invitation.role,
-    first_name: invitationResult.invitation.first_name,
-    last_name: invitationResult.invitation.last_name,
-    barangay: invitationResult.invitation.barangay,
-  };
-
-  const { error: userUpsertError } = await serviceClient
-    .from("users")
-    .upsert(userPayload, { onConflict: "id" });
-
-  if (userUpsertError) {
-    console.error("Failed to upsert user record", userUpsertError);
-    redirect("/error");
-  }
-
-  const { error: invitationUpdateError } = await serviceClient
-    .from("invitation")
-    .update({ consumed_datetime: new Date().toISOString() })
-    .eq("id", invitationId);
-
-  if (invitationUpdateError) {
-    console.error("Failed to mark invitation as consumed", invitationUpdateError);
-    redirect("/error");
-  }
+  // Ensure no session exists until the user confirms via email
+  await supabase.auth.signOut();
 
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect("/auth/check-email");
 }
 
 export async function signInWithGoogle(formData: FormData): Promise<void> {

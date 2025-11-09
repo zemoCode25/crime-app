@@ -9,8 +9,6 @@ export default async function ManageAccountsPage() {
     ? (pendingInvitationsResult.data ?? [])
     : [];
 
-  console.log("Pending Invitations:", pendingInvitations);
-
   // Fetch active users (server action) and pass to client table for client-side features
   const usersResult = await getActiveUsers({ page: 1, pageSize: 100 });
   const users = usersResult.ok ? usersResult.data.rows : [];
