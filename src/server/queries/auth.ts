@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-
 import { createClient } from "@/server/supabase/server";
 import { checkInvitationToken } from "@/server/queries/invitation";
 
@@ -124,4 +123,17 @@ export async function logInWithGoogle() {
   }
 
   redirect("/auth/auth-code-error?reason=no_redirect_url");
+}
+
+export async function requestPasswordReset(email: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+  redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/change-password`,
+})
+
+  if (error) {
+    return { success: false, message: error.message };
+  }
+
+  return { success: true, message: "Password reset email sent.", data: data };
 }
