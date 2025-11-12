@@ -128,7 +128,7 @@ export async function logInWithGoogle() {
 export async function requestPasswordReset(email: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-  redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/change-password`,
+  redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/change-password`,
 })
 
   if (error) {
@@ -136,4 +136,20 @@ export async function requestPasswordReset(email: string) {
   }
 
   return { success: true, message: "Password reset email sent.", data: data };
+}
+
+export async function requestPasswordResetAction(formData: FormData) {
+  "use server";
+  const email = (formData.get("email") as string | null)?.trim() || "";
+  const backTo = "/auth/request-change";
+  if (!email) {
+    redirect(`${backTo}?error=${encodeURIComponent("Email is required")}`);
+  }
+  const result = await requestPasswordReset(email);
+  if (!result.success) {
+    const message = result.message || "Failed to send reset email";
+    redirect(`${backTo}?error=${encodeURIComponent(message)}`);
+  }
+  revalidatePath("/", "layout");
+  redirect("/auth/check-email");
 }
