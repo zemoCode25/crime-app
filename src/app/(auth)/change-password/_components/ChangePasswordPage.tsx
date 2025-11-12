@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 
 import { calcPasswordStrength, passwordChecks } from "../../signup/_lib/utils";
+import { changePasswordAction } from "@/server/queries/auth";
+import { useSearchParams } from "next/navigation";
 
 const ChangePasswordSchema = z
   .object({
@@ -41,12 +43,8 @@ export default function ChangePasswordPage() {
   const form = useForm<ChangePasswordValues>({
     resolver: zodResolver(ChangePasswordSchema),
     defaultValues: { password: "", confirmPassword: "" },
-    mode: "onSubmit",
+    mode: "onChange",
   });
-
-  const onSubmit = async ({ password }: ChangePasswordValues) => {
-    console.log("Change password submitted", { password });
-  };
 
   const password = form.watch("password");
   const strength = useMemo(() => calcPasswordStrength(password), [password]);
@@ -66,11 +64,15 @@ export default function ChangePasswordPage() {
       ? "Weak"
       : "Medium";
 
+  const search = useSearchParams();
+  const error = search.get("error");
+  const success = search.get("success");
+
   return (
     <div className="flex w-full max-w-sm flex-col gap-6">
       <Card className="overflow-hidden p-0">
         <CardContent className="p-6 md:p-8">
-          <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
+          <form action={changePasswordAction} noValidate>
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-xl font-medium">Change Password</h1>
@@ -91,6 +93,7 @@ export default function ChangePasswordPage() {
                     className="pr-10"
                     {...form.register("password")}
                   />
+                  <input type="hidden" name="new-password" value={password} />
                   <button
                     type="button"
                     aria-label={
@@ -139,6 +142,13 @@ export default function ChangePasswordPage() {
                 )}
               </div>
 
+              {error && <p className="text-sm text-red-600">{error}</p>}
+              {success && (
+                <p className="text-sm text-green-600">
+                  Password updated successfully.
+                </p>
+              )}
+
               <div className="grid gap-2">
                 <Label htmlFor="confirm-password">Confirm New Password</Label>
                 <div className="relative">
@@ -175,7 +185,9 @@ export default function ChangePasswordPage() {
               <Button
                 type="submit"
                 className="w-full bg-orange-600 hover:bg-orange-700"
-                disabled={form.formState.isSubmitting}
+                disabled={
+                  form.formState.isSubmitting || !form.formState.isValid
+                }
               >
                 {form.formState.isSubmitting
                   ? "Updating..."

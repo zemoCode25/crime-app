@@ -153,3 +153,32 @@ export async function requestPasswordResetAction(formData: FormData) {
   revalidatePath("/", "layout");
   redirect("/auth/check-email");
 }
+
+export async function updatePassword(formData: FormData) {
+  const new_password = (formData.get("new-password") as string | null)?.trim() || "";
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.updateUser({
+  password: new_password
+})
+  if (error) {
+    return { success: false, message: error.message };
+  }
+
+  return { success: true, message: "Password updated successfully.", data: data };
+}
+
+export async function changePasswordAction(formData: FormData) {
+  "use server";
+  const backTo = "/auth/change-password";
+  const newPassword = (formData.get("new-password") as string | null)?.trim() || "";
+  if (!newPassword) {
+    redirect(`${backTo}?error=${encodeURIComponent("Password is required")}`);
+  }
+  const result = await updatePassword(formData);
+  if (!result.success) {
+    const msg = result.message || "Failed to update password";
+    redirect(`${backTo}?error=${encodeURIComponent(msg)}`);
+  }
+  revalidatePath("/", "layout");
+  redirect(`/dashboard`);
+}
