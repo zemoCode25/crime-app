@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-
 import { createClient } from "@/server/supabase/server";
 import { checkInvitationToken } from "@/server/queries/invitation";
 
@@ -124,4 +123,62 @@ export async function logInWithGoogle() {
   }
 
   redirect("/auth/auth-code-error?reason=no_redirect_url");
+}
+
+export async function requestPasswordReset(email: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+  redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/change-password`,
+})
+
+  if (error) {
+    return { success: false, message: error.message };
+  }
+
+  return { success: true, message: "Password reset email sent.", data: data };
+}
+
+export async function requestPasswordResetAction(formData: FormData) {
+  "use server";
+  const email = (formData.get("email") as string | null)?.trim() || "";
+  const backTo = "/auth/request-change";
+  if (!email) {
+    redirect(`${backTo}?error=${encodeURIComponent("Email is required")}`);
+  }
+  const result = await requestPasswordReset(email);
+  if (!result.success) {
+    const message = result.message || "Failed to send reset email";
+    redirect(`${backTo}?error=${encodeURIComponent(message)}`);
+  }
+  revalidatePath("/", "layout");
+  redirect("/auth/check-email");
+}
+
+export async function updatePassword(formData: FormData) {
+  const new_password = (formData.get("new-password") as string | null)?.trim() || "";
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.updateUser({
+  password: new_password
+})
+  if (error) {
+    return { success: false, message: error.message };
+  }
+
+  return { success: true, message: "Password updated successfully.", data: data };
+}
+
+export async function changePasswordAction(formData: FormData) {
+  "use server";
+  const backTo = "/auth/change-password";
+  const newPassword = (formData.get("new-password") as string | null)?.trim() || "";
+  if (!newPassword) {
+    redirect(`${backTo}?error=${encodeURIComponent("Password is required")}`);
+  }
+  const result = await updatePassword(formData);
+  if (!result.success) {
+    const msg = result.message || "Failed to update password";
+    redirect(`${backTo}?error=${encodeURIComponent(msg)}`);
+  }
+  revalidatePath("/", "layout");
+  redirect(`/dashboard`);
 }

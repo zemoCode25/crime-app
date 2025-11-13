@@ -12,23 +12,30 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { calcPasswordStrength, passwordChecks } from "../_lib/utils";
+import Link from "next/link";
 
-const SignUpSchema = z.object({
-  password: z
-    .string()
-    .min(8, "Min 8 characters")
-    .max(30, "Max 30 characters")
-    .refine((v) => /[A-Z]/.test(v), {
-      message: "Must contain an uppercase letter",
-    })
-    .refine((v) => /[a-z]/.test(v), {
-      message: "Must contain a lowercase letter",
-    })
-    .refine((v) => /\d/.test(v), { message: "Must contain a number" })
-    .refine((v) => /[^A-Za-z0-9]/.test(v), {
-      message: "Must contain a special character",
-    }),
-});
+const SignUpSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "Min 8 characters")
+      .max(30, "Max 30 characters")
+      .refine((v) => /[A-Z]/.test(v), {
+        message: "Must contain an uppercase letter",
+      })
+      .refine((v) => /[a-z]/.test(v), {
+        message: "Must contain a lowercase letter",
+      })
+      .refine((v) => /\d/.test(v), { message: "Must contain a number" })
+      .refine((v) => /[^A-Za-z0-9]/.test(v), {
+        message: "Must contain a special character",
+      }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 type SignUpValues = z.infer<typeof SignUpSchema>;
 
 type InvitationContext = {
@@ -60,7 +67,7 @@ export function SignUpForm({
 
   const form = useForm<SignUpValues>({
     resolver: zodResolver(SignUpSchema),
-    defaultValues: { password: "" },
+    defaultValues: { password: "", confirmPassword: "" },
     mode: "onSubmit",
   });
 
@@ -81,6 +88,7 @@ export function SignUpForm({
     [password],
   );
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const hue = Math.round((strength / 100) * 120);
   const barColor = `hsl(${hue} 90% 40%)`;
@@ -126,12 +134,6 @@ export function SignUpForm({
                 <div className="grid gap-2">
                   <div className="flex items-center">
                     <Label htmlFor="password">Password</Label>
-                    <a
-                      href="#"
-                      className="ml-auto text-sm underline-offset-2 hover:underline"
-                    >
-                      Forgot your password?
-                    </a>
                   </div>
 
                   <div className="relative">
@@ -188,6 +190,41 @@ export function SignUpForm({
                   {form.formState.errors.password && (
                     <p className="text-sm text-red-600">
                       {form.formState.errors.password.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirm-password"
+                      type={showConfirm ? "text" : "password"}
+                      autoComplete="new-password"
+                      minLength={8}
+                      maxLength={30}
+                      className="pr-10"
+                      {...form.register("confirmPassword")}
+                    />
+                    <button
+                      type="button"
+                      aria-label={
+                        showConfirm ? "Hide password" : "Show password"
+                      }
+                      onClick={() => setShowConfirm((p) => !p)}
+                      className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-2 flex items-center justify-center rounded p-1"
+                    >
+                      {showConfirm ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+
+                  {form.formState.errors.confirmPassword && (
+                    <p className="text-sm text-red-600">
+                      {form.formState.errors.confirmPassword.message}
                     </p>
                   )}
                 </div>
