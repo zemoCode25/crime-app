@@ -17,6 +17,7 @@ import {
   getAuthUserMetadata,
 } from "@/server/queries/users";
 import { KickUserEmail } from "@/components/utils/KickUserEmail";
+import { redirect } from "next/navigation";
 // Type exports are not allowed from a "use server" action file
 
 type Role = Database["public"]["Enums"]["roles"];
@@ -165,4 +166,14 @@ export async function kickUser(rawInput: KickInput) {
   revalidatePath("/(main)/manage-accounts");
 
   return { ok: true } as const;
+}
+
+export async function logOutUser() {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error("Error logging out user:", error);
+    throw new Error("Failed to log out.");
+  }
+  redirect("/login");
 }
