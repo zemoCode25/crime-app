@@ -53,7 +53,7 @@ export default function SettingsLayout({
           Account
         </Link>
       </header>
-      <div>{children}</div>
+      <div className="mt-4">{children}</div>
     </div>
   );
 }
