@@ -379,7 +379,6 @@ export default function UserTable({ data }: Props) {
 
   return (
     <div className="overflow-hidden rounded-sm border border-neutral-300 p-4 dark:border-orange-900 dark:bg-[var(--dark-card)] dark:shadow-none">
-      <h1 className="font-semibold">Active users</h1>
       <div className="flex flex-col items-start gap-4 py-4 sm:flex-row sm:items-center">
         {/* Search and Filter */}
         <div className="flex w-full flex-col justify-between gap-2 md:flex-row">
