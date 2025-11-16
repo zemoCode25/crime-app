@@ -74,6 +74,7 @@ export default function LocationInformation() {
         <FormField
           control={form.control}
           name="lat"
+          disabled
           render={({ field }) => (
             <FormItem>
               <FormLabel>Latitude</FormLabel>
@@ -87,6 +88,7 @@ export default function LocationInformation() {
         <FormField
           control={form.control}
           name="long"
+          disabled
           render={({ field }) => (
             <FormItem>
               <FormLabel>Longitude</FormLabel>

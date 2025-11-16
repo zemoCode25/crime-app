@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react"; // ✅ Add useEffect
-import { useFieldArray, useForm } from "react-hook-form";
+import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import CrimeForm from "./multi-step/CrimeForm";
@@ -24,7 +24,7 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
 
   // ✅ Initialize form with empty defaults first
   const form = useForm<FormSchemaType>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     mode: "onChange",
     defaultValues: defaultValues, // Use your existing defaultValues
   });
@@ -125,7 +125,7 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
     );
   }
 
-  async function onSubmit(values: FormSchemaType) {
+  const onSubmit: SubmitHandler<FormSchemaType> = async (values) => {
     try {
       // ✅ Prepare data for mutation
       const crimeCase = {
@@ -190,7 +190,7 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
       // ✅ Error handling is managed by the mutation hook
       console.error("Form submission error", error);
     }
-  }
+  };
 
   return (
     <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
