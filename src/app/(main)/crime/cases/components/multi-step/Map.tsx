@@ -70,6 +70,7 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
     lat: number;
     lng: number;
   } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
 
   const { suggestions, loading, searchLocation, retrieveLocation } =
     useMapboxSearch();
@@ -226,6 +227,40 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
     }
   };
 
+  const handleUseCurrentLocation = () => {
+    if (typeof window === "undefined") return;
+    if (!navigator.geolocation || !mapRef.current || !markerRef.current) {
+      return;
+    }
+
+    const apiKey = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+    if (!apiKey) {
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = Number(position.coords.latitude.toFixed(6));
+        const lng = Number(position.coords.longitude.toFixed(6));
+
+        setCoordinates({ lat, long: lng });
+        setSelectedCoords({ lat, lng });
+
+        markerRef.current?.setLngLat([lng, lat]);
+        mapRef.current?.flyTo({ center: [lng, lat], zoom: INITIAL_ZOOM });
+
+        const label = await reverseGeocodeMapbox(lat, lng, apiKey);
+        setSelectedLabel(label || "Current location");
+        setSearchOpen(false);
+        setHighlightedIndex(-1);
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+      },
+      { enableHighAccuracy: true },
+    );
+  };
+
   if (error) {
     return (
       <div className="flex h-64 w-full flex-col items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 p-4">
@@ -236,6 +271,12 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
 
   return (
     <div className="space-y-4">
+      {selectedLabel && (
+        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-sm">
+          <div className="font-medium">Selected map location</div>
+          <div className="text-sm text-gray-800">{selectedLabel}</div>
+        </div>
+      )}
       <div className="relative">
         <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <Input
@@ -245,7 +286,7 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
           value={searchQuery}
           onChange={(e) => handleSearchChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="bg-white pr-8 pl-10"
+          className="bg-white pr-10 pl-10"
         />
         {searchQuery && (
           <button
@@ -269,37 +310,64 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
                       Searching...
                     </div>
                   ) : (
-                    suggestions.map(
-                      (suggestion: SearchSuggestion, index: number) => (
-                        <CommandItem
-                          key={suggestion.mapbox_id}
-                          value={suggestion.mapbox_id}
-                          className={
-                            index === highlightedIndex
-                              ? "bg-gray-100"
-                              : undefined
-                          }
-                          onSelect={() =>
-                            handleSelectLocation(
-                              suggestion.mapbox_id,
-                              suggestion.place_formatted || suggestion.name,
-                            )
-                          }
-                        >
-                          <div className="flex gap-2">
-                            <MapPinIcon className="mt-0.5 h-10 w-10 flex-shrink-0 text-orange-600" />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium">
-                                {suggestion.name}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {suggestion.place_formatted}
-                              </span>
-                            </div>
+                    <>
+                      <CommandItem
+                        key="current-location"
+                        value="current-location"
+                        onSelect={handleUseCurrentLocation}
+                      >
+                        <div className="flex items-center gap-2">
+                          {isLocating ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600" />
+                          ) : (
+                            <MapPinIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+                          )}
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">
+                              {isLocating
+                                ? "Locating your current position..."
+                                : "Use my current location"}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {isLocating
+                                ? "Waiting for browser permission"
+                                : "Center map on where you are now"}
+                            </span>
                           </div>
-                        </CommandItem>
-                      ),
-                    )
+                        </div>
+                      </CommandItem>
+                      {suggestions.map(
+                        (suggestion: SearchSuggestion, index: number) => (
+                          <CommandItem
+                            key={suggestion.mapbox_id}
+                            value={suggestion.mapbox_id}
+                            className={
+                              index === highlightedIndex
+                                ? "bg-gray-100"
+                                : undefined
+                            }
+                            onSelect={() =>
+                              handleSelectLocation(
+                                suggestion.mapbox_id,
+                                suggestion.place_formatted || suggestion.name,
+                              )
+                            }
+                          >
+                            <div className="flex gap-2">
+                              <MapPinIcon className="mt-0.5 h-10 w-10 flex-shrink-0 text-orange-600" />
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium">
+                                  {suggestion.name}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {suggestion.place_formatted}
+                                </span>
+                              </div>
+                            </div>
+                          </CommandItem>
+                        ),
+                      )}
+                    </>
                   )}
                 </CommandGroup>
               </CommandList>
@@ -307,13 +375,6 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
           </div>
         )}
       </div>
-
-      {selectedLabel && (
-        <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-sm">
-          <div className="font-medium">Selected map location</div>
-          <div className="text-sm text-gray-800">{selectedLabel}</div>
-        </div>
-      )}
 
       <div className="relative h-64 w-full overflow-hidden rounded-lg border border-gray-300">
         {!isLoaded && (
