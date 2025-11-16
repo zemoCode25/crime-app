@@ -74,12 +74,11 @@ export default function LocationInformation() {
         <FormField
           control={form.control}
           name="lat"
-          disabled
           render={({ field }) => (
             <FormItem>
               <FormLabel>Latitude</FormLabel>
               <FormControl>
-                <Input type="number" step="any" {...field} />
+                <Input type="number" step="any" disabled {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -88,12 +87,11 @@ export default function LocationInformation() {
         <FormField
           control={form.control}
           name="long"
-          disabled
           render={({ field }) => (
             <FormItem>
               <FormLabel>Longitude</FormLabel>
               <FormControl>
-                <Input type="number" step="any" {...field} />
+                <Input type="number" step="any" disabled {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -238,6 +238,8 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
       return;
     }
 
+    setIsLocating(true);
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const lat = Number(position.coords.latitude.toFixed(6));
@@ -253,9 +255,11 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
         setSelectedLabel(label || "Current location");
         setSearchOpen(false);
         setHighlightedIndex(-1);
+        setIsLocating(false);
       },
       (error) => {
         console.error("Geolocation error:", error);
+        setIsLocating(false);
       },
       { enableHighAccuracy: true },
     );

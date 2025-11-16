@@ -36,6 +36,7 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
 
   // ✅ Reset form when crimeData is loaded
   useEffect(() => {
+    console.log("crimeData changed:", crimeData);
     if (crimeData && !isLoading) {
       const mapCasePersonToFormPerson = (
         casePerson: CasePersonRecord,
@@ -168,6 +169,12 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
         narrative: person.narrative?.trim() || null,
         testimony: person.testimony?.trim() || null,
       }));
+
+      console.log("Submitting form with data:", {
+        crimeCase,
+        location,
+        persons,
+      });
 
       // ✅ Trigger the mutation
       await crimeCaseMutation.mutateAsync({
