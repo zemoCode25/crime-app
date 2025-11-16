@@ -9,9 +9,7 @@ export default function EmailSentModal() {
   async function handleTriggerClick(email: string) {
     try {
       const result = await requestPasswordReset(email);
-      if (result.success) {
-        console.log("Password reset email sent successfully.");
-      } else {
+      if (!result.success) {
         console.error("Error sending password reset email:", result.message);
       }
     } catch (error) {

@@ -8,10 +8,6 @@ const TABLES = [
   'person_profile'
 ] as const;
 
-TABLES.map(table => {
-  console.log(`Table: ${table}`);
-});
-
 export async function getTableCrimeCases(client: TypedSupabaseClient) {
   return client
     .from("crime_case")

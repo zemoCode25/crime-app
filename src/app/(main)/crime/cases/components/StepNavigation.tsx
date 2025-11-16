@@ -20,13 +20,11 @@ export default function StepNavigation({ step, setStep }: StepNavigationProps) {
 
   const form = useFormContext<FormSchemaType>();
 
-  // ✅ Function to validate current step
+  // �o. Function to validate current step
   async function validateCurrentStep(): Promise<boolean> {
-    const errors = form.formState.errors;
-
     switch (step) {
-      case 0: // Crime Information
-        // Trigger validation for crime fields
+      case 0: {
+        // Crime Information
         const crimeFields = await form.trigger([
           "description",
           "crime_type",
@@ -36,52 +34,33 @@ export default function StepNavigation({ step, setStep }: StepNavigationProps) {
         ]);
 
         if (!crimeFields) {
-          toast.error("Invalid input in crime information");
+          toast.error("Please fix the errors in Crime Information");
           return false;
         }
-        break;
 
-      case 1: // Person Information
+        return true;
+      }
+
+      case 1: {
+        // Person Information
         const personFields = await form.trigger(["persons"]);
+        const persons = form.getValues("persons") ?? [];
 
-        if (!personFields || errors.persons) {
-          // Check specific person errors
-          const persons = form.getValues("persons");
-          for (let i = 0; i < persons.length; i++) {
-            const personError = errors.persons?.[i];
-            if (personError?.first_name) {
-              toast.error(`Person ${i + 1}: First name is required`);
-              return false;
-            }
-            if (personError?.last_name) {
-              toast.error(`Person ${i + 1}: Last name is required`);
-              return false;
-            }
-            if (personError?.address) {
-              toast.error(`Person ${i + 1}: Address is required`);
-              return false;
-            }
-            if (personError?.contact_number) {
-              toast.error(`Person ${i + 1}: Contact number is required`);
-              return false;
-            }
-            if (personError?.case_role) {
-              toast.error(`Person ${i + 1}: Case role is required`);
-              return false;
-            }
-          }
+        if (!Array.isArray(persons) || persons.length === 0) {
+          toast.error("At least one person must be added");
+          return false;
+        }
 
-          if (persons.length === 0) {
-            toast.error("At least one person must be added");
-            return false;
-          }
-
+        if (!personFields) {
           toast.error("Please fix the errors in Person Information");
           return false;
         }
-        break;
 
-      case 2: // Address Information
+        return true;
+      }
+
+      case 2: {
+        // Address / Location Information
         const addressFields = await form.trigger([
           "barangay",
           "crime_location",
@@ -90,23 +69,23 @@ export default function StepNavigation({ step, setStep }: StepNavigationProps) {
         ]);
 
         if (!addressFields) {
-          if (errors.barangay) toast.error("Barangay is required");
-          else if (errors.crime_location)
-            toast.error("Crime location is required");
-          else if (errors.lat) toast.error("Latitude is required");
-          else if (errors.long) toast.error("Longitude is required");
+          toast.error("Please complete the required Location fields");
           return false;
         }
-        break;
 
-      case 3: // Additional Notes - usually optional, so always valid
+        return true;
+      }
+
+      case 3:
+        // Additional Notes - optional, always valid
+        return true;
+
+      default:
         return true;
     }
-
-    return true;
   }
 
-  // ✅ Handle next with validation
+  // �o. Handle next with validation
   async function handleNext() {
     if (step < 3) {
       const isValid = await validateCurrentStep();
@@ -129,7 +108,7 @@ export default function StepNavigation({ step, setStep }: StepNavigationProps) {
         className="cursor-pointer border"
         variant="outline"
         onClick={handlePrev}
-        disabled={step === 0} // ✅ Disable on first step
+        disabled={step === 0} // �o. Disable on first step
       >
         <ArrowLeft className="text-black dark:text-white" />
       </Button>
@@ -142,7 +121,7 @@ export default function StepNavigation({ step, setStep }: StepNavigationProps) {
         className="cursor-pointer border"
         variant="outline"
         onClick={handleNext}
-        disabled={step === 3} // ✅ Disable on last step
+        disabled={step === 3} // �o. Disable on last step
       >
         <ArrowRight className="text-black dark:text-white" />
       </Button>

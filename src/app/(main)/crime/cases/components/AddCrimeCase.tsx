@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { Form } from "@/components/ui/form";
@@ -22,7 +22,9 @@ export default function MyForm() {
   const crimeCaseMutation = useCreateCrimeCase();
 
   const form = useForm<FormSchemaType>({
-    resolver: zodResolver(formSchema),
+    // Cast resolver to avoid type incompatibility between
+    // @hookform/resolvers and react-hook-form versions
+    resolver: zodResolver(formSchema) as any,
     mode: "onChange",
     defaultValues: defaultValues,
   });
@@ -32,9 +34,10 @@ export default function MyForm() {
     name: "persons",
   });
 
-  async function onSubmit(values: FormSchemaType) {
+  const onSubmit: SubmitHandler<FormSchemaType> = async (values) => {
     try {
       // ✅ Prepare data for mutation
+      console.log("Preparing data for mutation with values:", values);
       const crimeCase = {
         case_number: `CASE-${Date.now()}`,
         crime_type: values.crime_type,
@@ -89,6 +92,8 @@ export default function MyForm() {
         persons,
       });
 
+      console.log("Form submission successful");
+
       // ✅ Reset form on success (mutation handles toast notifications)
       form.reset();
       setStep(0);
@@ -96,7 +101,7 @@ export default function MyForm() {
       // ✅ Error handling is managed by the mutation hook
       console.error("Form submission error", error);
     }
-  }
+  };
 
   return (
     <Dialog>
@@ -110,7 +115,9 @@ export default function MyForm() {
         <Form {...form}>
           <StepNavigation setStep={setStep} step={step} />
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.log("Form validation failed with errors:", errors);
+            })}
             className="mx-auto w-full space-y-5 py-4"
           >
             {step === 0 && <CrimeForm />}

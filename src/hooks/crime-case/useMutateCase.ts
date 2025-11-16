@@ -38,6 +38,8 @@ export function useCreateCrimeCase() {
         throw new Error(result?.error?.message || 'Failed to create crime case');
       }
 
+      console.log('Create result:', result);
+
       return result;
     },
     onMutate: () => {
@@ -52,7 +54,14 @@ export function useCreateCrimeCase() {
       console.log('Crime case create successful:', data);
     },
     onError: (error) => {
-      toast.dismiss('create-crime-case');  
+      toast.dismiss('create-crime-case');
+
+      const message =
+        error instanceof Error
+          ? error.message || 'Failed to create crime case'
+          : 'Failed to create crime case';
+
+      toast.error(message);
       console.error('Crime case create error:', error);
     },
     retry: (failureCount, error) => {

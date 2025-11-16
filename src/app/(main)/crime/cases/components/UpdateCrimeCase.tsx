@@ -37,8 +37,6 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
   // ✅ Reset form when crimeData is loaded
   useEffect(() => {
     if (crimeData && !isLoading) {
-      console.log("Raw crimeData from database:", crimeData); // Debug what you're getting
-
       const mapCasePersonToFormPerson = (
         casePerson: CasePersonRecord,
       ): FormSchemaType["persons"][number] => ({
