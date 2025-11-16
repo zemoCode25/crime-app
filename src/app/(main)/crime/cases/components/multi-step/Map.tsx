@@ -14,36 +14,13 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { MapPinIcon, Search, X } from "lucide-react";
-import { SearchSuggestion, useMapboxSearch } from "@/hooks/map/useMapboxSearch";
+import {
+  SearchSuggestion,
+  useMapboxSearch,
+  reverseGeocodeMapbox,
+} from "@/hooks/map/useMapboxSearch";
 
 const INITIAL_ZOOM = 14;
-
-async function reverseGeocodeMapbox(
-  lat: number,
-  lng: number,
-  apiKey: string,
-): Promise<string | null> {
-  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${apiKey}`;
-
-  try {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.features && data.features.length > 0) {
-      return data.features[0].place_name as string;
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Reverse geocoding failed:", error);
-    return null;
-  }
-}
 
 interface MapBoxProps {
   coordinates: Coordinates;
@@ -136,7 +113,7 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
           setCoordinates({ lat, long: lng });
           setSelectedCoords({ lat, lng });
 
-          const label = await reverseGeocodeMapbox(lat, lng, apiKey);
+          const label = await reverseGeocodeMapbox(lat, lng);
           setSelectedLabel(label || "Dropped pin");
         });
       } catch (err) {
@@ -251,7 +228,7 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
         markerRef.current?.setLngLat([lng, lat]);
         mapRef.current?.flyTo({ center: [lng, lat], zoom: INITIAL_ZOOM });
 
-        const label = await reverseGeocodeMapbox(lat, lng, apiKey);
+        const label = await reverseGeocodeMapbox(lat, lng);
         setSelectedLabel(label || "Current location");
         setSearchOpen(false);
         setHighlightedIndex(-1);

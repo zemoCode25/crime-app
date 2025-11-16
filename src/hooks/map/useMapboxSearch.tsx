@@ -4,6 +4,39 @@ import { v4 as uuidv4 } from "uuid";
 
 const accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
+export async function reverseGeocodeMapbox(
+  lat: number,
+  lng: number,
+): Promise<string | null> {
+  const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+
+  if (!token) {
+    console.error("Mapbox access token is missing for reverse geocoding");
+    return null;
+  }
+
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${token}`;
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.features && data.features.length > 0) {
+      return data.features[0].place_name as string;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Reverse geocoding failed:", error);
+    return null;
+  }
+}
+
 export interface SearchSuggestion {
   mapbox_id: string;
   name: string;
