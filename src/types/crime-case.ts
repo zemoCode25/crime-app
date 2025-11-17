@@ -91,3 +91,17 @@ export type CrimeCaseListItem = {
   suspect: string;
   complainant: string;
 };
+
+type LocationRow = Database["public"]["Tables"]["location"]["Row"];
+
+export type CrimeLocationForMap = Pick<
+  LocationRow,
+  "lat" | "long" | "crime_location" | "landmark"
+>;
+
+export type CrimeCaseMapRecord = Pick<
+  Database["public"]["Tables"]["crime_case"]["Row"],
+  "id" | "case_number" | "case_status" | "crime_type" | "incident_datetime" | "location_id"
+> & {
+  location: CrimeLocationForMap | null;
+};

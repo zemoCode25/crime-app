@@ -1,7 +1,6 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import dynamic from "next/dynamic";
 import { FormSchemaType } from "@/types/form-schema";
 import {
   FormControl,
@@ -29,13 +28,8 @@ import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ErrorMessage } from "@hookform/error-message";
-import { useEffect, useState } from "react";
-import { Coordinates } from "@/types/map";
 import { useFormContext } from "react-hook-form";
-
-const Map = dynamic(() => import("./Map"), {
-  ssr: false, // ✅ prevent SSR errors
-});
+import MapBox from "./Map";
 
 type Barangay = {
   id: number;
@@ -53,19 +47,8 @@ type Barangay = {
 
 export default function LocationInformation() {
   const form = useFormContext<FormSchemaType>();
-  const lat = form.getValues("lat");
-  const long = form.getValues("long");
-
-  const [coordinates, setCoordinates] = useState<Coordinates>({
-    lat: lat || 14.3731,
-    long: long || 121.0218,
-  });
-
-  // ✅ Sync coordinates with form when they change from map
-  useEffect(() => {
-    form.setValue("lat", coordinates.lat, { shouldValidate: true });
-    form.setValue("long", coordinates.long, { shouldValidate: true });
-  }, [coordinates, form]);
+  const lat = form.watch("lat");
+  const long = form.watch("long");
 
   return (
     <div className="w-full p-4">
@@ -86,7 +69,48 @@ export default function LocationInformation() {
         )}
       />
 
-      <Map coordinates={coordinates} setCoordinates={setCoordinates} />
+      {/* Map removed for stability; allow manual coordinates instead */}
+      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <FormField
+          control={form.control}
+          name="lat"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Latitude</FormLabel>
+              <FormControl>
+                <Input type="number" step="any" disabled {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="long"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Longitude</FormLabel>
+              <FormControl>
+                <Input type="number" step="any" disabled {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="mt-4">
+        <MapBox
+          coordinates={{
+            lat: lat ?? 0,
+            long: long ?? 0,
+          }}
+          setCoordinates={(coords) => {
+            form.setValue("lat", coords.lat);
+            form.setValue("long", coords.long);
+          }}
+        />
+      </div>
 
       <div className="mt-4 mb-4">
         <label className="mb-2 block text-sm font-medium">Landmark</label>
@@ -111,9 +135,9 @@ export default function LocationInformation() {
                     )}
                   >
                     {field.value
-                      ? BARANGAY_OPTIONS?.find(
-                          (barangay: Barangay) => barangay.id === field.value,
-                        )?.value
+                      ? BARANGAY_OPTIONS?.find((barangay: Barangay) => {
+                          return barangay.id === field.value;
+                        })?.value
                       : "Select type"}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                   </Button>

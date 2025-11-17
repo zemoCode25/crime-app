@@ -3,8 +3,7 @@ import { updateSession } from "@/server/supabase/middleware";
 import { getUser } from "./server/actions/getUser";
 
 export async function middleware(request: NextRequest) {
-  const user = await getUser();
-  console.log("MIDDLEWARE USER:", user);
+  // const user = await getUser();
   return await updateSession(request);
 }
 

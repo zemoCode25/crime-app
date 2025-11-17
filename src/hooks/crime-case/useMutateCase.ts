@@ -1,11 +1,16 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  createCrimeCaseTransaction, 
+import {
+  createCrimeCaseTransaction,
   updateCrimeCaseTransaction,
-  deleteCrimeCaseTransaction 
+  deleteCrimeCaseTransaction,
 } from '@/server/queries/crime';
 import useSupabaseBrowser from '@/server/supabase/client';
-import { CrimeCaseData, LocationData, PersonData } from '@/types/crime-case';
+import {
+  CrimeCaseData,
+  LocationData,
+  PersonData,
+  CrimeCaseTransactionResult,
+} from '@/types/crime-case';
 import toast from 'react-hot-toast';
 
 // ✅ Separate input types for each operation
@@ -27,32 +32,68 @@ export function useCreateCrimeCase() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ crimeCase, location, persons }: CreateCrimeCaseInput) => {
+    mutationFn: async ({
+      crimeCase,
+      location,
+      persons,
+    }: CreateCrimeCaseInput): Promise<CrimeCaseTransactionResult> => {
       if (!supabase) {
         throw new Error('Database connection error. Please try again.');
       }
 
-      const result = await createCrimeCaseTransaction(supabase, crimeCase, location, persons);
+      const { data, error } = await createCrimeCaseTransaction(
+        supabase,
+        crimeCase,
+        location,
+        persons,
+      );
 
-      if (!result || result.error) {
-        throw new Error(result?.error?.message || 'Failed to create crime case');
+      if (error) {
+        throw new Error(error.message || 'Failed to create crime case');
       }
 
-      return result;
+      const payload = data as CrimeCaseTransactionResult | null;
+
+      if (!payload || payload.success === false) {
+        throw new Error(
+          payload?.error || payload?.message || 'Failed to create crime case',
+        );
+      }
+
+      console.log('Create result:', payload);
+
+      return payload;
     },
     onMutate: () => {
       toast.loading('Creating crime case...', { id: 'create-crime-case' });
     },
-    onSuccess: (data) => {
+    onSuccess: (payload) => {
       toast.dismiss('create-crime-case');
-      toast.success('Crime case created successfully!');
-      
+      toast.success(payload.message || 'Crime case created successfully!');
+
       queryClient.invalidateQueries({ queryKey: ['crime-cases'] });
-      
-      console.log('Crime case create successful:', data);
+
+      console.log('Crime case create successful:', payload);
     },
     onError: (error) => {
-      toast.dismiss('create-crime-case');  
+      toast.dismiss('create-crime-case');
+
+      if (error instanceof Error) {
+        const msg = error.message.toLowerCase();
+
+        if (msg.includes('permission')) {
+          toast.error("You don't have permission to create crime cases.");
+        } else if (msg.includes('network')) {
+          toast.error('Network error. Please check your connection and try again.');
+        } else if (msg.includes('validation') || msg.includes('invalid')) {
+          toast.error('The case data is invalid. Please review the form and try again.');
+        } else {
+          toast.error(error.message || 'Failed to create crime case');
+        }
+      } else {
+        toast.error('An unexpected error occurred while creating the crime case.');
+      }
+
       console.error('Crime case create error:', error);
     },
     retry: (failureCount, error) => {
@@ -70,40 +111,73 @@ export function useUpdateCrimeCase() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, crimeCase, location, persons }: UpdateCrimeCaseInput) => {
+    mutationFn: async ({
+      id,
+      crimeCase,
+      location,
+      persons,
+    }: UpdateCrimeCaseInput): Promise<CrimeCaseTransactionResult> => {
       if (!supabase) {
         throw new Error('Database connection error. Please try again.');
       }
 
-      const result = await updateCrimeCaseTransaction(supabase, id, crimeCase, location, persons);
+      const { data, error } = await updateCrimeCaseTransaction(
+        supabase,
+        id,
+        crimeCase,
+        location,
+        persons,
+      );
 
-      console.log('Update result:', result);
-      if (!result || result.error) {
-        throw new Error(result?.error?.message || 'Failed to update crime case');
+      if (error) {
+        throw new Error(error.message || 'Failed to update crime case');
       }
 
-      return result;
+      const payload = data as CrimeCaseTransactionResult | null;
+
+      if (!payload || payload.success === false) {
+        throw new Error(
+          payload?.error || payload?.message || 'Failed to update crime case',
+        );
+      }
+
+      console.log('Update result:', payload);
+
+      return payload;
     },
     onMutate: () => {
       toast.loading('Updating crime case...', { id: 'update-crime-case' });
     },
-    onSuccess: (data) => {
-      if(data.error) {
-        throw new Error(data.error);
-      }
+    onSuccess: (payload) => {
       toast.dismiss('update-crime-case');
-      toast.success('Crime case updated successfully!');
-      
+      toast.success(payload.message || 'Crime case updated successfully!');
+
       queryClient.invalidateQueries({ queryKey: ['crime-cases'] });
       queryClient.invalidateQueries({ queryKey: ['crime-case'] });
-      
-      console.log('Crime case update successful:', data);
 
-
+      console.log('Crime case update successful:', payload);
     },
     onError: (error) => {
       toast.dismiss('update-crime-case');
-      
+
+      if (error instanceof Error) {
+        const msg = error.message.toLowerCase();
+
+        if (msg.includes('permission')) {
+          toast.error("You don't have permission to update this crime case.");
+        } else if (msg.includes('network')) {
+          toast.error('Network error. Please check your connection and try again.');
+        } else if (msg.includes('not found')) {
+          toast.error('This crime case no longer exists.');
+        } else if (msg.includes('validation') || msg.includes('invalid')) {
+          toast.error('The case data is invalid. Please review the form and try again.');
+        } else {
+          toast.error(error.message || 'Failed to update crime case');
+        }
+      } else {
+        toast.error('An unexpected error occurred while updating the crime case.');
+      }
+
       console.error('Crime case update error:', error);
     },
     retry: (failureCount, error) => {

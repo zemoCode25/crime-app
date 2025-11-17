@@ -16,8 +16,8 @@ export const defaultValues: FormSchemaType = {
       crime_location: "",
       landmark: "",
       pin: undefined,
-      lat: 0,
-      long: 0,
+      lat: 14.389263,
+      long: 121.049991,
       persons: [
         {
           first_name: "",

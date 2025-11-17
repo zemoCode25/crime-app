@@ -61,8 +61,17 @@ export const locationDataSchema = z.object({
   crime_location: z.string().min(1, "Location field is required"),
   landmark: z.string().optional(),
   pin: z.number().optional(),
-  lat: z.number(),
-  long: z.number(),
+  // Coerce from string inputs so form submission is not blocked
+  lat: z.coerce
+    .number({ invalid_type_error: "Latitude is required" })
+    .refine((val) => !Number.isNaN(val), {
+      message: "Latitude is required",
+    }),
+  long: z.coerce
+    .number({ invalid_type_error: "Longitude is required" })
+    .refine((val) => !Number.isNaN(val), {
+      message: "Longitude is required",
+    }),
 });
 
 // Person Schema

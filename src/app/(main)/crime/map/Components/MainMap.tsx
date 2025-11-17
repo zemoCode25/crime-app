@@ -1,79 +1,57 @@
 "use client";
 
-import { useRef, useEffect, useState, useMemo } from "react";
-import mapboxgl from "mapbox-gl";
+import { useEffect, useRef, useState } from "react";
+import type {
+  Map as MapboxMap,
+  Marker as MapboxMarker,
+  GeoJSONSource,
+} from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates, SelectedLocation } from "@/types/map";
+import { reverseGeocodeMapbox } from "@/hooks/map/useMapboxSearch";
+import { useCrimeCasesForMap } from "@/hooks/crime-case/useCrimeCasesForMap";
+import { crimeCasesToGeoJSON } from "@/lib/map/crimeCasesToGeoJSON";
 
-const INITIAL_ZOOM = 20;
-const INITIAL_COORDINATES: Coordinates = { lat: 14.3731, long: 121.0218 };
+const INITIAL_ZOOM = 15;
+const INITIAL_COORDINATES: Coordinates = { lat: 14.389263, long: 121.04491 };
 
-async function reverseGeocodeMapbox(lat: number, lng: number, apiKey: string) {
-  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${apiKey}`;
-
-  try {
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.features && data.features.length > 0) {
-      return data.features[0].place_name;
-    } else {
-      console.error("No address found for coordinates:", { lat, lng });
-      return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    }
-  } catch (error) {
-    console.error("Reverse geocoding failed:", error);
-    return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-  }
-}
-
-// ✅ Add props interface
 interface MapProps {
   selectedLocation?: SelectedLocation | null;
   onLocationChange?: (location: SelectedLocation) => void;
 }
 
 export default function Map({ selectedLocation, onLocationChange }: MapProps) {
-  const [coordinates, setCoordinates] =
-    useState<Coordinates>(INITIAL_COORDINATES);
-
-  const [zoom, setZoom] = useState<number>(INITIAL_ZOOM);
-
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const markerRef = useRef<mapboxgl.Marker | null>(null);
-
-  // ...existing code...
-  // const initialCenter: [number, number] = [coordinates.long, coordinates.lat];
-  const initialCenter = useMemo<[number, number]>(
-    () => [coordinates.long, coordinates.lat],
-    [coordinates.long, coordinates.lat],
-  );
+  const mapRef = useRef<MapboxMap | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const markerRef = useRef<MapboxMarker | null>(null);
+  const onLocationChangeRef = useRef<MapProps["onLocationChange"] | null>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Effect to handle selectedLocation prop change
-  useEffect(() => {
-    if (selectedLocation && mapRef.current && markerRef.current) {
-      // Move marker to new location
-      markerRef.current.setLngLat([selectedLocation.lng, selectedLocation.lat]);
+  const { data: crimeCases, error: crimeCasesError } = useCrimeCasesForMap();
 
-      // Fly to new location
-      mapRef.current.flyTo({
-        center: [selectedLocation.lng, selectedLocation.lat],
-        zoom: zoom,
-        duration: 2000,
-      });
-    }
-  }, [selectedLocation, zoom]);
-
+  // Keep latest onLocationChange in a ref so init effect can stay stable
   useEffect(() => {
+    onLocationChangeRef.current = onLocationChange ?? null;
+  }, [onLocationChange]);
+
+  // When selectedLocation prop changes, move marker and fly without changing zoom
+  useEffect(() => {
+    if (!selectedLocation || !mapRef.current || !markerRef.current) return;
+
+    markerRef.current.setLngLat([selectedLocation.lng, selectedLocation.lat]);
+
+    mapRef.current.flyTo({
+      center: [selectedLocation.lng, selectedLocation.lat],
+      duration: 2000,
+    });
+  }, [selectedLocation]);
+
+  // Initialize Mapbox map once (SSR-safe via dynamic import)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
     if (!MAPBOX_ACCESS_TOKEN) {
@@ -83,92 +61,166 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
 
     if (mapRef.current || !mapContainerRef.current) return;
 
-    try {
-      mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
+    const initialCenter: [number, number] = [
+      selectedLocation?.lng ?? INITIAL_COORDINATES.long,
+      selectedLocation?.lat ?? INITIAL_COORDINATES.lat,
+    ];
 
-      mapRef.current = new mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: "mapbox://styles/mapbox/standard",
-        center: initialCenter,
-        zoom: INITIAL_ZOOM,
-      });
+    let cancelled = false;
 
-      mapRef.current.on("load", () => {
-        if (!mapRef.current) return;
+    (async () => {
+      try {
+        const mapboxglModule = (await import("mapbox-gl")).default;
 
-        mapRef.current.addSource("mapbox-dem", {
-          type: "raster-dem",
-          url: "mapbox://mapbox.mapbox-terrain-dem-v1",
-          tileSize: 512,
-          maxzoom: 14,
+        if (cancelled) return;
+
+        mapboxglModule.accessToken = MAPBOX_ACCESS_TOKEN;
+
+        const map = new mapboxglModule.Map({
+          container: mapContainerRef.current!,
+          style: "mapbox://styles/mapbox/standard",
+          center: initialCenter,
+          zoom: INITIAL_ZOOM,
         });
 
-        mapRef.current.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
-        setIsLoaded(true);
-        setError(null);
-      });
+        mapRef.current = map;
 
-      mapRef.current.on("error", (e) => {
-        setError(e.error?.message || "Map failed to load");
-        setIsLoaded(false);
-      });
+        map.on("load", () => {
+          if (!mapRef.current || cancelled) return;
 
-      const marker = new mapboxgl.Marker({ color: "red", draggable: true })
-        .setLngLat(initialCenter)
-        .addTo(mapRef.current);
+          map.addSource("mapbox-dem", {
+            type: "raster-dem",
+            url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+            tileSize: 512,
+          });
 
-      markerRef.current = marker;
+          map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
 
-      marker.on("dragend", async () => {
-        const lngLat = marker.getLngLat();
+          map.addSource("crime-cases", {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: [] },
+          });
 
-        const newLocation = {
-          lat: lngLat.lat,
-          lng: lngLat.lng,
-          address: "",
-        };
+          map.addLayer({
+            id: "crime-cases-points",
+            type: "circle",
+            source: "crime-cases",
+            paint: {
+              "circle-radius": 10,
+              "circle-color": "#ef4444",
+              "circle-stroke-width": 1,
+              "circle-stroke-color": "#ffffff",
+            },
+          });
 
-        setCoordinates({ lat: lngLat.lat, long: lngLat.lng });
+          setIsLoaded(true);
+          setError(null);
+        });
 
-        const addressResult = await reverseGeocodeMapbox(
-          lngLat.lat,
-          lngLat.lng,
-          MAPBOX_ACCESS_TOKEN,
+        map.on("error", (e) => {
+          if (cancelled) return;
+          setError(e.error?.message || "Map failed to load");
+          setIsLoaded(false);
+        });
+
+        const marker = new mapboxglModule.Marker({
+          color: "red",
+          draggable: true,
+        })
+          .setLngLat(initialCenter)
+          .addTo(map);
+
+        markerRef.current = marker;
+
+        marker.on("dragend", async () => {
+          const lngLat = marker.getLngLat();
+
+          const newLocation: SelectedLocation = {
+            lat: lngLat.lat,
+            lng: lngLat.lng,
+            address: "",
+          };
+
+          const addressResult = await reverseGeocodeMapbox(
+            lngLat.lat,
+            lngLat.lng,
+          );
+
+          newLocation.address = addressResult || "";
+
+          if (onLocationChangeRef.current) {
+            onLocationChangeRef.current(newLocation);
+          }
+        });
+
+        map.addControl(
+          new mapboxglModule.GeolocateControl({
+            positionOptions: {
+              enableHighAccuracy: true,
+            },
+            trackUserLocation: true,
+            showUserHeading: true,
+          }),
         );
 
-        newLocation.address = addressResult || "";
+        map.addControl(new mapboxglModule.NavigationControl());
 
-        // ✅ Notify parent component of location change
-        if (onLocationChange) {
-          onLocationChange(newLocation);
-        }
-      });
+        map.on("click", "crime-cases-points", (event) => {
+          if (!mapRef.current || !event.features || !event.features.length)
+            return;
 
-      mapRef.current.addControl(
-        new mapboxgl.GeolocateControl({
-          positionOptions: {
-            enableHighAccuracy: true,
-          },
-          trackUserLocation: true,
-          showUserHeading: true,
-        }),
-      );
-      mapRef.current.addControl(new mapboxgl.NavigationControl());
-      mapRef.current.on("zoomend", () => {
-        setZoom(mapRef.current?.getZoom() || INITIAL_ZOOM);
-      });
-    } catch (err) {
-      console.error("Map initialization error:", err);
-      setError("Failed to initialize map");
-    }
+          const feature = event.features[0];
+          const coordinates = (feature.geometry as any).coordinates.slice() as [
+            number,
+            number,
+          ];
+          const properties = feature.properties as any;
+
+          const title = properties.case_number || `Case #${properties.id}`;
+          const location =
+            properties.crime_location ||
+            properties.landmark ||
+            "Unknown location";
+
+          new mapboxglModule.Popup()
+            .setLngLat(coordinates)
+            .setHTML(
+              `<div class="text-sm">
+                <div class="font-semibold">${title}</div>
+                <div class="text-gray-600">${location}</div>
+              </div>`,
+            )
+            .addTo(mapRef.current!);
+        });
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Map initialization error:", err);
+        setError("Failed to initialize map");
+      }
+    })();
 
     return () => {
+      cancelled = true;
+
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
       }
     };
-  }, [initialCenter, onLocationChange]);
+  }, []);
+
+  // Sync crime cases data into the GeoJSON source
+  useEffect(() => {
+    if (!mapRef.current || !crimeCases || !isLoaded) return;
+
+    const source = mapRef.current.getSource("crime-cases") as
+      | GeoJSONSource
+      | undefined;
+
+    if (!source) return;
+
+    source.setData(crimeCasesToGeoJSON(crimeCases));
+  }, [crimeCases, isLoaded]);
 
   if (error) {
     return (

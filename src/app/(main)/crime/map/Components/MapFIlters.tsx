@@ -9,7 +9,11 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SearchSuggestion, useMapboxSearch } from "@/hooks/map/useMapboxSearch";
+import {
+  SearchSuggestion,
+  useMapboxSearch,
+  reverseGeocodeMapbox,
+} from "@/hooks/map/useMapboxSearch";
 import {
   Command,
   CommandEmpty,
@@ -45,6 +49,8 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRangeValue | undefined>();
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<string>("last_7d");
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+  const [isLocating, setIsLocating] = useState(false);
   const { suggestions, loading, searchLocation, retrieveLocation } =
     useMapboxSearch();
 
@@ -59,8 +65,81 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
     if (value.length > 2) {
       searchLocation(value);
       setSearchOpen(true);
+      setHighlightedIndex(0); // 0 = current location row
     } else {
       setSearchOpen(false);
+      setHighlightedIndex(-1);
+    }
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (typeof window === "undefined") return;
+    if (!navigator.geolocation) return;
+
+    setIsLocating(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = Number(position.coords.latitude.toFixed(6));
+        const lng = Number(position.coords.longitude.toFixed(6));
+
+        const label = await reverseGeocodeMapbox(lat, lng);
+        const address = label || "Current location";
+
+        onLocationChange({
+          lat,
+          lng,
+          address,
+        });
+
+        setSearchQuery(address);
+        setSearchOpen(false);
+        setHighlightedIndex(-1);
+        setIsLocating(false);
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true },
+    );
+  };
+
+  const handleKeyDown = (event: any) => {
+    if (!searchOpen) return;
+
+    const totalItems = 1 + suggestions.length; // 0: current location, 1..n: suggestions
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setHighlightedIndex((prev) => {
+        const safePrev = prev < 0 ? 0 : prev;
+        const next = safePrev + 1;
+        return next >= totalItems ? 0 : next;
+      });
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setHighlightedIndex((prev) => {
+        const safePrev = prev < 0 ? 0 : prev;
+        const next = safePrev - 1;
+        return next < 0 ? totalItems - 1 : next;
+      });
+    } else if (event.key === "Enter") {
+      if (highlightedIndex < 0) return;
+      event.preventDefault();
+
+      if (highlightedIndex === 0) {
+        handleUseCurrentLocation();
+      } else {
+        const suggestionIndex = highlightedIndex - 1;
+        if (
+          suggestionIndex >= 0 &&
+          suggestionIndex < suggestions.length
+        ) {
+          const suggestion = suggestions[suggestionIndex];
+          handleSelectLocation(suggestion.mapbox_id, suggestion.name);
+        }
+      }
     }
   };
 
@@ -108,6 +187,7 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
               placeholder="Search in Muntinlupa City..."
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
+              onKeyDown={handleKeyDown}
               className="bg-white pr-10 pl-10"
             />
           </div>
@@ -120,6 +200,7 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
             onClick={() => {
               setSearchQuery("");
               setSearchOpen(false);
+              setHighlightedIndex(-1);
             }}
             className="absolute top-1/2 right-15 -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
@@ -131,40 +212,104 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
           <div className="absolute top-full right-0 left-0 z-50 mt-1 rounded-md border border-gray-200 bg-white shadow-lg">
             <div className="max-h-60 overflow-y-auto">
               {loading ? (
-                <div className="p-4 text-center text-sm text-gray-500">
-                  Searching...
-                </div>
-              ) : suggestions.length > 0 ? (
-                suggestions.map((suggestion: SearchSuggestion) => (
+                <>
                   <button
-                    key={suggestion.mapbox_id}
-                    onClick={() =>
-                      handleSelectLocation(
-                        suggestion.mapbox_id,
-                        suggestion.name,
-                      )
-                    }
-                    className="w-full border-b border-gray-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-gray-50"
+                    type="button"
+                    onClick={handleUseCurrentLocation}
+                    className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
+                      highlightedIndex === 0 ? "bg-gray-100" : ""
+                    }`}
                   >
-                    <div className="flex items-start gap-2">
-                      <MapPinIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-gray-900">
-                          {suggestion.name}
-                        </p>
-                        <p className="truncate text-xs text-gray-500">
-                          {suggestion.place_formatted}
-                        </p>
+                    <div className="flex items-center gap-2">
+                      {isLocating ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600" />
+                      ) : (
+                        <MapPinIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {isLocating
+                            ? "Locating your current position..."
+                            : "Use my current location"}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {isLocating
+                            ? "Waiting for browser permission"
+                            : "Center map on where you are now"}
+                        </span>
                       </div>
                     </div>
                   </button>
-                ))
-              ) : (
-                searchQuery.length > 2 && (
                   <div className="p-4 text-center text-sm text-gray-500">
-                    No locations found
+                    Searching...
                   </div>
-                )
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleUseCurrentLocation}
+                    className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
+                      highlightedIndex === 0 ? "bg-gray-100" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {isLocating ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600" />
+                      ) : (
+                        <MapPinIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {isLocating
+                            ? "Locating your current position..."
+                            : "Use my current location"}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {isLocating
+                            ? "Waiting for browser permission"
+                            : "Center map on where you are now"}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                  {suggestions.length > 0
+                    ? suggestions.map(
+                        (suggestion: SearchSuggestion, index: number) => (
+                          <button
+                            key={suggestion.mapbox_id}
+                            onClick={() =>
+                              handleSelectLocation(
+                                suggestion.mapbox_id,
+                                suggestion.name,
+                              )
+                            }
+                            className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-gray-50 ${
+                              index + 1 === highlightedIndex
+                                ? "bg-gray-100"
+                                : ""
+                            }`}
+                          >
+                            <div className="flex items-start gap-2">
+                              <MapPinIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600" />
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-medium text-gray-900">
+                                  {suggestion.name}
+                                </p>
+                                <p className="truncate text-xs text-gray-500">
+                                  {suggestion.place_formatted}
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        ),
+                      )
+                    : searchQuery.length > 2 && (
+                        <div className="p-4 text-center text-sm text-gray-500">
+                          No locations found
+                        </div>
+                      )}
+                </>
               )}
             </div>
           </div>

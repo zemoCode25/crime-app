@@ -8,10 +8,6 @@ const TABLES = [
   'person_profile'
 ] as const;
 
-TABLES.map(table => {
-  console.log(`Table: ${table}`);
-});
-
 export async function getTableCrimeCases(client: TypedSupabaseClient) {
   return client
     .from("crime_case")
@@ -28,6 +24,27 @@ export async function getTableCrimeCases(client: TypedSupabaseClient) {
         )
       )
       `
+    )
+    .order("id", { ascending: false });
+}
+
+export async function getCrimeCasesForMap(client: TypedSupabaseClient) {
+  return client
+    .from("crime_case")
+    .select(
+      `
+      id,
+      case_number,
+      case_status,
+      crime_type,
+      incident_datetime,
+      location:location_id (
+        lat,
+        long,
+        crime_location,
+        landmark
+      )
+      `,
     )
     .order("id", { ascending: false });
 }

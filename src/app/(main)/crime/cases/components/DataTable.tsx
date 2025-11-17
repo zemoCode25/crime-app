@@ -153,7 +153,7 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
   };
 
   return (
-    <div className="overflow-hidden rounded-sm border p-4 shadow-sm dark:border-orange-900 dark:bg-[var(--dark-card)] dark:shadow-none">
+    <div className="mx-10 overflow-hidden rounded-sm p-4 dark:border-orange-900 dark:bg-[var(--dark-card)] dark:shadow-none">
       <Toaster position="top-right" />
 
       <div className="flex flex-col items-start gap-4 py-4 sm:flex-row sm:items-center">
@@ -163,7 +163,7 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
             placeholder="Search person..."
             value={globalFilter ?? ""}
             onChange={(e) => setGlobalFilter(e.target.value)}
-            className="w-full sm:max-w-[17rem]"
+            className="w-full bg-white sm:max-w-[17rem]"
           />
 
           {/* Filter Controls */}
@@ -175,7 +175,7 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
                   variant="outline"
                   role="combobox"
                   aria-expanded={statusOpen}
-                  className="w-fit justify-between bg-transparent"
+                  className="w-fit justify-between bg-white"
                 >
                   {selectedStatuses.length > 0 ? (
                     <span className="flex items-center gap-1">
@@ -225,7 +225,7 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
                   variant="outline"
                   role="combobox"
                   aria-expanded={crimeTypeOpen}
-                  className="w-fit justify-between bg-transparent"
+                  className="w-fit justify-between bg-white"
                 >
                   {selectedCrimeTypes.length > 0 ? (
                     <span className="flex items-center gap-1">
@@ -312,7 +312,6 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
                   variant="ghost"
                   className="z-index h-3 w-3 cursor-pointer"
                   onClick={() => {
-                    console.log("Removing status:", statusValue);
                     removeStatusFilter(statusValue);
                   }}
                 >
@@ -344,13 +343,13 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
 
       {/* Table */}
       <div>
-        <Table>
+        <Table className="bg-white dark:bg-[var(--dark-card)]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className="px-4 py-2">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -366,7 +365,6 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
-                console.log("Rendering row:", typeof row.original.id);
                 return (
                   <Dialog key={row.id}>
                     <DialogTrigger asChild>
@@ -376,7 +374,7 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
                         className="cursor-pointer hover:bg-neutral-200/50"
                       >
                         {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
+                          <TableCell key={cell.id} className="px-4">
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext(),
