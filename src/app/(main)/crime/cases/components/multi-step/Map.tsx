@@ -77,7 +77,6 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
 
         const map = new mapboxglModule.Map({
           container: mapContainerRef.current!,
-          style: "mapbox://styles/mapbox/streets-v11",
           center: initialCenter,
           zoom: INITIAL_ZOOM,
         });
@@ -86,6 +85,15 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
 
         map.on("load", () => {
           if (cancelled) return;
+
+          map.addSource("mapbox-dem", {
+            type: "raster-dem",
+            url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+            tileSize: 512,
+            maxzoom: 14,
+          });
+
+          map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
           setIsLoaded(true);
           setError(null);
         });

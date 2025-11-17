@@ -28,6 +28,27 @@ export async function getTableCrimeCases(client: TypedSupabaseClient) {
     .order("id", { ascending: false });
 }
 
+export async function getCrimeCasesForMap(client: TypedSupabaseClient) {
+  return client
+    .from("crime_case")
+    .select(
+      `
+      id,
+      case_number,
+      case_status,
+      crime_type,
+      incident_datetime,
+      location:location_id (
+        lat,
+        long,
+        crime_location,
+        landmark
+      )
+      `,
+    )
+    .order("id", { ascending: false });
+}
+
 export async function getCrimeCaseById(client: TypedSupabaseClient, caseId: number) {
   const result = await client
     .from("crime_case")
