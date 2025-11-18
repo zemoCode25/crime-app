@@ -37,7 +37,9 @@ export async function getCrimeCasesForMap(client: TypedSupabaseClient) {
       case_number,
       case_status,
       crime_type,
+      description,
       incident_datetime,
+      report_datetime,
       location:location_id (
         lat,
         long,
@@ -106,3 +108,6 @@ export async function deleteCrimeCaseTransaction(
 ) {
   return client.from('crime_case').delete().eq('id', caseId);
 }
+
+
+

@@ -6,14 +6,17 @@ import {
   X,
   CircleArrowOutUpRight,
   ChevronsUpDownIcon,
+  FunnelX,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   SearchSuggestion,
   useMapboxSearch,
   reverseGeocodeMapbox,
 } from "@/hooks/map/useMapboxSearch";
+import { useCrimeTypes } from "@/hooks/crime-case/useCrimeTypes";
 import {
   Command,
   CommandEmpty,
@@ -31,35 +34,45 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import DateRangeSelector from "@/components/DateRangeSelector";
-import { DateRangeValue } from "@/components/DateRangeSelector";
+import type { MapFiltersState } from "./mapFiltersState";
+
+import type { CrimeCaseMapRecord } from "@/types/crime-case";
 
 interface MapFiltersProps {
   selectedLocation: SelectedLocation | null;
-  onLocationChange: (location: SelectedLocation | null) => void; // ✅ Single callback
+  onLocationChange: (location: SelectedLocation | null) => void;
+  filters: MapFiltersState;
+  onFiltersChange: (filters: MapFiltersState) => void;
+  selectedCase: CrimeCaseMapRecord | null;
 }
 
-export default function MapFilters({ onLocationChange }: MapFiltersProps) {
+export default function MapFilters({
+  selectedLocation,
+  onLocationChange,
+  filters,
+  onFiltersChange,
+  selectedCase,
+}: MapFiltersProps) {
   const [statusOpen, setStatusOpen] = useState(false);
-  const [statusFilters, setStatusFilters] = useState<string[]>([]);
   const [barangayOpen, setBarangayOpen] = useState(false);
-  const [typeFilters, setTypeFilters] = useState<string[]>([]);
-  const [barangayFilters, setBarangayFilters] = useState<string[]>([]);
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRangeValue | undefined>();
-  const [selectedTimeFrame, setSelectedTimeFrame] = useState<string>("last_7d");
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const [isLocating, setIsLocating] = useState(false);
+
   const { suggestions, loading, searchLocation, retrieveLocation } =
     useMapboxSearch();
+  const { data: crimeTypes } = useCrimeTypes();
 
-  // ✅ Move to constants file or fetch from backend
-  const crimeTypes = [
-    { value: "theft", label: "Theft" },
-    { value: "murder", label: "Murder" },
-    { value: "assault", label: "Assault" },
-  ];
+  const {
+    statusFilters,
+    typeFilters,
+    barangayFilters,
+    dateRange,
+    selectedTimeFrame,
+  } = filters;
+
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
     if (value.length > 2) {
@@ -132,10 +145,7 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
         handleUseCurrentLocation();
       } else {
         const suggestionIndex = highlightedIndex - 1;
-        if (
-          suggestionIndex >= 0 &&
-          suggestionIndex < suggestions.length
-        ) {
+        if (suggestionIndex >= 0 && suggestionIndex < suggestions.length) {
           const suggestion = suggestions[suggestionIndex];
           handleSelectLocation(suggestion.mapbox_id, suggestion.name);
         }
@@ -143,17 +153,34 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
     }
   };
 
-  const handleCheckboxChange = (
-    value: string,
-    setFilters: React.Dispatch<React.SetStateAction<string[]>>,
-  ) => {
-    setFilters((prevFilters) => {
-      if (prevFilters.includes(value)) {
-        console.log("Updated Filters:", statusFilters, typeFilters);
-        return prevFilters.filter((filter) => filter !== value);
-      } else {
-        return [...prevFilters, value];
-      }
+  const handleStatusFilterToggle = (value: string) => {
+    const next = statusFilters.includes(value)
+      ? statusFilters.filter((v) => v !== value)
+      : [...statusFilters, value];
+    onFiltersChange({ ...filters, statusFilters: next });
+  };
+
+  const handleCrimeTypeFilterToggle = (id: number) => {
+    const next = typeFilters.includes(id)
+      ? typeFilters.filter((v) => v !== id)
+      : [...typeFilters, id];
+    onFiltersChange({ ...filters, typeFilters: next });
+  };
+
+  const handleBarangayFilterToggle = (value: string) => {
+    const next = barangayFilters.includes(value)
+      ? barangayFilters.filter((v) => v !== value)
+      : [...barangayFilters, value];
+    onFiltersChange({ ...filters, barangayFilters: next });
+  };
+
+  const handleClearAllFilters = () => {
+    onFiltersChange({
+      statusFilters: [],
+      typeFilters: [],
+      barangayFilters: [],
+      dateRange: undefined,
+      selectedTimeFrame: "last_7d",
     });
   };
 
@@ -171,10 +198,6 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
     }
   };
 
-  // const handleClearLocation = () => {
-  //   onLocationChange(null);
-  //   setSearchQuery("");
-  // };
   return (
     <div>
       <div className="relative w-fit">
@@ -315,6 +338,7 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
           </div>
         )}
       </div>
+
       {/* Filters Section */}
       <div className="my-2 flex flex-wrap items-center gap-2">
         {/* Status Filter */}
@@ -341,9 +365,7 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
                     <CommandItem
                       key={status.value}
                       value={status.value}
-                      onSelect={() =>
-                        handleCheckboxChange(status.value, setStatusFilters)
-                      }
+                      onSelect={() => handleStatusFilterToggle(status.value)}
                     >
                       <Checkbox
                         id={status.value}
@@ -362,6 +384,7 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
             </Command>
           </PopoverContent>
         </Popover>
+
         {/* Crime Type Filter */}
         <Popover open={crimeTypeOpen} onOpenChange={setCrimeTypeOpen}>
           <PopoverTrigger asChild className="w-fit">
@@ -382,20 +405,20 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
               <CommandList>
                 <CommandEmpty>No crime type found.</CommandEmpty>
                 <CommandGroup>
-                  {crimeTypes.map((crimeType) => (
+                  {(crimeTypes ?? []).map((crimeType) => (
                     <CommandItem
-                      key={crimeType.value}
-                      value={crimeType.value}
+                      key={crimeType.id}
+                      value={String(crimeType.id)}
                       onSelect={() => {
-                        handleCheckboxChange(crimeType.value, setTypeFilters);
+                        handleCrimeTypeFilterToggle(crimeType.id);
                       }}
                     >
                       <Checkbox
-                        id={crimeType.value}
-                        checked={typeFilters.includes(crimeType.value)}
+                        id={String(crimeType.id)}
+                        checked={typeFilters.includes(crimeType.id)}
                       />
                       <Label
-                        htmlFor={crimeType.value}
+                        htmlFor={String(crimeType.id)}
                         className="ml-2 cursor-pointer"
                       >
                         {crimeType.label}
@@ -407,6 +430,8 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
             </Command>
           </PopoverContent>
         </Popover>
+
+        {/* Barangay Filter */}
         <Popover open={barangayOpen} onOpenChange={setBarangayOpen}>
           <PopoverTrigger asChild className="w-fit">
             <Button
@@ -431,10 +456,7 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
                       key={barangay.value}
                       value={barangay.value}
                       onSelect={() => {
-                        handleCheckboxChange(
-                          barangay.value,
-                          setBarangayFilters,
-                        );
+                        handleBarangayFilterToggle(barangay.value);
                       }}
                     >
                       <Checkbox
@@ -454,13 +476,118 @@ export default function MapFilters({ onLocationChange }: MapFiltersProps) {
             </Command>
           </PopoverContent>
         </Popover>
+
         <DateRangeSelector
           dateRange={dateRange}
-          setDateRange={setDateRange}
+          setDateRange={(next) =>
+            onFiltersChange({ ...filters, dateRange: next })
+          }
           selectedTimeFrame={selectedTimeFrame}
-          setSelectedTimeFrame={setSelectedTimeFrame}
+          setSelectedTimeFrame={(next) =>
+            onFiltersChange({ ...filters, selectedTimeFrame: next })
+          }
         />
       </div>
+
+      {/* Active filter badges */}
+      {(statusFilters.length > 0 ||
+        typeFilters.length > 0 ||
+        barangayFilters.length > 0 ||
+        selectedTimeFrame !== "last_7d") && (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {statusFilters.map((value) => {
+            const status = STATUSES.find((s) => s.value === value);
+            const label = status?.label ?? value;
+            return ("" + value).length ? (
+              <Badge
+                key={`status-${value}`}
+                variant="secondary"
+                className="flex items-center gap-1 bg-black px-2 py-1 text-white"
+              >
+                {label}
+                <button
+                  type="button"
+                  onClick={() => value}
+                  className="ml-1 text-xs text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-3 w-3 text-white" />
+                </button>
+              </Badge>
+            ) : null;
+          })}
+
+          {typeFilters.map((id) => {
+            const crimeType = (crimeTypes ?? []).find((ct) => ct.id === id);
+            if (!crimeType) return null;
+            return (
+              <Badge
+                key={`type-${id}`}
+                variant="secondary"
+                className="flex items-center gap-1 bg-black px-2 py-1 text-white"
+              >
+                {crimeType.label}
+                <button
+                  type="button"
+                  onClick={() => handleCrimeTypeFilterToggle(id)}
+                  className="ml-1 text-xs text-gray-500 hover:text-gray-700"
+                >
+                  ×
+                </button>
+              </Badge>
+            );
+          })}
+
+          {barangayFilters.map((value) => (
+            <Badge
+              key={`barangay-${value}`}
+              variant="secondary"
+              className="flex items-center gap-1 bg-black px-2 py-1 text-white"
+            >
+              {value}
+              <button
+                type="button"
+                onClick={() => handleBarangayFilterToggle(value)}
+                className="ml-1 text-xs text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </Badge>
+          ))}
+
+          {selectedTimeFrame !== "last_7d" && (
+            <Badge
+              key="timeframe"
+              variant="outline"
+              className="flex items-center gap-1 bg-black px-2 py-1 text-white"
+            >
+              Time:{" "}
+              {selectedTimeFrame === "custom" ? "Custom" : selectedTimeFrame}
+              <button
+                type="button"
+                onClick={() =>
+                  onFiltersChange({
+                    ...filters,
+                    selectedTimeFrame: "last_7d",
+                    dateRange: undefined,
+                  })
+                }
+                className="ml-1 text-xs text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </Badge>
+          )}
+
+          <button
+            type="button"
+            onClick={handleClearAllFilters}
+            className="ml-2 flex gap-2 rounded-sm border p-1 text-xs font-medium"
+          >
+            <FunnelX size={13} />
+            Clear Filters
+          </button>
+        </div>
+      )}
     </div>
   );
 }

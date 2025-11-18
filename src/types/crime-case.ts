@@ -101,7 +101,14 @@ export type CrimeLocationForMap = Pick<
 
 export type CrimeCaseMapRecord = Pick<
   Database["public"]["Tables"]["crime_case"]["Row"],
-  "id" | "case_number" | "case_status" | "crime_type" | "incident_datetime" | "location_id"
+  | "id"
+  | "case_number"
+  | "case_status"
+  | "crime_type"
+  | "description"
+  | "incident_datetime"
+  | "report_datetime"
+  | "location_id"
 > & {
   location: CrimeLocationForMap | null;
 };

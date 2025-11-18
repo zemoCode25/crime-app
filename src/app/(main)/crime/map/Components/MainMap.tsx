@@ -9,8 +9,8 @@ import type {
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates, SelectedLocation } from "@/types/map";
 import { reverseGeocodeMapbox } from "@/hooks/map/useMapboxSearch";
-import { useCrimeCasesForMap } from "@/hooks/crime-case/useCrimeCasesForMap";
 import { crimeCasesToGeoJSON } from "@/lib/map/crimeCasesToGeoJSON";
+import type { CrimeCaseMapRecord } from "@/types/crime-case";
 
 const INITIAL_ZOOM = 15;
 const INITIAL_COORDINATES: Coordinates = { lat: 14.389263, long: 121.04491 };
@@ -18,23 +18,34 @@ const INITIAL_COORDINATES: Coordinates = { lat: 14.389263, long: 121.04491 };
 interface MapProps {
   selectedLocation?: SelectedLocation | null;
   onLocationChange?: (location: SelectedLocation) => void;
+  crimeCases: CrimeCaseMapRecord[];
+  onCaseSelect?: (crimeCase: CrimeCaseMapRecord | null) => void;
 }
 
-export default function Map({ selectedLocation, onLocationChange }: MapProps) {
+export default function Map({
+  selectedLocation,
+  onLocationChange,
+  crimeCases,
+  onCaseSelect,
+}: MapProps) {
   const mapRef = useRef<MapboxMap | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<MapboxMarker | null>(null);
   const onLocationChangeRef = useRef<MapProps["onLocationChange"] | null>(null);
+  const crimeCasesRef = useRef<CrimeCaseMapRecord[]>([]);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const { data: crimeCases, error: crimeCasesError } = useCrimeCasesForMap();
 
   // Keep latest onLocationChange in a ref so init effect can stay stable
   useEffect(() => {
     onLocationChangeRef.current = onLocationChange ?? null;
   }, [onLocationChange]);
+
+  // Keep latest crimeCases in a ref for event handlers registered once
+  useEffect(() => {
+    crimeCasesRef.current = crimeCases;
+  }, [crimeCases]);
 
   // When selectedLocation prop changes, move marker and fly without changing zoom
   useEffect(() => {
@@ -182,12 +193,41 @@ export default function Map({ selectedLocation, onLocationChange }: MapProps) {
             properties.landmark ||
             "Unknown location";
 
+          // Notify parent about selected case
+          if (onCaseSelect) {
+            const id = properties.id as number | undefined;
+            const match =
+              typeof id === "number"
+                ? crimeCasesRef.current.find((c) => c.id === id)
+                : undefined;
+
+            if (match) {
+              onCaseSelect(match);
+
+              if (
+                match.location &&
+                match.location.lat != null &&
+                match.location.long != null &&
+                onLocationChangeRef.current
+              ) {
+                onLocationChangeRef.current({
+                  lat: Number(match.location.lat),
+                  lng: Number(match.location.long),
+                  address:
+                    match.location.crime_location ||
+                    match.location.landmark ||
+                    title,
+                });
+              }
+            }
+          }
+
           new mapboxglModule.Popup()
             .setLngLat(coordinates)
             .setHTML(
-              `<div class="text-sm">
-                <div class="font-semibold">${title}</div>
-                <div class="text-gray-600">${location}</div>
+              `<div class="text-sm p-2 border rounded-sm">
+                <div class="font-medium">${title}</div>
+                <div class="text-gray-600 text-sm">${location}</div>
               </div>`,
             )
             .addTo(mapRef.current!);
