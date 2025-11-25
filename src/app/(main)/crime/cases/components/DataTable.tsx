@@ -284,9 +284,9 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
               <Button
                 variant="ghost"
                 onClick={clearAllFilters}
-                className="h-9 border border-neutral-300 bg-transparent px-2 text-base hover:bg-neutral-200/50 dark:border-orange-900"
+                className="h-9 border border-neutral-300 bg-transparent px-2 text-sm hover:bg-neutral-200/50 dark:border-orange-900"
               >
-                <FilterX className="mr-2 h-4 w-4" />
+                <FilterX className="h-4 w-4" />
                 Clear filters
               </Button>
             )}
@@ -342,7 +342,7 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
       )}
 
       {/* Table */}
-      <div>
+      <div className="overflow-hidden rounded-sm border">
         <Table className="bg-white dark:bg-[var(--dark-card)]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
