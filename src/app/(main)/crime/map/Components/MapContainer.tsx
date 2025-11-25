@@ -20,8 +20,9 @@ export default function MapContainer() {
   const [selectedLocation, setSelectedLocation] =
     useState<SelectedLocation | null>(null);
   const [filters, setFilters] = useState<MapFiltersState>(initialFilters);
-  const [selectedCase, setSelectedCase] =
-    useState<CrimeCaseMapRecord | null>(null);
+  const [selectedCase, setSelectedCase] = useState<CrimeCaseMapRecord | null>(
+    null,
+  );
 
   const handleLocationChange = (location: SelectedLocation | null) => {
     setSelectedLocation(location);
@@ -58,6 +59,3 @@ export default function MapContainer() {
     </div>
   );
 }
-
-
-
