@@ -29,8 +29,8 @@ export default function DeleteModal({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="flex w-full cursor-pointer items-center gap-2">
-        <Trash />
+      <DialogTrigger className="flex w-full cursor-pointer items-center gap-2 rounded-sm border-red-200 bg-red-50 text-red-600">
+        <Trash className="text-red-600" />
         Delete
       </DialogTrigger>
       <DialogContent>

@@ -38,7 +38,7 @@ const ActionsCell = ({ crime }: ActionsCellProps) => {
   return (
     <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
+        <Button variant="ghost" className="border px-20">
           <span className="sr-only">Open menu</span>
           <MoreHorizontal className="h-4 w-4" />
         </Button>
@@ -50,20 +50,21 @@ const ActionsCell = ({ crime }: ActionsCellProps) => {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-          }}
-        >
-          <DeleteModal caseId={crime.id} closeDropdown={closeDropdown} />
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
             window.location.href = `/crime/cases/${crime.id}`;
           }}
           className="flex w-full cursor-pointer items-center gap-2"
         >
           <Eye />
-          View Details
+          View Details``
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="bg-red-50"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          <DeleteModal caseId={crime.id} closeDropdown={closeDropdown} />
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -167,8 +168,3 @@ export const createColumns = (
 
 // ✅ Keep backward compatibility (without filter functions)
 export const columns: ColumnDef<CrimeTableRow>[] = createColumns(() => null);
-
-
-
-
-

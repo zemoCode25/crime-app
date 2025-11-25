@@ -24,13 +24,10 @@ export default function AdditionalNotes() {
             <FormControl>
               <Textarea
                 placeholder="Enter investigator notes..."
-                className="resize-none"
+                className="min-h-48 resize-none"
                 {...field}
               />
             </FormControl>
-            <FormDescription>
-              You can @mention other users and organizations.
-            </FormDescription>
             <FormMessage />
           </FormItem>
         )}
@@ -45,7 +42,7 @@ export default function AdditionalNotes() {
             <FormControl>
               <Textarea
                 placeholder="Enter follow up actions..."
-                className="resize-none"
+                className="min-h-48 resize-none"
                 {...field}
               />
             </FormControl>
@@ -63,7 +60,7 @@ export default function AdditionalNotes() {
             <FormControl>
               <Textarea
                 placeholder="Enter additional remarks..."
-                className="resize-none"
+                className="min-h-48 resize-none"
                 {...field}
               />
             </FormControl>
