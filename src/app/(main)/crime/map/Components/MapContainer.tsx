@@ -3,7 +3,7 @@ import { useState } from "react";
 import Map from "./MainMap";
 import MapSetting from "./MapSetting";
 import { SelectedLocation } from "@/types/map";
-import MapFilters from "./MapFilters";
+import MapFilters from "./MapFIlters";
 import type { MapFiltersState } from "./mapFiltersState";
 import { useCrimeCasesForMap } from "@/hooks/crime-case/useCrimeCasesForMap";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
