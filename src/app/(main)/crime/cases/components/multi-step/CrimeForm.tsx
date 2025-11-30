@@ -1,6 +1,5 @@
 "use client";
 import {
-  Form,
   FormControl,
   FormDescription,
   FormField,
@@ -23,46 +22,32 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { DatetimePicker } from "@/components/ui/datetime-picker";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { UseFormReturn } from "react-hook-form";
 // constants
-import { types } from "@/constants/crime-case";
-import { statuses } from "@/constants/crime-case";
-import { ErrorMessage } from "@hookform/error-message";
-import { FormSchemaType } from "../../../../../../types/crime-case-type";
+import { STATUSES } from "@/constants/crime-case";
 // tanstack
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
-import { getCrimeTypes } from "@/lib/queries/crime-type";
-import useSupabaseBrowser from "@/lib/supabase/client";
-// Report Date
-// Incident Date
-// Status
-// Type
-// Description
+import { getCrimeTypes } from "@/server/queries/crime-type";
+import useSupabaseBrowser from "@/server/supabase/client";
+import Calendar24 from "@/components/calendar-24";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { useFormContext } from "react-hook-form";
 
-interface CrimeType {
-  id: number;
-  label: string | null;
+interface CaseStatus {
+  value: string;
+  label: string;
 }
 
-export default function CrimeForm({
-  form,
-}: {
-  form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
-}) {
+export default function CrimeForm() {
   const supabase = useSupabaseBrowser();
-  const {
-    data: crimeTypes,
-    isLoading,
-    isError,
-  } = useQuery(getCrimeTypes(supabase));
-
-  console.log("crimeTypes", crimeTypes && crimeTypes.length);
+  const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
+  const form = useFormContext();
 
   return (
-    <>
+    <div className="flex w-full flex-col gap-5">
       <FormField
         control={form.control}
         name="description"
@@ -72,7 +57,7 @@ export default function CrimeForm({
             <FormControl>
               <Textarea
                 placeholder=""
-                className="min-h-30 resize-none"
+                className="min-h-40 w-full resize-none"
                 {...field}
               />
             </FormControl>
@@ -86,67 +71,93 @@ export default function CrimeForm({
       <FormField
         control={form.control}
         name="crime_type"
-        render={({ field }) => (
-          <FormItem className="flex flex-col">
-            <FormLabel>Type</FormLabel>
-            <Popover>
-              <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className={cn(
-                      "w-[200px] justify-between",
-                      !field.value && "text-muted-foreground",
-                    )}
-                  >
-                    {field.value
-                      ? crimeTypes?.find(
-                          (type: CrimeType) => type.label === field.value,
-                        )?.label
-                      : "Select type"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </FormControl>
-              </PopoverTrigger>
-              <PopoverContent className="w-[200px] p-0">
-                <Command>
-                  <CommandInput placeholder="Search type..." />
-                  <CommandList>
-                    <CommandEmpty>No type found.</CommandEmpty>
-                    <CommandGroup>
-                      {crimeTypes?.map((type: CrimeType) => (
-                        <CommandItem
-                          value={type.label || undefined}
-                          key={type.label}
-                          onSelect={() => {
-                            form.setValue("crime_type", type.label || "");
-                          }}
-                        >
-                          <Check
-                            className={cn(
-                              "mr-2 h-4 w-4",
-                              type?.label === field.value
-                                ? "opacity-100"
-                                : "opacity-0",
-                            )}
-                          />
-                          {type?.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+        render={({ field }) => {
+          return (
+            <FormItem className="flex flex-col">
+              <FormLabel>Type</FormLabel>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        "w-[200px] justify-between",
+                        !field.value && "text-muted-foreground",
+                      )}
+                    >
+                      {field.value
+                        ? crimeTypes?.find((type) => type.id === field.value)
+                            ?.label
+                        : "Select type"}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search type..." />
+                    <CommandList>
+                      <CommandEmpty>No type found.</CommandEmpty>
+                      <CommandGroup>
+                        {crimeTypes?.map((type) => (
+                          <CommandItem
+                            value={type.label!}
+                            key={type.id}
+                            onSelect={() => {
+                              field.onChange(type.id);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                type.id === field.value
+                                  ? "opacity-100"
+                                  : "opacity-0",
+                              )}
+                            />
+                            {type.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          );
+        }}
+      />
 
-            <ErrorMessage
-              name={field.name}
-              render={({ message }) => <FormMessage>{message}</FormMessage>}
-            />
+      <FormField
+        control={form.control}
+        name="visibility"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Incident Date</FormLabel>
+            <FormControl>
+              <RadioGroup
+                value={field.value}
+                onValueChange={field.onChange}
+                aria-label="Case visibility"
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="private" id="private" />
+                  <Label htmlFor="private">Private</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="public" id="public" />
+                  <Label htmlFor="public">Public</Label>
+                </div>
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
+
       <FormField
         control={form.control}
         name="case_status"
@@ -155,22 +166,21 @@ export default function CrimeForm({
             <FormLabel>Status</FormLabel>
             <Popover>
               <PopoverTrigger asChild>
-                <FormControl>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    className={cn(
-                      "w-[200px] justify-between",
-                      !field.value && "text-muted-foreground",
-                    )}
-                  >
-                    {field.value
-                      ? statuses.find((status) => status.value === field.value)
-                          ?.label
-                      : "Select status"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </FormControl>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className={cn(
+                    "w-[200px] justify-between",
+                    !field.value && "text-muted-foreground",
+                  )}
+                >
+                  {field.value
+                    ? STATUSES.find(
+                        (status: CaseStatus) => status.value === field.value,
+                      )?.label
+                    : "Select status"}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[200px] p-0">
                 <Command>
@@ -178,9 +188,9 @@ export default function CrimeForm({
                   <CommandList>
                     <CommandEmpty>No status found.</CommandEmpty>
                     <CommandGroup>
-                      {statuses.map((status) => (
+                      {STATUSES.map((status) => (
                         <CommandItem
-                          value={status.label}
+                          value={status.value}
                           key={status.value}
                           onSelect={() => {
                             form.setValue("case_status", status.value);
@@ -202,9 +212,39 @@ export default function CrimeForm({
                 </Command>
               </PopoverContent>
             </Popover>
-            <FormDescription>
+            <FormDescription className="text-xs">
               This is the language that will be used in the dashboard.
             </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name={`investigator`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Lead Investigator</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name={`responder`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Lead Responder</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+
             <FormMessage />
           </FormItem>
         )}
@@ -216,15 +256,14 @@ export default function CrimeForm({
         render={({ field }) => (
           <FormItem className="flex flex-col">
             <FormLabel>Report Date</FormLabel>
-            <DatetimePicker
-              {...field}
-              value={field.value as Date | undefined}
-              format={[
-                ["months", "days", "years"],
-                ["hours", "minutes", "am/pm"],
-              ]}
-            />
-
+            <FormControl>
+              <Calendar24
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                name={field.name}
+              />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}
@@ -236,19 +275,18 @@ export default function CrimeForm({
         render={({ field }) => (
           <FormItem className="flex flex-col">
             <FormLabel>Incident Date</FormLabel>
-            <DatetimePicker
-              {...field}
-              value={field.value as Date | undefined}
-              format={[
-                ["months", "days", "years"],
-                ["hours", "minutes", "am/pm"],
-              ]}
-            />
-
+            <FormControl>
+              <Calendar24
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                name={field.name}
+              />
+            </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
-    </>
+    </div>
   );
 }

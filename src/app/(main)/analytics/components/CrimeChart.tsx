@@ -1,13 +1,6 @@
 "use client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import {
-  Check,
-  ChevronsUpDown,
-  ChevronsUpDownIcon,
-  CirclePlus,
-  TrendingUp,
-} from "lucide-react";
+import { Check, ChevronsUpDown, TrendingUp } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -35,8 +28,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { types, barangays } from "@/constants/crime-case";
+import { BARANGAY_OPTIONS_WITH_ALL } from "@/constants/crime-case";
 import { useState } from "react";
+import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import { getCrimeTypes } from "@/server/queries/crime-type";
+import useSupabaseBrowser from "@/server/supabase/client";
 
 export const description = "An area chart with gradient fill";
 const chartData = [
@@ -60,9 +56,13 @@ const chartConfig = {
 
 export default function CrimeChart() {
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
-  const [crimeTypeValue, setCrimeTypeValue] = useState("all");
+  const [crimeTypeValue, setCrimeTypeValue] = useState(1);
   const [barangayOpen, setBarangayOpen] = useState(false);
-  const [barangayValue, setBarangayValue] = useState("all");
+  const [barangayValue, setBarangayValue] = useState(1);
+
+  const supabase = useSupabaseBrowser();
+  const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
+
   return (
     <div className="mt-4 flex w-full flex-col gap-4 rounded-md border border-neutral-300 p-4">
       <div className="flex gap-2">
@@ -74,7 +74,7 @@ export default function CrimeChart() {
               className={"w-[200px] justify-between"}
             >
               {crimeTypeValue
-                ? types.find((type) => crimeTypeValue === type.value)?.label
+                ? crimeTypes?.find((type) => crimeTypeValue === type.id)?.label
                 : "Select crime type..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
@@ -85,17 +85,17 @@ export default function CrimeChart() {
               <CommandList>
                 <CommandEmpty>No crime type found.</CommandEmpty>
                 <CommandGroup>
-                  {types.map((type) => (
+                  {crimeTypes?.map((type) => (
                     <CommandItem
-                      value={type.value}
-                      key={type.value}
+                      value={String(type.id)}
+                      key={type.id}
                       onSelect={() => {
-                        setCrimeTypeValue(type.value);
+                        setCrimeTypeValue(type.id);
                         setCrimeTypeOpen(false);
                       }}
                     >
                       <Check
-                        className={`${crimeTypeValue === type.value ? "opacity-100" : "opacity-0"}`}
+                        className={`${crimeTypeValue === type.id ? "opacity-100" : "opacity-0"}`}
                       />
                       {type.label}
                     </CommandItem>
@@ -113,8 +113,9 @@ export default function CrimeChart() {
               className={"w-[200px] justify-between"}
             >
               {barangayValue
-                ? barangays.find((barangay) => barangayValue === barangay.value)
-                    ?.label
+                ? BARANGAY_OPTIONS_WITH_ALL.find(
+                    (barangay) => barangayValue === barangay.id,
+                  )?.value
                 : "Select barangay..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
@@ -125,19 +126,19 @@ export default function CrimeChart() {
               <CommandList>
                 <CommandEmpty>No barangay found.</CommandEmpty>
                 <CommandGroup>
-                  {barangays.map((barangay) => (
+                  {BARANGAY_OPTIONS_WITH_ALL.map((barangay) => (
                     <CommandItem
-                      value={barangay.value}
-                      key={barangay.value}
+                      value={String(barangay.id)}
+                      key={barangay.id}
                       onSelect={() => {
-                        setBarangayValue(barangay.value);
+                        setBarangayValue(barangay.id);
                         setBarangayOpen(false);
                       }}
                     >
                       <Check
-                        className={`${barangayValue === barangay.value ? "opacity-100" : "opacity-0"}`}
+                        className={`${barangayValue === barangay.id ? "opacity-100" : "opacity-0"}`}
                       />
-                      {barangay.label}
+                      {barangay.value}
                     </CommandItem>
                   ))}
                 </CommandGroup>

@@ -1,10 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { TrendingUp } from "lucide-react";
 import { Label, Pie, PieChart } from "recharts";
 
-import { CardDescription, CardFooter, CardTitle } from "@/components/ui/card";
+import { CardDescription, CardTitle } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -56,16 +55,13 @@ export default function CrimeTypeChart() {
   }, []);
 
   return (
-    <div className="flex w-full flex-col rounded-md border border-neutral-300 p-4">
+    <div className="flex h-full w-[40%] flex-col rounded-md border border-neutral-300 bg-white p-4">
       <div className="items-center pb-0">
         <CardTitle>Crime type chart</CardTitle>
         <CardDescription>January - June 2025</CardDescription>
       </div>
       <div className="flex-1 pb-0">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square max-h-[350px]"
-        >
+        <ChartContainer config={chartConfig} className="mx-auto aspect-square">
           <PieChart>
             <ChartTooltip
               cursor={false}

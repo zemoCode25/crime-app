@@ -1,32 +1,17 @@
 "use client";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
-  Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { UseFormReturn } from "react-hook-form";
-import { FormSchemaType } from "../../../../../../types/crime-case-type";
-import MainButton from "@/components/utils/MainButton";
+import { useFormContext } from "react-hook-form";
 
-// follow up
-// remarks
-// investigator notes
-export default function AdditionalNotes({
-  form,
-}: {
-  form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
-}) {
+export default function AdditionalNotes() {
+  const form = useFormContext();
+
   return (
     <>
       <FormField
@@ -37,14 +22,11 @@ export default function AdditionalNotes({
             <FormLabel>Investigator notes</FormLabel>
             <FormControl>
               <Textarea
-                placeholder="Placeholder"
-                className="resize-none"
+                placeholder="Enter investigator notes..."
+                className="min-h-48 resize-none"
                 {...field}
               />
             </FormControl>
-            <FormDescription>
-              You can @mention other users and organizations.
-            </FormDescription>
             <FormMessage />
           </FormItem>
         )}
@@ -57,9 +39,12 @@ export default function AdditionalNotes({
           <FormItem>
             <FormLabel>Follow up action</FormLabel>
             <FormControl>
-              <Textarea placeholder="" className="resize-none" {...field} />
+              <Textarea
+                placeholder="Enter follow up actions..."
+                className="min-h-48 resize-none"
+                {...field}
+              />
             </FormControl>
-
             <FormMessage />
           </FormItem>
         )}
@@ -72,25 +57,16 @@ export default function AdditionalNotes({
           <FormItem>
             <FormLabel>Remarks</FormLabel>
             <FormControl>
-              <Textarea placeholder="" className="resize-none" {...field} />
+              <Textarea
+                placeholder="Enter additional remarks..."
+                className="min-h-48 resize-none"
+                {...field}
+              />
             </FormControl>
-
             <FormMessage />
           </FormItem>
         )}
       />
-
-      <MainButton
-        type="submit"
-        onClick={() => {
-          {
-            console.log(form.formState.errors ? "GAGI ERROR" : "WLA NAMAN");
-          }
-          console.log(typeof Object.keys(form.formState.errors).length);
-        }}
-      >
-        Create Case
-      </MainButton>
     </>
   );
 }

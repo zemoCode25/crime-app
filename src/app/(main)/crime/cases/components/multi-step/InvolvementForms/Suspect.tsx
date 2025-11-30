@@ -7,16 +7,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { UseFormReturn } from "react-hook-form";
-import { FormSchemaType } from "../../../../../../../types/crime-case-type";
+import { useFormContext } from "react-hook-form";
+import { type FormSchemaType } from "@/types/form-schema";
 
-export default function Suspect({
-  form,
-  index,
-}: {
-  form: UseFormReturn<FormSchemaType, any, FormSchemaType>;
-  index: number;
-}) {
+export default function Suspect({ index }: { index: number }) {
+  const form = useFormContext<FormSchemaType>();
   return (
     <div className="flex flex-col gap-4">
       <FormField

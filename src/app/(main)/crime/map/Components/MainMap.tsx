@@ -1,77 +1,302 @@
 "use client";
 
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-import { Button } from "@/components/ui/button";
+import { useEffect, useRef, useState } from "react";
+import type {
+  Map as MapboxMap,
+  Marker as MapboxMarker,
+  GeoJSONSource,
+  MapLayerMouseEvent,
+} from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { Coordinates, SelectedLocation } from "@/types/map";
+import { reverseGeocodeMapbox } from "@/hooks/map/useMapboxSearch";
+import { crimeCasesToGeoJSON } from "@/lib/map/crimeCasesToGeoJSON";
+import type { CrimeCaseMapRecord } from "@/types/crime-case";
 
-// Fix Leaflet icon URLs
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
+type CrimeCaseFeatureProperties = {
+  id?: number;
+  case_number?: string;
+  case_status?: string;
+  crime_type?: string;
+  crime_location?: string | null;
+  landmark?: string | null;
+  incident_datetime?: string | null;
+};
 
-const redIcon = new L.Icon({
-  iconUrl:
-    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+const INITIAL_ZOOM = 15;
+const INITIAL_COORDINATES: Coordinates = { lat: 14.389263, long: 121.04491 };
 
-export default function AddressInformation() {
+interface MapProps {
+  selectedLocation?: SelectedLocation | null;
+  onLocationChange?: (location: SelectedLocation) => void;
+  crimeCases: CrimeCaseMapRecord[];
+  onCaseSelect?: (crimeCase: CrimeCaseMapRecord | null) => void;
+}
+
+export default function Map({
+  selectedLocation,
+  onLocationChange,
+  crimeCases,
+  onCaseSelect,
+}: MapProps) {
+  const mapRef = useRef<MapboxMap | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const markerRef = useRef<MapboxMarker | null>(null);
+  const onLocationChangeRef = useRef<MapProps["onLocationChange"] | null>(null);
+  const crimeCasesRef = useRef<CrimeCaseMapRecord[]>([]);
+
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Keep latest onLocationChange in a ref so init effect can stay stable
+  useEffect(() => {
+    onLocationChangeRef.current = onLocationChange ?? null;
+  }, [onLocationChange]);
+
+  // Keep latest crimeCases in a ref for event handlers registered once
+  useEffect(() => {
+    crimeCasesRef.current = crimeCases;
+  }, [crimeCases]);
+
+  // When selectedLocation prop changes, move marker and fly without changing zoom
+  useEffect(() => {
+    if (!selectedLocation || !mapRef.current || !markerRef.current) return;
+
+    markerRef.current.setLngLat([selectedLocation.lng, selectedLocation.lat]);
+
+    mapRef.current.flyTo({
+      center: [selectedLocation.lng, selectedLocation.lat],
+      duration: 2000,
+    });
+  }, [selectedLocation]);
+
+  // Initialize Mapbox map once (SSR-safe via dynamic import)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+
+    if (!MAPBOX_ACCESS_TOKEN) {
+      setError("Mapbox access token is missing");
+      return;
+    }
+
+    if (mapRef.current || !mapContainerRef.current) return;
+
+    const initialCenter: [number, number] = [
+      selectedLocation?.lng ?? INITIAL_COORDINATES.long,
+      selectedLocation?.lat ?? INITIAL_COORDINATES.lat,
+    ];
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const mapboxglModule = (await import("mapbox-gl")).default;
+
+        if (cancelled) return;
+
+        mapboxglModule.accessToken = MAPBOX_ACCESS_TOKEN;
+
+        const map = new mapboxglModule.Map({
+          container: mapContainerRef.current!,
+          style: "mapbox://styles/mapbox/standard",
+          center: initialCenter,
+          zoom: INITIAL_ZOOM,
+        });
+
+        mapRef.current = map;
+
+        map.on("load", () => {
+          if (!mapRef.current || cancelled) return;
+
+          map.addSource("mapbox-dem", {
+            type: "raster-dem",
+            url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+            tileSize: 512,
+          });
+
+          map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+
+          map.addSource("crime-cases", {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: [] },
+          });
+
+          map.addLayer({
+            id: "crime-cases-points",
+            type: "circle",
+            source: "crime-cases",
+            paint: {
+              "circle-radius": 10,
+              "circle-color": "#ef4444",
+              "circle-stroke-width": 1,
+              "circle-stroke-color": "#ffffff",
+            },
+          });
+
+          setIsLoaded(true);
+          setError(null);
+        });
+
+        map.on("error", (e) => {
+          if (cancelled) return;
+          setError(e.error?.message || "Map failed to load");
+          setIsLoaded(false);
+        });
+
+        const marker = new mapboxglModule.Marker({
+          color: "red",
+          draggable: true,
+        })
+          .setLngLat(initialCenter)
+          .addTo(map);
+
+        markerRef.current = marker;
+
+        marker.on("dragend", async () => {
+          const lngLat = marker.getLngLat();
+
+          const newLocation: SelectedLocation = {
+            lat: lngLat.lat,
+            lng: lngLat.lng,
+            address: "",
+          };
+
+          const addressResult = await reverseGeocodeMapbox(
+            lngLat.lat,
+            lngLat.lng,
+          );
+
+          newLocation.address = addressResult || "";
+
+          if (onLocationChangeRef.current) {
+            onLocationChangeRef.current(newLocation);
+          }
+        });
+
+        map.addControl(
+          new mapboxglModule.GeolocateControl({
+            positionOptions: {
+              enableHighAccuracy: true,
+            },
+            trackUserLocation: true,
+            showUserHeading: true,
+          }),
+        );
+
+        map.addControl(new mapboxglModule.NavigationControl());
+
+        map.on(
+          "click",
+          "crime-cases-points",
+          (event: MapLayerMouseEvent) => {
+            if (!mapRef.current || !event.features || !event.features.length)
+              return;
+
+            const feature = event.features[0];
+
+            if (feature.geometry.type !== "Point") return;
+
+            const [lng, lat] = feature.geometry.coordinates;
+            const properties = feature.properties as CrimeCaseFeatureProperties;
+
+          const title = properties.case_number || `Case #${properties.id}`;
+          const location =
+            properties.crime_location ||
+            properties.landmark ||
+            "Unknown location";
+
+            // Notify parent about selected case
+            if (onCaseSelect) {
+              const id = properties.id;
+              const match =
+                typeof id === "number"
+                  ? crimeCasesRef.current.find((c) => c.id === id)
+                  : undefined;
+
+              if (match) {
+                onCaseSelect(match);
+
+                if (
+                  match.location &&
+                  match.location.lat != null &&
+                  match.location.long != null &&
+                  onLocationChangeRef.current
+                ) {
+                  onLocationChangeRef.current({
+                    lat: Number(match.location.lat),
+                    lng: Number(match.location.long),
+                    address:
+                      match.location.crime_location ||
+                      match.location.landmark ||
+                      title,
+                  });
+                }
+              }
+            }
+
+            new mapboxglModule.Popup()
+              .setLngLat([lng, lat])
+              .setHTML(
+                `<div class="text-sm p-2 border rounded-sm">
+                  <div class="font-medium">${title}</div>
+                  <div class="text-gray-600 text-sm">${location}</div>
+                </div>`,
+              )
+              .addTo(mapRef.current!);
+          },
+        );
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Map initialization error:", err);
+        setError("Failed to initialize map");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, [onCaseSelect, selectedLocation?.lat, selectedLocation?.lng]);
+
+  // Sync crime cases data into the GeoJSON source
+  useEffect(() => {
+    if (!mapRef.current || !crimeCases || !isLoaded) return;
+
+    const source = mapRef.current.getSource("crime-cases") as
+      | GeoJSONSource
+      | undefined;
+
+    if (!source) return;
+
+    source.setData(crimeCasesToGeoJSON(crimeCases));
+  }, [crimeCases, isLoaded]);
+
+  if (error) {
+    return (
+      <div className="flex h-[400px] w-full items-center justify-center border border-red-200 bg-red-50">
+        <p className="text-red-600">{error}</p>
+      </div>
+    );
+  }
+
   return (
-    <MapContainer
-      center={[14.3798, 121.0249]} // Alabang, Muntinlupa
-      zoom={13}
-      scrollWheelZoom={true}
-      className="z-0 h-dvh w-full rounded-lg shadow-md"
-    >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <Marker position={[14.3794, 121.0249]} icon={redIcon}>
-        <Popup className="!gap-2">
-          <div className="flex flex-col gap-2">
-            <div>
-              <label className="font-semibold">Case Task:</label>
-              <p className="!my-0">CASE-20250902-0001</p>
-            </div>
-            <div>
-              <label className="font-semibold">Description:</label>
-              <p className="!my-0">Crime description goes here.</p>
-            </div>
-            <div>
-              <label className="font-semibold">Address:</label>
-              <p className="!my-0">Crime address goes here.</p>
-            </div>
-            <Button className="bg-orange-600">View Details</Button>
+    <div className="relative h-[calc(100dvh-11.5rem)] w-full overflow-hidden rounded-lg border border-gray-300">
+      {!isLoaded && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-100">
+          <div className="text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+            <p className="mt-2 text-gray-600">Loading map...</p>
           </div>
-        </Popup>
-      </Marker>
-      <Marker position={[14.3798, 121.0249]}>
-        <Popup className="!gap-2">
-          <div className="flex flex-col gap-2">
-            <div>
-              <label className="font-semibold">Case Task:</label>
-              <p className="!my-0">CASE-20250902-0001</p>
-            </div>
-            <div>
-              <label className="font-semibold">Description:</label>
-              <p className="!my-0">Crime description goes here.</p>
-            </div>
-            <div>
-              <label className="font-semibold">Address:</label>
-              <p className="!my-0">Crime address goes here.</p>
-            </div>
-            <Button className="bg-orange-600">View Details</Button>
-          </div>
-        </Popup>
-      </Marker>
-    </MapContainer>
+        </div>
+      )}
+
+      <div ref={mapContainerRef} className="h-full w-full" />
+    </div>
   );
 }

@@ -1,6 +1,13 @@
-import Link from "next/link";
-import React from "react";
+import { redirect } from "next/navigation";
+import { getUser } from "@/server/actions/getUser";
 
-export default function Page() {
-  return <Link href="/login">Login</Link>;
+export const dynamic = "force-dynamic";
+
+export default async function Page() {
+  const user = await getUser();
+  if (!user) {
+    redirect("/login");
+  } else {
+    redirect("/dashboard");
+  }
 }

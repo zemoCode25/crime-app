@@ -1,23 +1,16 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/utils/ThemeToggle";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default function Page({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex dark:bg-neutral-900 bg-neutral-50 border-b justify-between pr-4 h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1 hover:bg-neutral-200 dark:hover:bg-gray-800" />
-          </div>
+        <header className="fixed top-0 right-0 left-0 z-40 flex h-16 shrink-0 items-center justify-end gap-2 border-b bg-white pr-4 dark:bg-neutral-900">
           <ThemeToggle />
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 dark:bg-black bg-neutral-100">
+        <div className="flex flex-1 flex-col gap-4 bg-neutral-100 pt-0 dark:bg-black">
           {children}
         </div>
       </SidebarInset>

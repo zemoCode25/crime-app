@@ -2,20 +2,15 @@
 
 import * as React from "react";
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
   GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
   DiamondMinus,
+  LayoutDashboard,
+  ChartColumnIncreasing,
+  UserLock,
+  BellElectric,
+  Settings,
 } from "lucide-react";
 import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
@@ -42,6 +37,11 @@ const data = {
   ],
   navMain: [
     {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
       title: "Crime",
       url: "#",
       icon: DiamondMinus,
@@ -57,16 +57,36 @@ const data = {
         },
       ],
     },
+    {
+      title: "Analytics",
+      url: "/analytics",
+      icon: ChartColumnIncreasing,
+    },
+    {
+      title: "Manage Accounts",
+      url: "/manage-accounts",
+      icon: UserLock,
+    },
+    {
+      title: "Emergency",
+      url: "/emergency",
+      icon: BellElectric,
+    },
+    {
+      title: "Settings",
+      url: "/settings/profile",
+      icon: Settings,
+    },
   ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
+    <Sidebar collapsible="icon" {...props} className="z-50">
+      <SidebarHeader className="!z-50">
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="!z-50">
         <NavMain items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>

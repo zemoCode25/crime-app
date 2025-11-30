@@ -1,9 +1,12 @@
 "use client";
 import { useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import {
+  SubmitHandler,
+  useFieldArray,
+  useForm,
+  type Resolver,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Form } from "@/components/ui/form";
 import CrimeForm from "./multi-step/CrimeForm";
@@ -11,75 +14,22 @@ import PersonInformation from "./multi-step/PersonInformation";
 import AdditionalNotes from "./multi-step/AdditionalNotes";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import StepNavigation from "./StepNavigation";
-import AddressInformation from "./multi-step/AddressInformation";
+import LocationInformation from "./multi-step/LocationInformation";
 import MainButton from "@/components/utils/MainButton";
+import { formSchema, type FormSchemaType } from "@/types/form-schema";
+import { defaultValues } from "@/lib/crime-case";
+import { useCreateCrimeCase } from "@/hooks/crime-case/useMutateCase";
+import toast from "react-hot-toast";
 
 export default function MyForm() {
-  const personSchema = z.object({
-    first_name: z.string().min(1, "First name is required"),
-    last_name: z.string().min(1, "Last name is required"),
-    address: z.string().min(1, "Address is required"),
-    civil_status: z.string().min(1, "Civil status is required"),
-    contact_number: z
-      .string()
-      .max(12, "Contact number must be at most 12 characters"),
-    sex: z.string().min(1, "Sex is required"),
-    birth_date: z.coerce.date(),
-    person_notified: z.string().optional(),
-    related_contact: z.string().max(12).optional(),
-    case_role: z.string().min(1, "Involvement is required"),
-    motive: z.string().optional(),
-    weapon_used: z.string().optional(),
-    narrative: z.string().optional(),
-    testimony: z.string().optional(),
-  });
+  const [step, setStep] = useState(0);
 
-  const formSchema = z.object({
-    description: z.string(),
-    crime_type: z.string().min(1, "Crime type is required"),
-    case_status: z.string().min(1, "Case status is required"),
-    report_datetime: z.preprocess((val) => new Date(val as string), z.date()),
-    incident_datetime: z.preprocess((val) => new Date(val as string), z.date()),
-    investigator_notes: z.string().optional(),
-    follow_up: z.string().optional(),
-    remarks: z.string().optional(),
-    persons: z.array(personSchema),
-  });
+  const crimeCaseMutation = useCreateCrimeCase();
 
-  const form = useForm<
-    z.input<typeof formSchema>,
-    any,
-    z.output<typeof formSchema>
-  >({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      report_datetime: new Date(),
-      incident_datetime: new Date(),
-      description: "",
-      crime_type: "",
-      case_status: "",
-      investigator_notes: "",
-      follow_up: "",
-      remarks: "",
-      persons: [
-        {
-          first_name: "",
-          last_name: "",
-          address: "",
-          civil_status: "",
-          contact_number: "",
-          sex: "",
-          birth_date: new Date(),
-          person_notified: "",
-          related_contact: "",
-          case_role: "",
-          motive: "",
-          weapon_used: "",
-          narrative: "",
-          testimony: "",
-        },
-      ],
-    },
+  const form = useForm<FormSchemaType>({
+    resolver: zodResolver(formSchema) as Resolver<FormSchemaType>,
+    mode: "onChange",
+    defaultValues: defaultValues,
   });
 
   const formFieldArray = useFieldArray({
@@ -87,15 +37,62 @@ export default function MyForm() {
     name: "persons",
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const onSubmit: SubmitHandler<FormSchemaType> = async (values) => {
+    const crimeCase = {
+      case_number: `CASE-${Date.now()}`,
+      crime_type: values.crime_type,
+      case_status: values.case_status,
+      description: values.description,
+      incident_datetime: values.incident_datetime,
+      report_datetime: values.report_datetime,
+      investigator: values.investigator?.trim() || null,
+      responder: values.responder?.trim() || null,
+      investigator_notes: values.investigator_notes?.trim() || null,
+      remarks: values.remarks?.trim() || null,
+      follow_up: values.follow_up?.trim() || null,
+      visibility: values.visibility,
+    };
+
+    const location = {
+      barangay: values.barangay,
+      crime_location: values.crime_location,
+      landmark: values.landmark?.trim() || null,
+      pin: values.pin || null,
+      lat: values.lat,
+      long: values.long,
+    };
+
+    const persons = values.persons.map((person) => ({
+      first_name: person.first_name,
+      last_name: person.last_name,
+      birth_date: person.birth_date,
+      sex: person.sex,
+      civil_status: person.civil_status,
+      address: person.address,
+      contact_number: person.contact_number,
+      case_role: person.case_role,
+      person_notified: person.person_notified?.trim() || null,
+      related_contact: person.related_contact?.trim() || null,
+      motive: person.motive?.trim() || null,
+      weapon_used: person.weapon_used?.trim() || null,
+      narrative: person.narrative?.trim() || null,
+      testimony: person.testimony?.trim() || null,
+    }));
+
     try {
-      console.log(values);
+      await crimeCaseMutation.mutateAsync({
+        crimeCase,
+        location,
+        persons,
+      });
+
+      form.reset();
+      setStep(0);
     } catch (error) {
+      // Error toasts are handled by the mutation hook
       console.error("Form submission error", error);
     }
-  }
-
-  const [step, setStep] = useState(0);
+  };
 
   return (
     <Dialog>
@@ -106,18 +103,37 @@ export default function MyForm() {
         </MainButton>
       </DialogTrigger>
       <DialogContent className="max-h-[30rem] w-full overflow-y-scroll">
-        <StepNavigation setStep={setStep} step={step} />
         <Form {...form}>
+          <StepNavigation setStep={setStep} step={step} />
           <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="mx-auto w-fit space-y-5 py-4"
+            onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.log("Form validation failed with errors:", errors);
+              toast.error(
+                "Please fix the highlighted errors before continuing.",
+              );
+            })}
+            className="mx-auto w-full space-y-5 py-4"
           >
-            {step === 0 && <CrimeForm form={form} />}
+            {step === 0 && <CrimeForm />}
             {step === 1 && (
-              <PersonInformation form={form} formFieldArray={formFieldArray} />
+              <PersonInformation formFieldArray={formFieldArray} />
             )}
-            {step === 2 && <AddressInformation />}
-            {step === 3 && <AdditionalNotes form={form} />}
+            {step === 2 && <LocationInformation />}
+            {step === 3 && <AdditionalNotes />}
+
+            {step === 3 && (
+              <div className="pt-4">
+                <MainButton
+                  type="submit"
+                  className="w-full"
+                  disabled={crimeCaseMutation.isPending}
+                >
+                  {crimeCaseMutation.isPending
+                    ? "Creating..."
+                    : "Create Crime Case"}
+                </MainButton>
+              </div>
+            )}
           </form>
         </Form>
       </DialogContent>

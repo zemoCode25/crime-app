@@ -12,7 +12,9 @@ interface MetricCardProps {
   };
   className?: string;
   icon?: LucideIcon;
+  iconColor?: string; // ✅ Add this
   customTrendIcon?: LucideIcon;
+  color?: string; // ✅ Add this
 }
 
 export default function MetricCard({
@@ -22,6 +24,7 @@ export default function MetricCard({
   className,
   icon: Icon,
   customTrendIcon: CustomTrendIcon,
+  color,
 }: MetricCardProps) {
   // Determine trend icon and color
   const getTrendIcon = () => {
@@ -43,18 +46,25 @@ export default function MetricCard({
   return (
     <div
       className={cn(
-        "h-full w-[calc(50%-1rem)] !gap-0 rounded-sm border border-neutral-300 bg-white p-4 shadow-sm md:w-[calc(25%-1.5rem)]",
+        "flex h-full w-full flex-col gap-2 rounded-sm border border-neutral-300 bg-white p-6",
         "dark:border-orange-900/30 dark:bg-[var(--dark-bg)] dark:shadow-none",
         className,
       )}
     >
       <div className="flex items-center justify-between">
-        <h1 className="text-sm font-medium text-gray-600 sm:text-base dark:text-orange-100">
+        <h1 className="text-sm font-medium sm:text-base dark:text-orange-100">
           {title}
         </h1>
-        {Icon && (
-          <Icon className="h-5 w-5 text-gray-400 dark:text-orange-300/70" />
-        )}
+
+        {/* ✅ Render icon with custom color */}
+        <span
+          className={cn(
+            "flex items-center justify-center rounded-sm p-1",
+            color,
+          )}
+        >
+          {Icon && <Icon className="text-white dark:text-orange-100" />}
+        </span>
       </div>
 
       <p className="mt-2 text-4xl font-bold text-gray-900 dark:text-orange-50">
