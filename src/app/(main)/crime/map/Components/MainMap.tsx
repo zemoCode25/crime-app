@@ -44,9 +44,19 @@ export default function Map({
   const markerRef = useRef<MapboxMarker | null>(null);
   const onLocationChangeRef = useRef<MapProps["onLocationChange"] | null>(null);
   const crimeCasesRef = useRef<CrimeCaseMapRecord[]>([]);
+  const onCaseSelectRef = useRef<MapProps["onCaseSelect"] | null>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const initialCenterRef = useRef<[number, number] | null>(null);
+
+  if (!initialCenterRef.current) {
+    initialCenterRef.current = [
+      selectedLocation?.lng ?? INITIAL_COORDINATES.long,
+      selectedLocation?.lat ?? INITIAL_COORDINATES.lat,
+    ];
+  }
 
   // Keep latest onLocationChange in a ref so init effect can stay stable
   useEffect(() => {
@@ -57,6 +67,11 @@ export default function Map({
   useEffect(() => {
     crimeCasesRef.current = crimeCases;
   }, [crimeCases]);
+
+  // Keep latest onCaseSelect in a ref so init effect can stay stable
+  useEffect(() => {
+    onCaseSelectRef.current = onCaseSelect ?? null;
+  }, [onCaseSelect]);
 
   // When selectedLocation prop changes, move marker and fly without changing zoom
   useEffect(() => {
@@ -83,10 +98,11 @@ export default function Map({
 
     if (mapRef.current || !mapContainerRef.current) return;
 
-    const initialCenter: [number, number] = [
-      selectedLocation?.lng ?? INITIAL_COORDINATES.long,
-      selectedLocation?.lat ?? INITIAL_COORDINATES.lat,
-    ];
+    const initialCenter =
+      initialCenterRef.current ?? [
+        INITIAL_COORDINATES.long,
+        INITIAL_COORDINATES.lat,
+      ];
 
     let cancelled = false;
 
@@ -207,16 +223,16 @@ export default function Map({
             properties.landmark ||
             "Unknown location";
 
-            // Notify parent about selected case
-            if (onCaseSelect) {
-              const id = properties.id;
-              const match =
-                typeof id === "number"
-                  ? crimeCasesRef.current.find((c) => c.id === id)
-                  : undefined;
+          // Notify parent about selected case
+          if (onCaseSelectRef.current) {
+            const id = properties.id;
+            const match =
+              typeof id === "number"
+                ? crimeCasesRef.current.find((c) => c.id === id)
+                : undefined;
 
-              if (match) {
-                onCaseSelect(match);
+            if (match) {
+              onCaseSelectRef.current(match);
 
                 if (
                   match.location &&
@@ -262,7 +278,7 @@ export default function Map({
         mapRef.current = null;
       }
     };
-  }, [onCaseSelect, selectedLocation?.lat, selectedLocation?.lng]);
+  }, []);
 
   // Sync crime cases data into the GeoJSON source
   useEffect(() => {
