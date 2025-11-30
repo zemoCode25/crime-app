@@ -64,7 +64,7 @@ export async function sendInvitation(input: InvitePayload) {
     return { ok: false, error: invitationError?.message || "Failed to create invitation" } as const;
   }
 
-  const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/signup?token=${token}`;
+  const inviteLink = `${process.env.NEXT_PUBLIC_SITE_URL}/signup?token=${token}`;
 
   const { email, role, barangay } = parsed.data;
 

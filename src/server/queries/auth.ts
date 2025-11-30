@@ -46,7 +46,7 @@ export async function signup(formData: FormData) {
     redirect("/auth/auth-code-error");
   }
 
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const origin = process.env.NEXT_PUBLIC_SITE_URL;
   const emailRedirectTo = `${origin}/auth/confirm?inviteToken=${encodeURIComponent(invitationToken)}`;
 
   const { error } = await supabase.auth.signUp({
@@ -75,7 +75,7 @@ export async function signInWithGoogle(formData: FormData): Promise<void> {
     (formData.get("expectedEmail") as string | null)?.trim().toLowerCase() || undefined;
   const invitationToken = (formData.get("invitationToken") as string | null)?.trim();
 
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const origin = process.env.NEXT_PUBLIC_SITE_URL;
   const searchParams = new URLSearchParams();
   if (expectedEmail) searchParams.set("expectedEmail", expectedEmail);
   if (invitationToken) searchParams.set("inviteToken", invitationToken);
@@ -109,7 +109,7 @@ export async function logInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback?next=/dashboard`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/dashboard`,
     },
   });
 
@@ -128,7 +128,7 @@ export async function logInWithGoogle() {
 export async function requestPasswordReset(email: string) {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-  redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/change-password`,
+  redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/change-password`,
 })
 
   if (error) {
