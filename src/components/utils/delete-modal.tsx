@@ -7,7 +7,7 @@ import {
 import { useDeleteCrimeCase } from "@/hooks/crime-case/useMutateCase";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import { Trash } from "lucide-react";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { useState } from "react";
 
 export default function DeleteModal({

@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import DeleteModal from "@/components/delete-modal";
+import DeleteModal from "@/components/utils/delete-modal";
 import { Eye } from "lucide-react";
 
 export type CrimeTableRow = {
