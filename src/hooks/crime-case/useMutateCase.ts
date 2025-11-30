@@ -13,7 +13,7 @@ import {
 } from '@/types/crime-case';
 import toast from 'react-hot-toast';
 
-// ✅ Separate input types for each operation
+// Separate input types for each operation
 type CreateCrimeCaseInput = {
   crimeCase: CrimeCaseData;
   location: LocationData;
@@ -26,7 +26,7 @@ type UpdateCrimeCaseInput = {
   location: LocationData;
   persons: PersonData[];
 };
-// ✅ CREATE HOOK
+// CREATE HOOK
 export function useCreateCrimeCase() {
   const supabase = useSupabaseBrowser();
   const queryClient = useQueryClient();
@@ -105,7 +105,7 @@ export function useCreateCrimeCase() {
   });
 }
 
-// ✅ UPDATE HOOK
+// UPDATE HOOK
 export function useUpdateCrimeCase() {
   const supabase = useSupabaseBrowser();
   const queryClient = useQueryClient();
@@ -189,7 +189,7 @@ export function useUpdateCrimeCase() {
   });
 }
 
-// ✅ DELETE HOOK
+// DELETE HOOK
 export function useDeleteCrimeCase() {
   const supabase = useSupabaseBrowser();
   const queryClient = useQueryClient();
