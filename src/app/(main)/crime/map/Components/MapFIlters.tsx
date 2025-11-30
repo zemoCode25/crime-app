@@ -35,8 +35,9 @@ import {
 } from "@/components/ui/popover";
 import DateRangeSelector from "@/components/DateRangeSelector";
 import type { MapFiltersState } from "./mapFiltersState";
-
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
+
+// sample comments
 
 interface MapFiltersProps {
   selectedLocation: SelectedLocation | null;
