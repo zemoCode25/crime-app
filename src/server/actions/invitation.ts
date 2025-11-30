@@ -134,9 +134,6 @@ export async function getPendingInvitations() {
   if (!user) {
     return { ok: false, error: "unauthenticated" as const };
   }
-
-  const nowIso = new Date().toISOString();
-
   const { data, error } = await supabase
     .from("invitation")
     .select(`

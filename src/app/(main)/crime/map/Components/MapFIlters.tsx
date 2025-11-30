@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { SelectedLocation } from "@/types/map";
 import {
   MapPinIcon,
@@ -47,11 +47,9 @@ interface MapFiltersProps {
 }
 
 export default function MapFilters({
-  selectedLocation,
   onLocationChange,
   filters,
   onFiltersChange,
-  selectedCase,
 }: MapFiltersProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [barangayOpen, setBarangayOpen] = useState(false);
@@ -118,7 +116,7 @@ export default function MapFilters({
     );
   };
 
-  const handleKeyDown = (event: any) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (!searchOpen) return;
 
     const totalItems = 1 + suggestions.length; // 0: current location, 1..n: suggestions

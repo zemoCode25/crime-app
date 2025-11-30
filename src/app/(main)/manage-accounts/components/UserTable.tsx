@@ -68,7 +68,6 @@ import {
 import { MoreHorizontal } from "lucide-react";
 import { kickUser } from "@/server/actions/users";
 import InviteUserDialog from "./InviteUserDialog";
-import { useRouter } from "next/navigation";
 
 type Props = {
   data: ActiveUserRow[];

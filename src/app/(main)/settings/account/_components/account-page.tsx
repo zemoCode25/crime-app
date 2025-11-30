@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import Card from "@/components/utils/Card";
 import LogoutModal from "@/components/utils/logout-modal";

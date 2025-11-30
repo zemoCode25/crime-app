@@ -111,16 +111,12 @@ function SelectedCaseCard({
       ? crimeTypeConverter(selectedCase.crime_type)
       : null;
 
-  const statusVariant =
-    selectedCase.case_status === "open"
-      ? "destructive"
-      : selectedCase.case_status === "case settled"
-        ? "secondary"
-        : "outline";
-
-  const formatDateWithoutSeconds = (value: any) => {
+  const formatDateWithoutSeconds = (
+    value: string | Date | null | undefined,
+  ) => {
     if (!value) return "Unknown";
-    const d = new Date(value);
+
+    const d = value instanceof Date ? value : new Date(value);
     if (Number.isNaN(d.getTime())) return "Unknown";
     return d.toLocaleString("en-US", {
       year: "numeric",
@@ -188,7 +184,7 @@ function SelectedCaseCard({
 
 export default function MapSetting({
   selectedLocation,
-  onLocationChange, // kept for future use
+  // onLocationChange, // kept for future use
   selectedCase,
 }: MapSettingProps) {
   return (

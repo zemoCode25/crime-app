@@ -1,6 +1,11 @@
 "use client";
 import { useState } from "react";
-import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
+import {
+  SubmitHandler,
+  useFieldArray,
+  useForm,
+  type Resolver,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { Form } from "@/components/ui/form";
@@ -22,7 +27,7 @@ export default function MyForm() {
   const crimeCaseMutation = useCreateCrimeCase();
 
   const form = useForm<FormSchemaType>({
-    resolver: zodResolver(formSchema) as any,
+    resolver: zodResolver(formSchema) as Resolver<FormSchemaType>,
     mode: "onChange",
     defaultValues: defaultValues,
   });
@@ -101,15 +106,12 @@ export default function MyForm() {
         <Form {...form}>
           <StepNavigation setStep={setStep} step={step} />
           <form
-            onSubmit={form.handleSubmit(
-              onSubmit,
-              (errors) => {
-                console.log("Form validation failed with errors:", errors);
-                toast.error(
-                  "Please fix the highlighted errors before continuing.",
-                );
-              },
-            )}
+            onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.log("Form validation failed with errors:", errors);
+              toast.error(
+                "Please fix the highlighted errors before continuing.",
+              );
+            })}
             className="mx-auto w-full space-y-5 py-4"
           >
             {step === 0 && <CrimeForm />}
@@ -138,4 +140,3 @@ export default function MyForm() {
     </Dialog>
   );
 }
-

@@ -12,7 +12,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { calcPasswordStrength, passwordChecks } from "../_lib/utils";
-import Link from "next/link";
 
 const SignUpSchema = z
   .object({

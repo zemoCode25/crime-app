@@ -6,11 +6,9 @@ import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/server/supabase/server";
 import { createServiceClient } from "@/server/supabase/service-client";
-import type { Database } from "@/server/supabase/database.types";
 import {
   listUsersSchema,
   fetchActiveUsers,
-  type ActiveUserRow,
   type GetActiveUsersInput,
   getUserRole,
   getUserBasicProfile,
@@ -19,8 +17,6 @@ import {
 import { KickUserEmail } from "@/components/utils/KickUserEmail";
 import { redirect } from "next/navigation";
 // Type exports are not allowed from a "use server" action file
-
-type Role = Database["public"]["Enums"]["roles"];
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 

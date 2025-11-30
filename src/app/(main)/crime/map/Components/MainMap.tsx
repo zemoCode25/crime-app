@@ -5,12 +5,23 @@ import type {
   Map as MapboxMap,
   Marker as MapboxMarker,
   GeoJSONSource,
+  MapLayerMouseEvent,
 } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates, SelectedLocation } from "@/types/map";
 import { reverseGeocodeMapbox } from "@/hooks/map/useMapboxSearch";
 import { crimeCasesToGeoJSON } from "@/lib/map/crimeCasesToGeoJSON";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
+
+type CrimeCaseFeatureProperties = {
+  id?: number;
+  case_number?: string;
+  case_status?: string;
+  crime_type?: string;
+  crime_location?: string | null;
+  landmark?: string | null;
+  incident_datetime?: string | null;
+};
 
 const INITIAL_ZOOM = 15;
 const INITIAL_COORDINATES: Coordinates = { lat: 14.389263, long: 121.04491 };
@@ -176,16 +187,19 @@ export default function Map({
 
         map.addControl(new mapboxglModule.NavigationControl());
 
-        map.on("click", "crime-cases-points", (event) => {
-          if (!mapRef.current || !event.features || !event.features.length)
-            return;
+        map.on(
+          "click",
+          "crime-cases-points",
+          (event: MapLayerMouseEvent) => {
+            if (!mapRef.current || !event.features || !event.features.length)
+              return;
 
-          const feature = event.features[0];
-          const coordinates = (feature.geometry as any).coordinates.slice() as [
-            number,
-            number,
-          ];
-          const properties = feature.properties as any;
+            const feature = event.features[0];
+
+            if (feature.geometry.type !== "Point") return;
+
+            const [lng, lat] = feature.geometry.coordinates;
+            const properties = feature.properties as CrimeCaseFeatureProperties;
 
           const title = properties.case_number || `Case #${properties.id}`;
           const location =
@@ -193,45 +207,46 @@ export default function Map({
             properties.landmark ||
             "Unknown location";
 
-          // Notify parent about selected case
-          if (onCaseSelect) {
-            const id = properties.id as number | undefined;
-            const match =
-              typeof id === "number"
-                ? crimeCasesRef.current.find((c) => c.id === id)
-                : undefined;
+            // Notify parent about selected case
+            if (onCaseSelect) {
+              const id = properties.id;
+              const match =
+                typeof id === "number"
+                  ? crimeCasesRef.current.find((c) => c.id === id)
+                  : undefined;
 
-            if (match) {
-              onCaseSelect(match);
+              if (match) {
+                onCaseSelect(match);
 
-              if (
-                match.location &&
-                match.location.lat != null &&
-                match.location.long != null &&
-                onLocationChangeRef.current
-              ) {
-                onLocationChangeRef.current({
-                  lat: Number(match.location.lat),
-                  lng: Number(match.location.long),
-                  address:
-                    match.location.crime_location ||
-                    match.location.landmark ||
-                    title,
-                });
+                if (
+                  match.location &&
+                  match.location.lat != null &&
+                  match.location.long != null &&
+                  onLocationChangeRef.current
+                ) {
+                  onLocationChangeRef.current({
+                    lat: Number(match.location.lat),
+                    lng: Number(match.location.long),
+                    address:
+                      match.location.crime_location ||
+                      match.location.landmark ||
+                      title,
+                  });
+                }
               }
             }
-          }
 
-          new mapboxglModule.Popup()
-            .setLngLat(coordinates)
-            .setHTML(
-              `<div class="text-sm p-2 border rounded-sm">
-                <div class="font-medium">${title}</div>
-                <div class="text-gray-600 text-sm">${location}</div>
-              </div>`,
-            )
-            .addTo(mapRef.current!);
-        });
+            new mapboxglModule.Popup()
+              .setLngLat([lng, lat])
+              .setHTML(
+                `<div class="text-sm p-2 border rounded-sm">
+                  <div class="font-medium">${title}</div>
+                  <div class="text-gray-600 text-sm">${location}</div>
+                </div>`,
+              )
+              .addTo(mapRef.current!);
+          },
+        );
       } catch (err) {
         if (cancelled) return;
         console.error("Map initialization error:", err);
@@ -247,7 +262,7 @@ export default function Map({
         mapRef.current = null;
       }
     };
-  }, []);
+  }, [onCaseSelect, selectedLocation?.lat, selectedLocation?.lng]);
 
   // Sync crime cases data into the GeoJSON source
   useEffect(() => {

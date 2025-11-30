@@ -63,12 +63,12 @@ export const locationDataSchema = z.object({
   pin: z.number().optional(),
   // Coerce from string inputs so form submission is not blocked
   lat: z.coerce
-    .number({ invalid_type_error: "Latitude is required" })
+    .number({ message: "Latitude is required" })
     .refine((val) => !Number.isNaN(val), {
       message: "Latitude is required",
     }),
   long: z.coerce
-    .number({ invalid_type_error: "Longitude is required" })
+    .number({ message: "Longitude is required" })
     .refine((val) => !Number.isNaN(val), {
       message: "Longitude is required",
     }),

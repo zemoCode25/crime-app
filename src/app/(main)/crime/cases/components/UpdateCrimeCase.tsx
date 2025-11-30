@@ -1,6 +1,11 @@
 "use client";
 import { useState, useEffect } from "react"; // ✅ Add useEffect
-import { SubmitHandler, useFieldArray, useForm } from "react-hook-form";
+import {
+  Resolver,
+  SubmitHandler,
+  useFieldArray,
+  useForm,
+} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import CrimeForm from "./multi-step/CrimeForm";
@@ -24,7 +29,7 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
 
   // ✅ Initialize form with empty defaults first
   const form = useForm<FormSchemaType>({
-    resolver: zodResolver(formSchema) as any,
+    resolver: zodResolver(formSchema) as Resolver<FormSchemaType>,
     mode: "onChange",
     defaultValues: defaultValues, // Use your existing defaultValues
   });

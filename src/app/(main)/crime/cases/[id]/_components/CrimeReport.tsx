@@ -12,7 +12,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { STATUSES, BARANGAY_OPTIONS } from "@/constants/crime-case";
 import type { CasePersonRecord } from "@/types/crime-case";
-import { MapPin, User, Phone, FileText, Clock, Shield } from "lucide-react";
+import { MapPin, User, Phone, FileText, Shield } from "lucide-react";
 import Card from "@/components/utils/Card";
 
 type CrimeReportProps = {
@@ -114,8 +114,8 @@ export default function CrimeReport({ id }: CrimeReportProps) {
           <CardHeader>
             <CardTitle>Crime case not found</CardTitle>
             <CardDescription>
-              We couldn't find details for this crime case. It may have been
-              removed or is temporarily unavailable.
+              We couldn&apos;t find details for this crime case. It may have
+              been removed or is temporarily unavailable.
             </CardDescription>
           </CardHeader>
         </Card>

@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 import type { Map as MapboxMap, Marker as MapboxMarker } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates } from "@/types/map";
 import { Input } from "@/components/ui/input";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -32,10 +31,11 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
   const markerRef = useRef<MapboxMarker | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const initialCenter = useMemo<[number, number]>(
-    () => [coordinates.long ?? 0, coordinates.lat ?? 0],
-    [],
-  );
+  const initialCenterRef = useRef<[number, number] | null>(null);
+
+  if (!initialCenterRef.current) {
+    initialCenterRef.current = [coordinates.long ?? 0, coordinates.lat ?? 0];
+  }
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,14 +43,18 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
-  const [selectedCoords, setSelectedCoords] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
   const [isLocating, setIsLocating] = useState(false);
 
   const { suggestions, loading, searchLocation, retrieveLocation } =
     useMapboxSearch();
+
+  const setCoordinatesRef = useRef<MapBoxProps["setCoordinates"] | null>(
+    setCoordinates,
+  );
+
+  useEffect(() => {
+    setCoordinatesRef.current = setCoordinates;
+  }, [setCoordinates]);
 
   // Initialize Mapbox map once on mount
   useEffect(() => {
@@ -77,7 +81,7 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
 
         const map = new mapboxglModule.Map({
           container: mapContainerRef.current!,
-          center: initialCenter,
+          center: initialCenterRef.current!,
           zoom: INITIAL_ZOOM,
         });
 
@@ -108,7 +112,7 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
           color: "red",
           draggable: true,
         })
-          .setLngLat(initialCenter)
+          .setLngLat(initialCenterRef.current!)
           .addTo(map);
 
         markerRef.current = marker;
@@ -118,8 +122,9 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
           const lat = Number(pos.lat.toFixed(6));
           const lng = Number(pos.lng.toFixed(6));
 
-          setCoordinates({ lat, long: lng });
-          setSelectedCoords({ lat, lng });
+          if (setCoordinatesRef.current) {
+            setCoordinatesRef.current({ lat, long: lng });
+          }
 
           const label = await reverseGeocodeMapbox(lat, lng);
           setSelectedLabel(label || "Dropped pin");
@@ -180,12 +185,11 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
         long: lng,
       });
       setSelectedLabel(result.full_address || name);
-      setSelectedCoords({ lat, lng });
       setSearchOpen(false);
     }
   };
 
-  const handleKeyDown = (event: any) => {
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (!searchOpen || !suggestions.length) return;
 
     if (event.key === "ArrowDown") {
@@ -231,7 +235,6 @@ export default function MapBox({ coordinates, setCoordinates }: MapBoxProps) {
         const lng = Number(position.coords.longitude.toFixed(6));
 
         setCoordinates({ lat, long: lng });
-        setSelectedCoords({ lat, lng });
 
         markerRef.current?.setLngLat([lng, lat]);
         mapRef.current?.flyTo({ center: [lng, lat], zoom: INITIAL_ZOOM });

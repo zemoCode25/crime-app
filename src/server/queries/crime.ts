@@ -1,13 +1,6 @@
 import { TypedSupabaseClient } from "@/types/supabase-client";
 import { CrimeCaseData, LocationData, PersonData } from "@/types/crime-case";
 
-const TABLES = [
-  'crime_case',
-  'location',
-  'case_person',
-  'person_profile'
-] as const;
-
 export async function getTableCrimeCases(client: TypedSupabaseClient) {
   return client
     .from("crime_case")
