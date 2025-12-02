@@ -85,7 +85,7 @@ export default function CrimeReport({ id }: CrimeReportProps) {
     return (
       <div className="mx-auto flex max-w-5xl items-center justify-center px-4 py-16">
         <div className="bg-background flex items-center gap-3 rounded-lg border px-4 py-3">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
           <p className="text-muted-foreground text-sm">
             Loading crime report...
           </p>

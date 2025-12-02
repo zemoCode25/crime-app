@@ -1,5 +1,7 @@
 "use client";
 
+import { createRoot } from "react-dom/client";
+
 import { useEffect, useRef, useState } from "react";
 import type {
   Map as MapboxMap,
@@ -12,6 +14,7 @@ import { Coordinates, SelectedLocation } from "@/types/map";
 import { reverseGeocodeMapbox } from "@/hooks/map/useMapboxSearch";
 import { crimeCasesToGeoJSON } from "@/lib/map/crimeCasesToGeoJSON";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
+import { CrimePopup } from "./CrimePopup";
 
 type CrimeCaseFeatureProperties = {
   id?: number;
@@ -98,11 +101,10 @@ export default function Map({
 
     if (mapRef.current || !mapContainerRef.current) return;
 
-    const initialCenter =
-      initialCenterRef.current ?? [
-        INITIAL_COORDINATES.long,
-        INITIAL_COORDINATES.lat,
-      ];
+    const initialCenter = initialCenterRef.current ?? [
+      INITIAL_COORDINATES.long,
+      INITIAL_COORDINATES.lat,
+    ];
 
     let cancelled = false;
 
@@ -203,19 +205,16 @@ export default function Map({
 
         map.addControl(new mapboxglModule.NavigationControl());
 
-        map.on(
-          "click",
-          "crime-cases-points",
-          (event: MapLayerMouseEvent) => {
-            if (!mapRef.current || !event.features || !event.features.length)
-              return;
+        map.on("click", "crime-cases-points", (event: MapLayerMouseEvent) => {
+          if (!mapRef.current || !event.features || !event.features.length)
+            return;
 
-            const feature = event.features[0];
+          const feature = event.features[0];
 
-            if (feature.geometry.type !== "Point") return;
+          if (feature.geometry.type !== "Point") return;
 
-            const [lng, lat] = feature.geometry.coordinates;
-            const properties = feature.properties as CrimeCaseFeatureProperties;
+          const [lng, lat] = feature.geometry.coordinates;
+          const properties = feature.properties as CrimeCaseFeatureProperties;
 
           const title = properties.case_number || `Case #${properties.id}`;
           const location =
@@ -234,35 +233,50 @@ export default function Map({
             if (match) {
               onCaseSelectRef.current(match);
 
-                if (
-                  match.location &&
-                  match.location.lat != null &&
-                  match.location.long != null &&
-                  onLocationChangeRef.current
-                ) {
-                  onLocationChangeRef.current({
-                    lat: Number(match.location.lat),
-                    lng: Number(match.location.long),
-                    address:
-                      match.location.crime_location ||
-                      match.location.landmark ||
-                      title,
-                  });
-                }
+              if (
+                match.location &&
+                match.location.lat != null &&
+                match.location.long != null &&
+                onLocationChangeRef.current
+              ) {
+                onLocationChangeRef.current({
+                  lat: Number(match.location.lat),
+                  lng: Number(match.location.long),
+                  address:
+                    match.location.crime_location ||
+                    match.location.landmark ||
+                    title,
+                });
               }
             }
+          }
 
-            new mapboxglModule.Popup()
-              .setLngLat([lng, lat])
-              .setHTML(
-                `<div class="text-sm p-2 border rounded-sm">
-                  <div class="font-medium">${title}</div>
-                  <div class="text-gray-600 text-sm">${location}</div>
-                </div>`,
-              )
-              .addTo(mapRef.current!);
-          },
-        );
+          const popupNode = document.createElement("div");
+          const root = createRoot(popupNode);
+
+          root.render(
+            <CrimePopup
+              title={title}
+              location={location}
+              status={properties.case_status}
+              type={properties.crime_type}
+              date={properties.incident_datetime}
+            />,
+          );
+
+          const popup = new mapboxglModule.Popup({
+            closeButton: false,
+            maxWidth: "none",
+            className: "crime-popup",
+          })
+            .setLngLat([lng, lat])
+            .setDOMContent(popupNode)
+            .addTo(mapRef.current!);
+
+          popup.on("close", () => {
+            root.unmount();
+          });
+        });
       } catch (err) {
         if (cancelled) return;
         console.error("Map initialization error:", err);
