@@ -15,6 +15,7 @@ import { reverseGeocodeMapbox } from "@/hooks/map/useMapboxSearch";
 import { crimeCasesToGeoJSON } from "@/lib/map/crimeCasesToGeoJSON";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
 import { CrimePopup } from "./CrimePopup";
+import { useCrimeType } from "@/context/CrimeTypeProvider";
 
 type CrimeCaseFeatureProperties = {
   id?: number;
@@ -42,12 +43,14 @@ export default function Map({
   crimeCases,
   onCaseSelect,
 }: MapProps) {
+  const { crimeTypeConverter } = useCrimeType();
   const mapRef = useRef<MapboxMap | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<MapboxMarker | null>(null);
   const onLocationChangeRef = useRef<MapProps["onLocationChange"] | null>(null);
   const crimeCasesRef = useRef<CrimeCaseMapRecord[]>([]);
   const onCaseSelectRef = useRef<MapProps["onCaseSelect"] | null>(null);
+  const crimeTypeConverterRef = useRef(crimeTypeConverter);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +78,11 @@ export default function Map({
   useEffect(() => {
     onCaseSelectRef.current = onCaseSelect ?? null;
   }, [onCaseSelect]);
+
+  // Keep latest crimeTypeConverter in a ref
+  useEffect(() => {
+    crimeTypeConverterRef.current = crimeTypeConverter;
+  }, [crimeTypeConverter]);
 
   // When selectedLocation prop changes, move marker and fly without changing zoom
   useEffect(() => {
@@ -254,12 +262,18 @@ export default function Map({
           const popupNode = document.createElement("div");
           const root = createRoot(popupNode);
 
+          // Convert crime type number to label
+          const crimeTypeLabel =
+            typeof properties.crime_type === "number"
+              ? crimeTypeConverterRef.current(properties.crime_type)
+              : properties.crime_type;
+
           root.render(
             <CrimePopup
               title={title}
               location={location}
               status={properties.case_status}
-              type={properties.crime_type}
+              type={crimeTypeLabel}
               date={properties.incident_datetime}
             />,
           );

@@ -1,81 +1,53 @@
-import { format } from "date-fns";
-import { MapPin, Calendar, AlertCircle, FileText } from "lucide-react";
-
 interface CrimePopupProps {
   title: string;
   location: string;
   status?: string;
-  type?: string | number;
+  type?: string | null;
   date?: string | null;
 }
 
-export function CrimePopup({
-  title,
-  location,
-  status,
-  type,
-  date,
-}: CrimePopupProps) {
-  const getStatusColor = (status?: string) => {
+export function CrimePopup({ title, status, type }: CrimePopupProps) {
+  const getStatusBadgeStyle = (status?: string) => {
     const s = status?.toLowerCase();
     if (s === "open" || s === "under investigation")
-      return "bg-amber-500 text-white";
+      return "bg-yellow-100 text-yellow-800 ring-1 ring-yellow-300";
     if (s === "case settled" || s === "closed")
-      return "bg-emerald-500 text-white";
+      return "bg-green-100 text-green-800 ring-1 ring-green-300";
     if (s === "direct filing" || s === "for record")
-      return "bg-blue-500 text-white";
-    if (s === "lupon") return "bg-purple-500 text-white";
-    if (s === "turn-over") return "bg-orange-500 text-white";
-    return "bg-slate-500 text-white";
+      return "bg-blue-100 text-blue-800 ring-1 ring-blue-300";
+    if (s === "lupon")
+      return "bg-purple-100 text-purple-800 ring-1 ring-purple-300";
+    if (s === "turn-over")
+      return "bg-orange-100 text-orange-800 ring-1 ring-orange-300";
+    return "bg-gray-100 text-gray-800 ring-1 ring-gray-300";
   };
 
   return (
-    <div className="w-72 overflow-hidden rounded-lg bg-white font-sans shadow-xl ring-1 ring-black/5">
-      {/* Header */}
-      <div className="flex items-start justify-between bg-slate-900 px-4 py-3">
-        <div>
-          <h3 className="text-sm font-bold text-white">{title}</h3>
+    <div className="animate-in fade-in zoom-in-95 w-64 overflow-hidden rounded-xl bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 shadow-xl duration-150">
+      <div className="space-y-3 p-4">
+        {/* Case ID */}
+        <h3 className="truncate text-base font-bold text-white drop-shadow-sm">
+          {title}
+        </h3>
+
+        {/* Badges Container */}
+        <div className="flex flex-wrap gap-2">
+          {/* Type Badge */}
           {type && (
-            <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-slate-300">
-              <AlertCircle size={12} className="shrink-0" />
-              <span>{type}</span>
-            </div>
+            <span className="inline-flex items-center rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-orange-900 shadow-sm backdrop-blur-sm">
+              {type}
+            </span>
+          )}
+
+          {/* Status Badge */}
+          {status && (
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold shadow-sm ${getStatusBadgeStyle(status)}`}
+            >
+              {status}
+            </span>
           )}
         </div>
-        {status && (
-          <span
-            className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase ${getStatusColor(
-              status,
-            )}`}
-          >
-            {status}
-          </span>
-        )}
-      </div>
-
-      {/* Body */}
-      <div className="space-y-3 p-4">
-        <div className="flex items-start gap-3">
-          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-          <p className="text-sm leading-snug text-slate-600">{location}</p>
-        </div>
-
-        {date && (
-          <div className="flex items-center gap-3">
-            <Calendar className="h-4 w-4 shrink-0 text-slate-400" />
-            <p className="text-sm text-slate-600">
-              {format(new Date(date), "MMM d, yyyy • h:mm a")}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Footer / Action hint */}
-      <div className="border-t border-slate-100 bg-slate-50 px-4 py-2">
-        <p className="flex items-center justify-end gap-1 text-xs font-medium text-blue-600">
-          <FileText size={12} />
-          View Details
-        </p>
       </div>
     </div>
   );
