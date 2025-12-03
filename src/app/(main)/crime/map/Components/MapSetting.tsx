@@ -133,12 +133,9 @@ function SelectedCaseCard({
   return (
     <div className="flex w-full flex-col gap-2 overflow-y-scroll rounded-md border border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 p-4">
       <div className="flex flex-col gap-1">
-        <Link
-          href={`/crime/cases/${selectedCase?.id}`}
-          className="w-fit text-base font-semibold text-orange-800 underline"
-        >
+        <h1 className="w-fit text-base font-semibold text-orange-800">
           {selectedCase?.case_number || `Case #${selectedCase?.id}`}
-        </Link>
+        </h1>
         <div className="flex gap-1">
           <Badge className="px-2 py-1">{crimeTypeLabel || "Unknown"}</Badge>
           <Badge className="px-2 py-1">

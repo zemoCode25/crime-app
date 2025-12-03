@@ -270,6 +270,7 @@ export default function Map({
 
           root.render(
             <CrimePopup
+              id={properties.id}
               title={title}
               location={location}
               status={properties.case_status}
