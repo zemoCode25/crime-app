@@ -30,7 +30,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
 import { BARANGAY_OPTIONS } from "@/constants/crime-case";
-import { sendInvitation } from "@/server/actions/invitation";
 import toast from "react-hot-toast";
 
 import {
@@ -64,31 +63,45 @@ export default function InviteUserDialog() {
   const role = form.watch("role");
 
   const onSubmit = async (values: InvitationForm) => {
-    const res = await sendInvitation({
-      first_name: values.first_name,
-      last_name: values.last_name,
-      email: values.email,
-      role: values.role,
-      barangay: values.barangay || undefined,
-    });
+    try {
+      const response = await fetch("/api/mailer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: values.email,
+          firstName: values.first_name,
+          lastName: values.last_name,
+          role: values.role,
+          barangay: values.barangay || undefined,
+        }),
+      });
 
-    if (!res.ok) {
-      console.error(res.error);
-      return;
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error(data.error);
+        toast.error(data.error || "Failed to send invitation");
+        return;
+      }
+
+      toast.success("Invitation sent successfully!");
+
+      router.refresh();
+
+      form.reset({
+        first_name: "",
+        last_name: "",
+        email: "",
+        role: "system_admin",
+        barangay: 1,
+      });
+      setOpen(false);
+    } catch (error) {
+      console.error("Failed to send invitation:", error);
+      toast.error("Failed to send invitation");
     }
-
-    toast.success("Invitation sent successfully!");
-
-    router.refresh();
-
-    form.reset({
-      first_name: "",
-      last_name: "",
-      email: "",
-      role: "system_admin",
-      barangay: 1,
-    });
-    setOpen(false);
   };
 
   return (

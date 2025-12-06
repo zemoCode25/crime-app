@@ -3,12 +3,46 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '../supabase/database.types';
+import { Database, Tables } from '../supabase/database.types';
 
 const supabase = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+// Type definitions for BigQuery rows
+interface BigQueryCrimeCase {
+  id: number;
+  case_number: string | null;
+  case_status: string | null;
+  crime_type_id: number | null;
+  crime_type_name: string | null;
+  description: string | null;
+  incident_datetime: string | null;
+  report_datetime: string | null;
+  location_id: number | null;
+  latitude: number | null;
+  longitude: number | null;
+  crime_location: string | null;
+  landmark: string | null;
+  barangay: number | null;
+  visibility: string | null;
+  investigator: string | null;
+  created_at: string;
+  incident_date: string | null;
+  incident_hour: number | null;
+  incident_day_of_week: string | null;
+  incident_month: number | null;
+  incident_year: number | null;
+}
+
+interface BigQueryCrimeType {
+  id: number;
+  name: string | null;
+  label: string | null;
+  color: string | null;
+  severity_level: string;
+}
 
 async function syncCrimeCases() {
   // Dynamically import BigQuery after env vars are loaded
@@ -26,9 +60,11 @@ async function syncCrimeCases() {
   }
 
   // Create a map for quick lookup
-  const crimeTypeMap = new Map(crimeTypes.map(type => [type.id, type]));
+  const crimeTypeMap = new Map(
+    crimeTypes.map((type: Tables<'crime-type'>) => [type.id, type])
+  );
 
-  // Fetch data from Supabase
+  // Fetch crime cases with locations
   const { data: crimes, error } = await supabase
     .from('crime_case')
     .select(`
@@ -37,38 +73,41 @@ async function syncCrimeCases() {
     `);
 
   if (error) {
-    console.error('Error fetching crimes:', error);
+    console.error('Error fetching crime cases:', error);
     return;
   }
 
   // Transform data for BigQuery
-  const rows = crimes.map(crime => {
+  const rows: BigQueryCrimeCase[] = crimes.map((crime) => {
     const crimeType = crime.crime_type ? crimeTypeMap.get(crime.crime_type) : null;
+    const incidentDate = crime.incident_datetime ? new Date(crime.incident_datetime) : null;
 
     return {
       id: crime.id,
       case_number: crime.case_number,
       case_status: crime.case_status,
       crime_type_id: crime.crime_type,
-      crime_type_name: crimeType?.name,
+      crime_type_name: crimeType?.name || null,
       description: crime.description,
       incident_datetime: crime.incident_datetime,
       report_datetime: crime.report_datetime,
       location_id: crime.location_id,
-      latitude: crime.location?.lat,
-      longitude: crime.location?.long,
-      crime_location: crime.location?.crime_location,
-      landmark: crime.location?.landmark,
-      barangay: crime.location?.barangay,
+      latitude: crime.location?.lat || null,
+      longitude: crime.location?.long || null,
+      crime_location: crime.location?.crime_location || null,
+      landmark: crime.location?.landmark || null,
+      barangay: crime.location?.barangay || null,
       visibility: crime.visibility,
       investigator: crime.investigator,
       created_at: crime.created_at,
-      // Computed fields for analytics
-      incident_date: crime.incident_datetime ? new Date(crime.incident_datetime).toISOString().split('T')[0] : null,
-      incident_hour: crime.incident_datetime ? new Date(crime.incident_datetime).getHours() : null,
-      incident_day_of_week: crime.incident_datetime ? new Date(crime.incident_datetime).toLocaleDateString('en-US', { weekday: 'long' }) : null,
-      incident_month: crime.incident_datetime ? new Date(crime.incident_datetime).getMonth() + 1 : null,
-      incident_year: crime.incident_datetime ? new Date(crime.incident_datetime).getFullYear() : null,
+      // Computed analytics fields
+      incident_date: incidentDate ? incidentDate.toISOString().split('T')[0] : null,
+      incident_hour: incidentDate ? incidentDate.getHours() : null,
+      incident_day_of_week: incidentDate
+        ? incidentDate.toLocaleDateString('en-US', { weekday: 'long' })
+        : null,
+      incident_month: incidentDate ? incidentDate.getMonth() + 1 : null,
+      incident_year: incidentDate ? incidentDate.getFullYear() : null,
     };
   });
 
@@ -140,12 +179,12 @@ async function syncCrimeTypes() {
     return;
   }
 
-  const rows = types.map(type => ({
+  const rows: BigQueryCrimeType[] = types.map((type: Tables<'crime-type'>) => ({
     id: type.id,
     name: type.name,
     label: type.label,
     color: type.color,
-    severity_level: 'medium'
+    severity_level: 'medium', // Default severity level
   }));
 
   const table = dataset.table('crime_types');
