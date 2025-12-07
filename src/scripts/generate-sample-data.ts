@@ -11,100 +11,234 @@ const supabase = createClient<Database>(
 );
 
 // ============================================================================
-// CONFIGURATION - MUNTINLUPA CITY BARANGAYS
+// CONFIGURATION - MUNTINLUPA CITY HOTSPOTS
 // ============================================================================
 
-interface Barangay {
+interface Hotspot {
   name: string;
-  id: number;
-  latRange: { min: number; max: number };
-  lngRange: { min: number; max: number };
+  barangay: string;
+  barangay_id: number;
+  lat: number;
+  lng: number;
   crimeCount: number;
-  riskLevel: 'VERY LOW' | 'LOW' | 'MEDIUM' | 'MEDIUM-HIGH' | 'HIGH';
-  hotspots: number;
+  density: 'HIGH' | 'MEDIUM' | 'LOW';
 }
 
-const BARANGAYS: Barangay[] = [
+// HIGH DENSITY HOTSPOTS (8-10 crimes per location)
+const HIGH_DENSITY_HOTSPOTS: Hotspot[] = [
   {
-    name: 'Poblacion',
-    id: 1,
+    name: 'Near New Bilibid Prison',
+    barangay: 'Poblacion',
+    barangay_id: 1,
+    lat: 14.3850,
+    lng: 121.0420,
+    crimeCount: 10,
+    density: 'HIGH',
+  },
+  {
+    name: 'Poblacion Commercial Center',
+    barangay: 'Poblacion',
+    barangay_id: 1,
+    lat: 14.3832,
+    lng: 121.0432,
+    crimeCount: 8,
+    density: 'HIGH',
+  },
+  {
+    name: 'Tunasan Market Area',
+    barangay: 'Tunasan',
+    barangay_id: 2,
+    lat: 14.3755,
+    lng: 121.0485,
+    crimeCount: 8,
+    density: 'HIGH',
+  },
+  {
+    name: 'Putatan Main Road',
+    barangay: 'Putatan',
+    barangay_id: 3,
+    lat: 14.3975,
+    lng: 121.0395,
+    crimeCount: 7,
+    density: 'HIGH',
+  },
+  {
+    name: 'Bayanan Commercial District',
+    barangay: 'Bayanan',
+    barangay_id: 4,
+    lat: 14.3880,
+    lng: 121.0525,
+    crimeCount: 7,
+    density: 'HIGH',
+  },
+];
+
+// MEDIUM DENSITY ZONES (3 crimes per location)
+const MEDIUM_DENSITY_ZONES: Hotspot[] = [
+  {
+    name: 'Poblacion Residential Area',
+    barangay: 'Poblacion',
+    barangay_id: 1,
+    lat: 14.3845,
+    lng: 121.0415,
+    crimeCount: 3,
+    density: 'MEDIUM',
+  },
+  {
+    name: 'Tunasan Highway Junction',
+    barangay: 'Tunasan',
+    barangay_id: 2,
+    lat: 14.3725,
+    lng: 121.0505,
+    crimeCount: 3,
+    density: 'MEDIUM',
+  },
+  {
+    name: 'Putatan East Side',
+    barangay: 'Putatan',
+    barangay_id: 3,
+    lat: 14.4000,
+    lng: 121.0425,
+    crimeCount: 3,
+    density: 'MEDIUM',
+  },
+  {
+    name: 'Bayanan Purok 5',
+    barangay: 'Bayanan',
+    barangay_id: 4,
+    lat: 14.3895,
+    lng: 121.0545,
+    crimeCount: 3,
+    density: 'MEDIUM',
+  },
+  {
+    name: 'Sucat Town Center',
+    barangay: 'Sucat',
+    barangay_id: 9,
+    lat: 14.4175,
+    lng: 121.0455,
+    crimeCount: 3,
+    density: 'MEDIUM',
+  },
+  {
+    name: 'Sucat Residential Zone',
+    barangay: 'Sucat',
+    barangay_id: 9,
+    lat: 14.4195,
+    lng: 121.0435,
+    crimeCount: 3,
+    density: 'MEDIUM',
+  },
+  {
+    name: 'Alabang Commercial Zone',
+    barangay: 'Alabang',
+    barangay_id: 5,
+    lat: 14.4225,
+    lng: 121.0345,
+    crimeCount: 3,
+    density: 'MEDIUM',
+  },
+  {
+    name: 'Cupang Main Street',
+    barangay: 'Cupang',
+    barangay_id: 8,
+    lat: 14.4025,
+    lng: 121.0545,
+    crimeCount: 3,
+    density: 'MEDIUM',
+  },
+  {
+    name: 'Putatan North',
+    barangay: 'Putatan',
+    barangay_id: 3,
+    lat: 14.4035,
+    lng: 121.0405,
+    crimeCount: 3,
+    density: 'MEDIUM',
+  },
+  {
+    name: 'Bayanan West',
+    barangay: 'Bayanan',
+    barangay_id: 4,
+    lat: 14.3865,
+    lng: 121.0495,
+    crimeCount: 3,
+    density: 'MEDIUM',
+  },
+];
+
+// LOW DENSITY SCATTERED AREAS (1 crime per random location)
+interface ScatteredArea {
+  barangay: string;
+  barangay_id: number;
+  latRange: { min: number; max: number };
+  lngRange: { min: number; max: number };
+  count: number;
+}
+
+const SCATTERED_AREAS: ScatteredArea[] = [
+  {
+    barangay: 'Poblacion',
+    barangay_id: 1,
     latRange: { min: 14.380, max: 14.390 },
     lngRange: { min: 121.040, max: 121.046 },
-    crimeCount: 25,
-    riskLevel: 'HIGH',
-    hotspots: 3,
+    count: 5,
   },
   {
-    name: 'Tunasan',
-    id: 2,
+    barangay: 'Tunasan',
+    barangay_id: 2,
     latRange: { min: 14.370, max: 14.380 },
     lngRange: { min: 121.045, max: 121.055 },
-    crimeCount: 20,
-    riskLevel: 'HIGH',
-    hotspots: 2,
+    count: 5,
   },
   {
-    name: 'Putatan',
-    id: 3,
+    barangay: 'Putatan',
+    barangay_id: 3,
     latRange: { min: 14.390, max: 14.405 },
     lngRange: { min: 121.035, max: 121.045 },
-    crimeCount: 15,
-    riskLevel: 'MEDIUM-HIGH',
-    hotspots: 2,
+    count: 5,
   },
   {
-    name: 'Bayanan',
-    id: 4,
+    barangay: 'Bayanan',
+    barangay_id: 4,
     latRange: { min: 14.380, max: 14.395 },
     lngRange: { min: 121.048, max: 121.058 },
-    crimeCount: 12,
-    riskLevel: 'MEDIUM',
-    hotspots: 1,
+    count: 4,
   },
   {
-    name: 'Sucat',
-    id: 9,
+    barangay: 'Sucat',
+    barangay_id: 9,
     latRange: { min: 14.410, max: 14.425 },
     lngRange: { min: 121.040, max: 121.050 },
-    crimeCount: 10,
-    riskLevel: 'MEDIUM',
-    hotspots: 1,
+    count: 4,
   },
   {
-    name: 'Alabang',
-    id: 5,
+    barangay: 'Alabang',
+    barangay_id: 5,
     latRange: { min: 14.410, max: 14.430 },
     lngRange: { min: 121.030, max: 121.040 },
-    crimeCount: 8,
-    riskLevel: 'MEDIUM',
-    hotspots: 1,
+    count: 3,
   },
   {
-    name: 'Cupang',
-    id: 8,
+    barangay: 'Cupang',
+    barangay_id: 8,
     latRange: { min: 14.395, max: 14.410 },
     lngRange: { min: 121.050, max: 121.060 },
-    crimeCount: 5,
-    riskLevel: 'LOW',
-    hotspots: 0,
+    count: 2,
   },
   {
-    name: 'Buli',
-    id: 7,
+    barangay: 'Buli',
+    barangay_id: 7,
     latRange: { min: 14.375, max: 14.390 },
     lngRange: { min: 121.055, max: 121.065 },
-    crimeCount: 3,
-    riskLevel: 'LOW',
-    hotspots: 0,
+    count: 1,
   },
   {
-    name: 'Ayala Alabang',
-    id: 6,
+    barangay: 'Ayala Alabang',
+    barangay_id: 6,
     latRange: { min: 14.420, max: 14.430 },
     lngRange: { min: 121.045, max: 121.060 },
-    crimeCount: 2,
-    riskLevel: 'VERY LOW',
-    hotspots: 0,
+    count: 1,
   },
 ];
 
@@ -136,7 +270,9 @@ const CONFIG = {
   },
   visibilityPublicRate: 0.85, // 85% public
   reportDelayHours: { min: 0, max: 24 },
-  hotspotRadius: 0.0015, // ~165m radius for hotspots
+  // TIGHT CLUSTERING: Keep crimes within same 110m grid cell
+  highDensityRadius: 0.0004, // ~22m radius (±0.0002 deg offset keeps in same grid)
+  mediumDensityRadius: 0.0006, // ~33m radius (±0.0003 deg offset)
   investigators: ['PO1 Santos', 'PO2 Reyes', 'PO1 Cruz', 'PO2 Dela Cruz'],
 } as const;
 
@@ -199,54 +335,57 @@ interface CrimeData {
   case_status: typeof STATUSES[number];
 }
 
-function generateBarangayCrimes(barangay: Barangay, caseNumberStart: number): CrimeData[] {
+function generateHotspotCrimes(hotspot: Hotspot, caseNumberStart: number): CrimeData[] {
   const crimes: CrimeData[] = [];
   let caseCounter = caseNumberStart;
+  const radius = hotspot.density === 'HIGH' ? CONFIG.highDensityRadius : CONFIG.mediumDensityRadius;
 
-  // Generate HOTSPOT crimes (60% of crimes in hotspot areas)
-  if (barangay.hotspots > 0) {
-    const crimesPerHotspot = Math.floor((barangay.crimeCount * 0.6) / barangay.hotspots);
-
-    for (let h = 0; h < barangay.hotspots; h++) {
-      // Create a hotspot location
-      const hotspotLat = randomInRange(barangay.latRange.min, barangay.latRange.max);
-      const hotspotLng = randomInRange(barangay.lngRange.min, barangay.lngRange.max);
-
-      // Generate multiple crimes at this hotspot
-      for (let i = 0; i < crimesPerHotspot; i++) {
-        const incident = randomDate(CONFIG.dateRange.start, CONFIG.dateRange.end);
-        const hour = weightedRandomHour();
-        incident.setHours(hour, Math.floor(Math.random() * 60), 0, 0);
-
-        crimes.push({
-          lat: hotspotLat + (Math.random() - 0.5) * CONFIG.hotspotRadius * 2,
-          lng: hotspotLng + (Math.random() - 0.5) * CONFIG.hotspotRadius * 2,
-          landmark: `${barangay.name} Hotspot ${h + 1}`,
-          barangay_id: barangay.id,
-          barangay_name: barangay.name,
-          incident_datetime: incident,
-          crime_type: weightedRandomCrimeType(),
-          case_number: `MNT-2024-${String(caseCounter++).padStart(4, '0')}`,
-          case_status: randomItem(STATUSES),
-        });
-      }
-    }
-  }
-
-  // Generate SCATTERED crimes (remaining 40% in unique locations)
-  const remainingCrimes = barangay.crimeCount - crimes.length;
-
-  for (let i = 0; i < remainingCrimes; i++) {
+  for (let i = 0; i < hotspot.crimeCount; i++) {
     const incident = randomDate(CONFIG.dateRange.start, CONFIG.dateRange.end);
     const hour = weightedRandomHour();
     incident.setHours(hour, Math.floor(Math.random() * 60), 0, 0);
 
+    // TIGHT CLUSTERING: Very small offset to keep crimes in same grid cell
+    // For HIGH density: ±0.0002 degrees = ±22m (stays within 110m grid)
+    // For MEDIUM density: ±0.0003 degrees = ±33m (mostly same grid, some adjacent)
+    const offsetLat = hotspot.lat + (Math.random() - 0.5) * radius * 2;
+    const offsetLng = hotspot.lng + (Math.random() - 0.5) * radius * 2;
+
     crimes.push({
-      lat: randomInRange(barangay.latRange.min, barangay.latRange.max),
-      lng: randomInRange(barangay.lngRange.min, barangay.lngRange.max),
-      landmark: `${barangay.name} Area ${i + 1}`,
-      barangay_id: barangay.id,
-      barangay_name: barangay.name,
+      lat: offsetLat,
+      lng: offsetLng,
+      landmark: hotspot.name,
+      barangay_id: hotspot.barangay_id,
+      barangay_name: hotspot.barangay,
+      incident_datetime: incident,
+      crime_type: weightedRandomCrimeType(),
+      case_number: `MNT-2024-${String(caseCounter++).padStart(4, '0')}`,
+      case_status: randomItem(STATUSES),
+    });
+  }
+
+  return crimes;
+}
+
+function generateScatteredCrimes(area: ScatteredArea, caseNumberStart: number): CrimeData[] {
+  const crimes: CrimeData[] = [];
+  let caseCounter = caseNumberStart;
+
+  for (let i = 0; i < area.count; i++) {
+    const incident = randomDate(CONFIG.dateRange.start, CONFIG.dateRange.end);
+    const hour = weightedRandomHour();
+    incident.setHours(hour, Math.floor(Math.random() * 60), 0, 0);
+
+    // Fully random location within the barangay bounds
+    const lat = randomInRange(area.latRange.min, area.latRange.max);
+    const lng = randomInRange(area.lngRange.min, area.lngRange.max);
+
+    crimes.push({
+      lat,
+      lng,
+      landmark: `${area.barangay} Street ${i + 1}`,
+      barangay_id: area.barangay_id,
+      barangay_name: area.barangay,
       incident_datetime: incident,
       crime_type: weightedRandomCrimeType(),
       case_number: `MNT-2024-${String(caseCounter++).padStart(4, '0')}`,
@@ -312,19 +451,20 @@ async function insertCrimeRecord(crime: CrimeData): Promise<boolean> {
 // ============================================================================
 
 async function generateMuntinlupaData() {
-  console.log('🗺️  Generating Muntinlupa City-wide crime data...\n');
+  console.log('🗺️  Generating Muntinlupa City with TIGHT HOTSPOTS...\n');
+  console.log('🎯 Strategy: Minimize offsets to keep crimes in same 110m grid cell\n');
 
   let caseCounter = 1;
   let totalGenerated = 0;
 
-  for (const barangay of BARANGAYS) {
-    console.log(`📍 Generating ${barangay.crimeCount} crimes for Brgy. ${barangay.name} (${barangay.riskLevel})`);
+  // 1. GENERATE HIGH CONCENTRATION HOTSPOTS
+  console.log('🔥 Creating HIGH CONCENTRATION HOTSPOTS (7-10 crimes each)...');
+  for (const hotspot of HIGH_DENSITY_HOTSPOTS) {
+    console.log(`   📍 ${hotspot.name} (${hotspot.barangay}): ${hotspot.crimeCount} crimes`);
 
-    // Generate crimes for this barangay
-    const crimes = generateBarangayCrimes(barangay, caseCounter);
+    const crimes = generateHotspotCrimes(hotspot, caseCounter);
     caseCounter += crimes.length;
 
-    // Insert crimes into database
     let successCount = 0;
     for (const crime of crimes) {
       const success = await insertCrimeRecord(crime);
@@ -332,30 +472,72 @@ async function generateMuntinlupaData() {
     }
 
     totalGenerated += successCount;
-    console.log(`   ✅ Generated ${successCount}/${crimes.length} crimes for ${barangay.name}`);
+    console.log(`      ✅ Created ${successCount} crimes (tight cluster)`);
+  }
+
+  // 2. GENERATE MEDIUM CONCENTRATION ZONES
+  console.log('\n🟡 Creating MEDIUM CONCENTRATION ZONES (3 crimes each)...');
+  for (const zone of MEDIUM_DENSITY_ZONES) {
+    console.log(`   📍 ${zone.name} (${zone.barangay}): ${zone.crimeCount} crimes`);
+
+    const crimes = generateHotspotCrimes(zone, caseCounter);
+    caseCounter += crimes.length;
+
+    let successCount = 0;
+    for (const crime of crimes) {
+      const success = await insertCrimeRecord(crime);
+      if (success) successCount++;
+    }
+
+    totalGenerated += successCount;
+    console.log(`      ✅ Created ${successCount} crimes (moderate cluster)`);
+  }
+
+  // 3. GENERATE SCATTERED SINGLE CRIMES
+  console.log('\n🟢 Creating SCATTERED SINGLE CRIMES (1 per location)...');
+  for (const area of SCATTERED_AREAS) {
+    console.log(`   📍 ${area.barangay}: ${area.count} scattered crimes`);
+
+    const crimes = generateScatteredCrimes(area, caseCounter);
+    caseCounter += crimes.length;
+
+    let successCount = 0;
+    for (const crime of crimes) {
+      const success = await insertCrimeRecord(crime);
+      if (success) successCount++;
+    }
+
+    totalGenerated += successCount;
+    console.log(`      ✅ Created ${successCount} scattered crimes`);
   }
 
   // Summary
   console.log(`\n✅ Successfully generated ${totalGenerated} crimes across Muntinlupa City!`);
 
-  // Distribution visualization
-  console.log('\n📊 DISTRIBUTION SUMMARY:');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  const totalCrimes = BARANGAYS.reduce((sum, b) => sum + b.crimeCount, 0);
+  // Distribution breakdown
+  const highDensityTotal = HIGH_DENSITY_HOTSPOTS.reduce((sum, h) => sum + h.crimeCount, 0);
+  const mediumDensityTotal = MEDIUM_DENSITY_ZONES.reduce((sum, h) => sum + h.crimeCount, 0);
+  const scatteredTotal = SCATTERED_AREAS.reduce((sum, a) => sum + a.count, 0);
+  const totalCrimes = highDensityTotal + mediumDensityTotal + scatteredTotal;
 
-  for (const barangay of BARANGAYS) {
-    const percentage = ((barangay.crimeCount / totalCrimes) * 100).toFixed(0);
-    const bar = '█'.repeat(Math.floor(barangay.crimeCount / 2));
-    console.log(`${barangay.name.padEnd(20)} ${bar} ${barangay.crimeCount} (${percentage}%)`);
-  }
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('\n📊 FINAL DISTRIBUTION (TIGHT CLUSTERING):');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`HIGH RISK (7-10 crimes):    ${HIGH_DENSITY_HOTSPOTS.length} locations  = ${highDensityTotal} crimes`);
+  console.log(`MEDIUM RISK (3 crimes):    ${MEDIUM_DENSITY_ZONES.length} locations  = ${mediumDensityTotal} crimes`);
+  console.log(`LOW RISK (1 crime):        ${scatteredTotal} locations  = ${scatteredTotal} crimes`);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`\nTOTAL: ${totalCrimes} crimes across ${HIGH_DENSITY_HOTSPOTS.length + MEDIUM_DENSITY_ZONES.length + scatteredTotal} unique locations`);
 
-  // Additional stats
   console.log('\n📈 STATISTICS:');
-  console.log(`   • Total Crimes: ${totalCrimes}`);
   console.log(`   • Date Range: ${CONFIG.dateRange.start.toDateString()} to ${CONFIG.dateRange.end.toDateString()}`);
-  console.log(`   • High Risk Barangays: ${BARANGAYS.filter(b => b.riskLevel === 'HIGH').length}`);
-  console.log(`   • Total Hotspots: ${BARANGAYS.reduce((sum, b) => sum + b.hotspots, 0)}`);
+  console.log(`   • High Density Hotspots: ${HIGH_DENSITY_HOTSPOTS.length}`);
+  console.log(`   • Medium Density Zones: ${MEDIUM_DENSITY_ZONES.length}`);
+  console.log(`   • Scattered Crime Locations: ${scatteredTotal}`);
+
+  console.log('\n💡 OFFSET STRATEGY (Grid-Aware):');
+  console.log('   Hotspots: ±22m (keeps within same 110m grid cell)');
+  console.log('   Medium: ±33m (mostly same cell, some adjacent)');
+  console.log('   Scattered: Fully random (guaranteed unique)');
 }
 
 // ============================================================================
@@ -366,14 +548,15 @@ if (require.main === module) {
   generateMuntinlupaData()
     .then(() => {
       console.log('\n🎉 Data generation complete!\n');
-      console.log('Next steps:');
+      console.log('📋 Next steps:');
       console.log('1. Run: npx tsx src/server/queries/sync-to-bigquery.ts');
-      console.log('2. Train BigQuery ML model in BigQuery Console');
-      console.log('3. Test predictions on your dashboard\n');
+      console.log('2. Verify distribution in BigQuery');
+      console.log('3. Train ML model with threshold of 5+');
+      console.log('4. Test predictions\n');
       process.exit(0);
     })
     .catch((error) => {
-      console.error('\n❌ Error:', error);
+      console.error('❌ Error:', error);
       process.exit(1);
     });
 }
