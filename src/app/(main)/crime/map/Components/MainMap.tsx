@@ -144,11 +144,82 @@ export default function Map({
 
           map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
 
+          // Add crime cases source
           map.addSource("crime-cases", {
             type: "geojson",
             data: { type: "FeatureCollection", features: [] },
           });
 
+          // Add native Mapbox heatmap layer for crime density visualization
+          map.addLayer({
+            id: "crime-heatmap",
+            type: "heatmap",
+            source: "crime-cases",
+            paint: {
+              // Increase weight as zoom level increases for better visibility
+              "heatmap-weight": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                0,
+                0.5,
+                15,
+                1,
+              ],
+              // Increase intensity as zoom level increases
+              "heatmap-intensity": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                0,
+                1,
+                15,
+                1.5,
+              ],
+              // Color gradient from yellow (low density) to dark red (high density)
+              "heatmap-color": [
+                "interpolate",
+                ["linear"],
+                ["heatmap-density"],
+                0,
+                "rgba(0, 0, 0, 0)",
+                0.2,
+                "rgba(255, 255, 0, 0.6)",
+                0.4,
+                "rgba(255, 165, 0, 0.7)",
+                0.6,
+                "rgba(255, 69, 0, 0.8)",
+                0.8,
+                "rgba(255, 0, 0, 0.9)",
+                1,
+                "rgba(139, 0, 0, 0.95)",
+              ],
+              // Adjust radius by zoom level
+              "heatmap-radius": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                0,
+                10,
+                15,
+                30,
+                18,
+                50,
+              ],
+              // Fade out heatmap at higher zoom levels when points become visible
+              "heatmap-opacity": [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                7,
+                0.8,
+                16,
+                0.5,
+              ],
+            },
+          });
+
+          // Crime case points layer (rendered on top of heatmap)
           map.addLayer({
             id: "crime-cases-points",
             type: "circle",
