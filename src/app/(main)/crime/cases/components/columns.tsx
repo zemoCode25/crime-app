@@ -160,10 +160,6 @@ export const createColumns = (
     },
     enableGlobalFilter: true,
   },
-  {
-    id: "actions",
-    cell: ({ row }) => <ActionsCell crime={row.original} />,
-  },
 ];
 
 // ✅ Keep backward compatibility (without filter functions)

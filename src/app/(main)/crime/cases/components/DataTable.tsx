@@ -52,8 +52,11 @@ import { CrimeTableRow } from "@/app/(main)/crime/cases/components/columns";
 import { createColumns } from "./columns";
 import { useCrimeType } from "@/context/CrimeTypeProvider";
 
+import { useRouter } from "next/navigation";
+
 // ✅ Use specific type instead of generic
 export function DataTable({ data }: { data: CrimeTableRow[] }) {
+  const router = useRouter();
   // ✅ Hook called at component level (correct!)
   const { crimeTypeConverter } = useCrimeType();
 
@@ -366,25 +369,23 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => {
                 return (
-                  <Dialog key={row.id}>
-                    <DialogTrigger asChild>
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && "selected"}
-                        className="cursor-pointer hover:bg-neutral-200/50"
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id} className="px-4">
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    </DialogTrigger>
-                    <UpdateCrimeCase caseId={row.original.id} />
-                  </Dialog>
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className="cursor-pointer hover:bg-neutral-200/50"
+                    onClick={() =>
+                      router.push(`/crime/cases/${row.original.id}`)
+                    }
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="p-4">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
                 );
               })
             ) : (

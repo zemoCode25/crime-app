@@ -7,5 +7,9 @@ export default async function Page({
 }) {
   const { id } = await params;
 
-  return <CrimeReport id={Number(id)} />;
+  return (
+    <div className="p-4">
+      <CrimeReport id={Number(id)} />
+    </div>
+  );
 }
