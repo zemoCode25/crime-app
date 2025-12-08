@@ -6,8 +6,10 @@ import useSupabaseBrowser from "@/server/supabase/client";
 import {
   getTopCrimeTypes,
   getCrimeTrendData,
+  getCrimeStatusDistribution,
   type TopCrimeType,
   type CrimeTrendPoint,
+  type CrimeStatusDistribution,
 } from "@/server/queries/dashboard";
 
 interface UseCrimeChartDataArgs {
@@ -78,6 +80,36 @@ export function useCrimeTrendData({
       });
     },
     enabled: !!supabase && crimeType !== null && !!dateRange?.from && !!dateRange?.to,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+}
+
+/**
+ * Hook to fetch crime status distribution
+ */
+export function useCrimeStatusDistribution({ dateRange }: UseCrimeChartDataArgs) {
+  const supabase = useSupabaseBrowser();
+
+  return useQuery<CrimeStatusDistribution[]>({
+    queryKey: [
+      "crime-status-distribution",
+      {
+        from: dateRange?.from?.toISOString() ?? null,
+        to: dateRange?.to?.toISOString() ?? null,
+      },
+    ],
+    queryFn: async () => {
+      if (!supabase) {
+        throw new Error("Supabase client not available");
+      }
+
+      return getCrimeStatusDistribution(supabase, {
+        startDate: dateRange?.from,
+        endDate: dateRange?.to,
+      });
+    },
+    enabled: !!supabase,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
   });

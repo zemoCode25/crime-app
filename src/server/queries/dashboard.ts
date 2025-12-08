@@ -386,3 +386,65 @@ export async function getCrimeTrendData(
   return trendData;
 }
 
+// ==================== CRIME STATUS DISTRIBUTION ====================
+
+export interface CrimeStatusDistribution {
+  status: string;
+  count: number;
+  label: string;
+  fill: string;
+}
+
+/**
+ * Get the distribution of crimes by status
+ */
+export async function getCrimeStatusDistribution(
+  client: TypedSupabaseClient,
+  params: DashboardMetricsParams = {},
+): Promise<CrimeStatusDistribution[]> {
+  const { startDate, endDate } = params;
+
+  let query = client.from("crime_case").select("case_status");
+
+  if (startDate) {
+    query = query.gte("report_datetime", startDate.toISOString());
+  }
+  if (endDate) {
+    query = query.lte("report_datetime", endDate.toISOString());
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  // Count occurrences of each status
+  const statusCounts = new Map<string, number>();
+  data?.forEach((record) => {
+    if (record.case_status !== null) {
+      const current = statusCounts.get(record.case_status) || 0;
+      statusCounts.set(record.case_status, current + 1);
+    }
+  });
+
+  // Define status colors and labels
+  const statusConfig: Record<string, { label: string; fill: string }> = {
+    open: { label: "Open", fill: "#FF6467" },
+    "under investigation": { label: "Under Investigation", fill: "#FF8904" },
+    "case settled": { label: "Case Settled", fill: "#9AE600" },
+    lupon: { label: "Lupon", fill: "#7BF1A8" },
+    "direct filing": { label: "Direct Filing", fill: "#534AFD" },
+    "for record": { label: "For Record", fill: "#F59E0B" },
+    "turn-over": { label: "Turn-Over", fill: "#06B6D4" },
+  };
+
+  // Convert to array with proper formatting
+  return Array.from(statusCounts.entries()).map(([status, count]) => ({
+    status,
+    count,
+    label: statusConfig[status]?.label || status,
+    fill: statusConfig[status]?.fill || "#999999",
+  }));
+}
+
