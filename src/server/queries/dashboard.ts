@@ -236,3 +236,153 @@ export async function getDashboardMetrics(
   };
 }
 
+// ==================== CHART DATA QUERIES ====================
+
+export interface TopCrimeType {
+  crimeType: number;
+  count: number;
+  label: string;
+}
+
+export interface CrimeTrendPoint {
+  date: Date;
+  count: number;
+  label: string;
+}
+
+/**
+ * Get the top 5 most prevalent crime types in the given timeframe
+ */
+export async function getTopCrimeTypes(
+  client: TypedSupabaseClient,
+  params: DashboardMetricsParams = {},
+): Promise<TopCrimeType[]> {
+  const { startDate, endDate } = params;
+
+  let query = client
+    .from("crime_case")
+    .select("crime_type");
+
+  if (startDate) {
+    query = query.gte("report_datetime", startDate.toISOString());
+  }
+
+  if (endDate) {
+    query = query.lte("report_datetime", endDate.toISOString());
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  // Count occurrences of each crime type
+  const crimeCounts = new Map<number, number>();
+  data?.forEach((record) => {
+    if (record.crime_type !== null) {
+      const current = crimeCounts.get(record.crime_type) || 0;
+      crimeCounts.set(record.crime_type, current + 1);
+    }
+  });
+
+  // Convert to array and sort by count
+  const sortedCrimes = Array.from(crimeCounts.entries())
+    .map(([crimeType, count]) => ({ crimeType, count, label: "" }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  // Fetch crime type labels
+  const crimeTypeIds = sortedCrimes.map((c) => c.crimeType);
+
+  if (crimeTypeIds.length === 0) {
+    return [];
+  }
+
+  const { data: crimeTypeData, error: crimeTypeError } = await client
+    .from("crime-type")
+    .select("id, label")
+    .in("id", crimeTypeIds);
+
+  if (crimeTypeError) {
+    throw crimeTypeError;
+  }
+
+  // Map labels to crime types
+  const labelMap = new Map(crimeTypeData?.map((ct) => [ct.id, ct.label]) || []);
+
+  return sortedCrimes.map((crime) => ({
+    ...crime,
+    label: labelMap.get(crime.crimeType) || `Crime Type ${crime.crimeType}`,
+  }));
+}
+
+/**
+ * Divide a time range into 7 equal segments and count crimes for each
+ */
+export async function getCrimeTrendData(
+  client: TypedSupabaseClient,
+  crimeType: number,
+  params: DashboardMetricsParams = {},
+): Promise<CrimeTrendPoint[]> {
+  const { startDate, endDate } = params;
+
+  if (!startDate || !endDate) {
+    return [];
+  }
+
+  const totalMs = endDate.getTime() - startDate.getTime();
+  const segmentMs = totalMs / 7;
+
+  // Generate 7 time segments
+  const segments: { start: Date; end: Date; label: string }[] = [];
+  for (let i = 0; i < 7; i++) {
+    const segmentStart = new Date(startDate.getTime() + segmentMs * i);
+    const segmentEnd = new Date(startDate.getTime() + segmentMs * (i + 1));
+
+    // Format label based on timeframe duration
+    const daysInSegment = Math.ceil(segmentMs / (24 * 60 * 60 * 1000));
+    let label: string;
+
+    // Use actual start/end dates for first and last segments
+    const labelDate = i === 6 ? endDate : segmentStart;
+
+    if (daysInSegment < 1) {
+      // Hours
+      label = labelDate.toLocaleTimeString("en-US", { hour: "2-digit" });
+    } else if (daysInSegment === 1) {
+      // Single day
+      label = labelDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    } else {
+      // Multiple days
+      label = labelDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    }
+
+    segments.push({ start: segmentStart, end: segmentEnd, label });
+  }
+
+  // Query crime counts for each segment
+  const trendData: CrimeTrendPoint[] = [];
+
+  for (const segment of segments) {
+    const { count, error } = await client
+      .from("crime_case")
+      .select("id", { count: "exact", head: true })
+      .eq("crime_type", crimeType)
+      .gte("report_datetime", segment.start.toISOString())
+      .lte("report_datetime", segment.end.toISOString());
+
+    if (error) {
+      throw error;
+    }
+
+    trendData.push({
+      date: segment.start,
+      count: count || 0,
+      label: segment.label,
+    });
+  }
+
+  return trendData;
+}
+
