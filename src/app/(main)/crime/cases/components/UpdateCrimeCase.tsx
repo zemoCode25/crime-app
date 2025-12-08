@@ -89,7 +89,9 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
         lat: crimeData.location?.lat || 0,
         long: crimeData.location?.long || 0,
 
-        persons: crimeData.case_person?.map(mapCasePersonToFormPerson) || [
+        persons: (crimeData.case_person as unknown as CasePersonRecord[])?.map(
+          mapCasePersonToFormPerson,
+        ) || [
           {
             first_name: "",
             last_name: "",

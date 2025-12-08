@@ -79,7 +79,7 @@ export default function CardSection({ dateRange }: CardSectionProps) {
 
         const value: number | string = isLoading
           ? "..."
-          : metricData?.value ?? 0;
+          : (metricData?.value ?? 0);
 
         const trend =
           !isLoading && metricData?.trend
@@ -104,4 +104,3 @@ export default function CardSection({ dateRange }: CardSectionProps) {
     </div>
   );
 }
-

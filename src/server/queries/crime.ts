@@ -52,7 +52,10 @@ export async function getCrimeCaseById(client: TypedSupabaseClient, caseId: numb
       location (*),
       case_person (
         *,
-        person_profile (*)
+        person_profile (*),
+        suspect!suspect_id_fkey (*),
+        complainant!complainant_id_fkey (*),
+        witness!witness_id_fkey (*)
       )
     `)
     .eq("id", caseId)

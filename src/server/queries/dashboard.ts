@@ -13,6 +13,8 @@ export interface DashboardTrend {
   value: number;
   percentage: number;
   isPositive: boolean;
+  periodLabel: string;
+  isSignificant: boolean;
 }
 
 export interface DashboardMetricValue {
@@ -68,6 +70,7 @@ function calculateTrend(
   current: number,
   previous: number,
   positiveDirection: "up" | "down",
+  daysInPeriod: number,
 ): DashboardTrend {
   const change = current - previous;
 
@@ -81,10 +84,20 @@ function calculateTrend(
   const isPositive =
     positiveDirection === "up" ? change >= 0 : change <= 0;
 
+  // Statistical significance: require at least 5 cases to show meaningful trend
+  const isSignificant = current >= 5 || previous >= 5;
+
+  // Generate period label
+  const periodLabel = daysInPeriod === 1
+    ? "vs. yesterday"
+    : `vs. previous ${daysInPeriod} days`;
+
   return {
     value: change,
     percentage: Number(percentage.toFixed(1)),
     isPositive,
+    periodLabel,
+    isSignificant,
   };
 }
 
@@ -167,21 +180,23 @@ export async function getDashboardMetrics(
     }),
   ]);
 
-  const totalTrend = calculateTrend(currentTotal, previousTotal, "down");
+  const daysInPeriod = Math.max(
+    1,
+    Math.round(safePeriodMs / (24 * 60 * 60 * 1000)),
+  );
+
+  const totalTrend = calculateTrend(currentTotal, previousTotal, "down", daysInPeriod);
   const underInvestigationTrend = calculateTrend(
     currentUnderInvestigation,
     previousUnderInvestigation,
     "down",
+    daysInPeriod,
   );
   const settledTrend = calculateTrend(
     currentSettled,
     previousSettled,
     "up",
-  );
-
-  const daysInPeriod = Math.max(
-    1,
-    Math.round(safePeriodMs / (24 * 60 * 60 * 1000)),
+    daysInPeriod,
   );
 
   const currentCrimeRate = currentTotal / daysInPeriod;
@@ -190,6 +205,7 @@ export async function getDashboardMetrics(
     currentCrimeRate,
     previousCrimeRate,
     "down",
+    daysInPeriod,
   );
 
   return {

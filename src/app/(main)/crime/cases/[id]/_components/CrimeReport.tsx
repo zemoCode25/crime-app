@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useCrimeCase } from "@/hooks/crime-case/useCrimeCase";
 import { useCrimeType } from "@/context/CrimeTypeProvider";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { pdf } from "@react-pdf/renderer";
+import { CrimeReportPDF } from "./CrimeReportPDF";
 import {
   CardHeader,
   CardTitle,
@@ -39,6 +42,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import UpdateCrimeCase from "../../components/UpdateCrimeCase";
 import DeleteModal from "@/components/utils/delete-modal";
+import { Toaster } from "react-hot-toast";
 
 type CrimeReportProps = {
   id: number;
@@ -94,10 +98,51 @@ function getRoleColor(role: string | null | undefined) {
 export default function CrimeReport({ id }: CrimeReportProps) {
   const { data: crimeCase, isLoading, error } = useCrimeCase(id);
   const { crimeTypeConverter } = useCrimeType();
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadPDF = async () => {
+    if (!crimeCase) return;
+
+    try {
+      setIsDownloading(true);
+
+      const crimeTypeLabel =
+        crimeCase.crime_type != null
+          ? crimeTypeConverter(crimeCase.crime_type)
+          : "Unknown";
+
+      // Generate PDF blob
+      const blob = await pdf(
+        <CrimeReportPDF
+          crimeCase={crimeCase}
+          crimeTypeLabel={crimeTypeLabel}
+          getStatusLabel={getStatusLabel}
+          getBarangayLabel={getBarangayLabel}
+          formatDateTime={formatDateTime}
+        />,
+      ).toBlob();
+
+      // Create download link
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `crime-report-${crimeCase.case_number || crimeCase.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   if (isLoading) {
     return (
       <ScrollArea className="mt-14 h-[calc(100vh-4rem)] w-full bg-slate-50/50 dark:bg-slate-950/50">
+        <Toaster />
         <div className="mx-auto max-w-7xl space-y-6 p-6">
           {/* Header Skeleton */}
           <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
@@ -217,7 +262,8 @@ export default function CrimeReport({ id }: CrimeReportProps) {
       ? crimeTypeConverter(crimeCase.crime_type)
       : "Unknown";
 
-  const participants = (crimeCase.case_person ?? []) as CasePersonRecord[];
+  const participants = (crimeCase.case_person ??
+    []) as unknown as CasePersonRecord[];
   const location = crimeCase.location;
 
   return (
@@ -268,8 +314,11 @@ export default function CrimeReport({ id }: CrimeReportProps) {
             <Button
               variant="outline"
               className="cursor-pointer border shadow-none"
+              onClick={handleDownloadPDF}
+              disabled={isDownloading}
             >
-              <Download className="h-2 w-2" /> <p>PDF</p>
+              <Download className="h-2 w-2" />
+              <p>{isDownloading ? "Generating..." : "PDF"}</p>
             </Button>
             <Dialog>
               <DialogTrigger asChild>
@@ -482,6 +531,58 @@ export default function CrimeReport({ id }: CrimeReportProps) {
                                 <MapPin className="mt-0.5 h-3.5 w-3.5 opacity-70" />
                                 <span className="line-clamp-2">
                                   {profile.address}
+                                </span>
+                              </div>
+                            )}
+                            {profile?.birth_date && (
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-3.5 w-3.5 opacity-70" />
+                                <span>
+                                  {new Date(
+                                    profile.birth_date,
+                                  ).toLocaleDateString("en-US", {
+                                    year: "numeric",
+                                    month: "short",
+                                    day: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                            )}
+                            {profile?.sex && (
+                              <div className="flex items-center gap-2">
+                                <User className="h-3.5 w-3.5 opacity-70" />
+                                <span className="capitalize">
+                                  {profile.sex}
+                                </span>
+                              </div>
+                            )}
+                            {profile?.civil_status && (
+                              <div className="flex items-center gap-2">
+                                <Info className="h-3.5 w-3.5 opacity-70" />
+                                <span className="capitalize">
+                                  {profile.civil_status}
+                                </span>
+                              </div>
+                            )}
+                            {profile?.person_notified && (
+                              <div className="flex items-start gap-2">
+                                <AlertCircle className="mt-0.5 h-3.5 w-3.5 opacity-70" />
+                                <span className="text-xs">
+                                  <span className="font-medium">
+                                    Person Notified:
+                                  </span>{" "}
+                                  {profile.person_notified}
+                                </span>
+                              </div>
+                            )}
+                            {profile?.related_contact && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-3.5 w-3.5 opacity-70" />
+                                <span className="text-xs">
+                                  <span className="font-medium">
+                                    Related Contact:
+                                  </span>{" "}
+                                  {profile.related_contact}
                                 </span>
                               </div>
                             )}
