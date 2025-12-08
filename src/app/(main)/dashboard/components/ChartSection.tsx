@@ -17,7 +17,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { DateRange } from "react-day-picker";
-import CrimeTypeChart from "@/app/(main)/analytics/components/CrimeTypePie";
+import CrimeStatusChart from "../../analytics/components/CrimeStatusPie";
 import {
   useTopCrimeTypes,
   useCrimeTrendData,
@@ -224,7 +224,7 @@ export default function ChartSection({
           </div>
         )}
       </div>
-      <CrimeTypeChart />
+      <CrimeStatusChart dateRange={dateRange} />
     </div>
   );
 }

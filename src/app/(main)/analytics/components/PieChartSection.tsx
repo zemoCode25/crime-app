@@ -1,5 +1,5 @@
 import PieChartStats from "./PieChartStats";
-import CrimeTypeChart from "./CrimeTypePie";
+import CrimeTypeChart from "./CrimeStatusPie";
 import StatusPie from "./StatusPie";
 
 export default function PieChartSection() {
