@@ -448,3 +448,111 @@ export async function getCrimeStatusDistribution(
   }));
 }
 
+// ==================== RECENT CRIME CASES ====================
+
+export interface RecentCrimeCase {
+  id: number;
+  case_code: string;
+  crime_type: number | null;
+  crime_type_label: string;
+  case_status: string | null;
+  complainant_name: string;
+  suspect_name: string;
+  report_datetime: string;
+}
+
+/**
+ * Get the most recent crime cases
+ * @param limit - Number of cases to fetch (default: 5)
+ */
+export async function getRecentCrimeCases(
+  client: TypedSupabaseClient,
+  limit: number = 5,
+): Promise<RecentCrimeCase[]> {
+  // Fetch recent cases
+  const { data: cases, error } = await client
+    .from("crime_case")
+    .select("id, case_number, crime_type, case_status, report_datetime")
+    .order("report_datetime", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  if (!cases || cases.length === 0) return [];
+
+  // Fetch crime type labels
+  const crimeTypeIds = Array.from(
+    new Set(cases.map((c) => c.crime_type).filter((id) => id !== null)),
+  );
+
+  let crimeTypeMap = new Map<number, string>();
+  if (crimeTypeIds.length > 0) {
+    const { data: crimeTypes, error: crimeTypeError } = await client
+      .from("crime-type")
+      .select("id, label")
+      .in("id", crimeTypeIds);
+
+    if (crimeTypeError) throw crimeTypeError;
+    crimeTypeMap = new Map(
+      crimeTypes?.map((ct) => [ct.id, ct.label || "Unknown"]) || [],
+    );
+  }
+
+  // For each case, get the complainant and suspect names
+  const casesWithNames = await Promise.all(
+    cases.map(async (crimeCase) => {
+      // Get complainant
+      const { data: complainantData } = await client
+        .from("case_person")
+        .select(`
+          person_profile (
+            first_name,
+            middle_name,
+            last_name
+          )
+        `)
+        .eq("crime_case_id", crimeCase.id)
+        .eq("role", "complainant")
+        .limit(1)
+        .single();
+
+      // Get suspect
+      const { data: suspectData } = await client
+        .from("case_person")
+        .select(`
+          person_profile (
+            first_name,
+            middle_name,
+            last_name
+          )
+        `)
+        .eq("crime_case_id", crimeCase.id)
+        .eq("role", "suspect")
+        .limit(1)
+        .single();
+
+      const getFullName = (data: any) => {
+        if (!data?.person_profile) return "Unknown";
+        const { first_name, middle_name, last_name } = data.person_profile;
+        return [first_name, middle_name, last_name]
+          .filter(Boolean)
+          .join(" ")
+          .trim() || "Unknown";
+      };
+
+      return {
+        id: crimeCase.id,
+        case_code: crimeCase.case_number || String(crimeCase.id).padStart(4, "0"),
+        crime_type: crimeCase.crime_type,
+        crime_type_label:
+          crimeTypeMap.get(crimeCase.crime_type ?? 0) || "Unknown",
+        case_status: crimeCase.case_status,
+        complainant_name: getFullName(complainantData),
+        suspect_name: getFullName(suspectData),
+        report_datetime: crimeCase.report_datetime || "",
+      };
+    }),
+  );
+
+  return casesWithNames;
+}
+

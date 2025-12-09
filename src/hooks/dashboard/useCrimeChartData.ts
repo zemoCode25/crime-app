@@ -7,9 +7,11 @@ import {
   getTopCrimeTypes,
   getCrimeTrendData,
   getCrimeStatusDistribution,
+  getRecentCrimeCases,
   type TopCrimeType,
   type CrimeTrendPoint,
   type CrimeStatusDistribution,
+  type RecentCrimeCase,
 } from "@/server/queries/dashboard";
 
 interface UseCrimeChartDataArgs {
@@ -112,5 +114,27 @@ export function useCrimeStatusDistribution({ dateRange }: UseCrimeChartDataArgs)
     enabled: !!supabase,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
+  });
+}
+
+/**
+ * Hook to fetch recent crime cases
+ * @param limit - Number of recent cases to fetch (default: 5)
+ */
+export function useRecentCrimeCases(limit: number = 5) {
+  const supabase = useSupabaseBrowser();
+
+  return useQuery<RecentCrimeCase[]>({
+    queryKey: ["recent-crime-cases", limit],
+    queryFn: async () => {
+      if (!supabase) {
+        throw new Error("Supabase client not available");
+      }
+
+      return getRecentCrimeCases(supabase, limit);
+    },
+    enabled: !!supabase,
+    staleTime: 1000 * 60 * 2, // 2 minutes - fresher data for recent cases
+    refetchOnWindowFocus: true, // Refetch on focus for recent cases
   });
 }
