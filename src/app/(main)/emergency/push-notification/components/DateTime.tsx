@@ -1,11 +1,7 @@
 "use client";
 
-import * as React from "react";
-import { Calendar1Icon } from "lucide-react";
-import { format } from "date-fns";
+import { useState } from "react";
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -13,11 +9,22 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { format } from "date-fns";
+import { Calendar1Icon } from "lucide-react";
 
-export function DateTimePicker() {
-  const [date, setDate] = React.useState<Date>();
-  const [isOpen, setIsOpen] = React.useState(false);
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
+export default function DateTime({
+  date,
+  setDate,
+  isScheduled,
+}: {
+  date: Date | undefined;
+  setDate: (date: Date) => void;
+  isScheduled: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
@@ -46,10 +53,9 @@ export function DateTimePicker() {
       setDate(newDate);
     }
   };
-
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
+      <PopoverTrigger asChild className="max-w-fit" disabled={!isScheduled}>
         <Button
           variant="outline"
           className={cn(
@@ -67,12 +73,7 @@ export function DateTimePicker() {
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
         <div className="sm:flex">
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={handleDateSelect}
-            initialFocus
-          />
+          <Calendar mode="single" selected={date} onSelect={handleDateSelect} />
           <div className="flex flex-col divide-y sm:h-[300px] sm:flex-row sm:divide-x sm:divide-y-0">
             <ScrollArea className="w-64 sm:w-auto">
               <div className="flex p-2 sm:flex-col">
