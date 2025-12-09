@@ -7,13 +7,14 @@ export async function getTableCrimeCases(client: TypedSupabaseClient) {
     .select(
       `
       id,
+      case_number,
       crime_type,
       case_status,
       case_person (
         case_role,
-        person_profile ( 
-          first_name, 
-          last_name 
+        person_profile (
+          first_name,
+          last_name
         )
       )
       `

@@ -18,6 +18,7 @@ import { Eye } from "lucide-react";
 
 export type CrimeTableRow = {
   id: number;
+  case_number: string | null;
   crime_type: number | null;
   case_status: CaseStatus | null;
   suspect: string;
@@ -76,10 +77,11 @@ export const createColumns = (
   crimeTypeConverter: (id: number) => string | null,
 ): ColumnDef<CrimeTableRow>[] => [
   {
-    accessorKey: "id",
-    header: "Case ID",
+    accessorKey: "case_number",
+    header: "Case Number",
     cell: ({ row }) => {
-      return <div className="font-medium">{`CASE-${row.getValue("id")}`}</div>;
+      const caseNumber = row.getValue("case_number") as string | null;
+      return <div className="font-medium">{caseNumber || `ID-${row.original.id}`}</div>;
     },
   },
   {
