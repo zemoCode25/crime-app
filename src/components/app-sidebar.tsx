@@ -71,6 +71,17 @@ const data = {
       title: "Emergency",
       url: "/emergency",
       icon: BellElectric,
+      isActive: false,
+      items: [
+        {
+          title: "Push Notification",
+          url: "/emergency/push-notification",
+        },
+        {
+          title: "Records",
+          url: "/emergency/records",
+        },
+      ],
     },
     {
       title: "Settings",
