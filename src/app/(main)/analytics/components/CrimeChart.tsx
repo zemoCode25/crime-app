@@ -52,7 +52,8 @@ export default function CrimeChart() {
   const [barangayOpen, setBarangayOpen] = useState(false);
   const [barangayValue, setBarangayValue] = useState(0); // 0 = All barangays
   const [statusOpen, setStatusOpen] = useState(false);
-  const [statusValue, setStatusValue] = useState<AnalyticsParams["status"]>("all");
+  const [statusValue, setStatusValue] =
+    useState<AnalyticsParams["status"]>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const supabase = useSupabaseBrowser();
@@ -305,7 +306,10 @@ export default function CrimeChart() {
                     value.length > 6 ? value.slice(0, 6) : value
                   }
                 />
-                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent />}
+                />
                 <defs>
                   <linearGradient id="fillCount" x1="0" y1="0" x2="0" y2="1">
                     <stop
