@@ -30,8 +30,9 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BARANGAY_OPTIONS_WITH_ALL } from "@/constants/crime-case";
+import { BARANGAY_OPTIONS_WITH_ALL, STATUSES } from "@/constants/crime-case";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import type { AnalyticsParams } from "@/server/queries/analytics";
 import { getCrimeTypes } from "@/server/queries/crime-type";
 import useSupabaseBrowser from "@/server/supabase/client";
 import DateRangeSelectorControlled from "./DateRangeSelectorControlled";
@@ -47,20 +48,15 @@ const chartConfig = {
 
 export default function CrimeChart() {
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
-  const [crimeTypeValue, setCrimeTypeValue] = useState<number | null>(null);
+  const [crimeTypeValue, setCrimeTypeValue] = useState(0); // 0 = All crime types
   const [barangayOpen, setBarangayOpen] = useState(false);
   const [barangayValue, setBarangayValue] = useState(0); // 0 = All barangays
+  const [statusOpen, setStatusOpen] = useState(false);
+  const [statusValue, setStatusValue] = useState<AnalyticsParams["status"]>("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const supabase = useSupabaseBrowser();
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
-
-  // Set default crime type when data loads
-  useMemo(() => {
-    if (crimeTypes && crimeTypes.length > 0 && crimeTypeValue === null) {
-      setCrimeTypeValue(crimeTypes[0].id);
-    }
-  }, [crimeTypes, crimeTypeValue]);
 
   // Get selected barangay label for display
   const selectedBarangayLabel = useMemo(() => {
@@ -70,12 +66,20 @@ export default function CrimeChart() {
     return barangay?.value || "All barangays";
   }, [barangayValue]);
 
+  // Get selected status label for display
+  const selectedStatusLabel = useMemo(() => {
+    if (statusValue === "all") return "All statuses";
+    const status = STATUSES.find((s) => s.value === statusValue);
+    return status?.label || "All statuses";
+  }, [statusValue]);
+
   // Fetch daily crime counts
   const { data: dailyCounts, isLoading: isLoadingCounts } = useDailyCrimeCounts(
     {
       dateRange,
-      crimeType: crimeTypeValue ?? undefined,
+      crimeType: crimeTypeValue,
       barangayId: barangayValue,
+      status: statusValue,
     },
   );
 
@@ -90,7 +94,8 @@ export default function CrimeChart() {
 
   // Get selected crime type label
   const selectedCrimeTypeLabel = useMemo(() => {
-    if (!crimeTypes || crimeTypeValue === null) return "";
+    if (crimeTypeValue === 0) return "All crime types";
+    if (!crimeTypes) return "";
     const crimeType = crimeTypes.find((ct) => ct.id === crimeTypeValue);
     return crimeType?.label || "";
   }, [crimeTypes, crimeTypeValue]);
@@ -121,9 +126,7 @@ export default function CrimeChart() {
               role="combobox"
               className={"w-[200px] justify-between"}
             >
-              {crimeTypeValue !== null
-                ? crimeTypes?.find((type) => crimeTypeValue === type.id)?.label
-                : "Select crime type..."}
+              {selectedCrimeTypeLabel || "Select crime type..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -133,6 +136,18 @@ export default function CrimeChart() {
               <CommandList>
                 <CommandEmpty>No crime type found.</CommandEmpty>
                 <CommandGroup>
+                  <CommandItem
+                    value="0"
+                    onSelect={() => {
+                      setCrimeTypeValue(0);
+                      setCrimeTypeOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={`${crimeTypeValue === 0 ? "opacity-100" : "opacity-0"}`}
+                    />
+                    All crime types
+                  </CommandItem>
                   {crimeTypes?.map((type) => (
                     <CommandItem
                       value={String(type.id)}
@@ -194,6 +209,55 @@ export default function CrimeChart() {
             </Command>
           </PopoverContent>
         </Popover>
+        <Popover open={statusOpen} onOpenChange={setStatusOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              className={"w-[200px] justify-between"}
+            >
+              {selectedStatusLabel}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder="Search status..." />
+              <CommandList>
+                <CommandEmpty>No status found.</CommandEmpty>
+                <CommandGroup>
+                  <CommandItem
+                    value="all"
+                    onSelect={() => {
+                      setStatusValue("all");
+                      setStatusOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={`${statusValue === "all" ? "opacity-100" : "opacity-0"}`}
+                    />
+                    All statuses
+                  </CommandItem>
+                  {STATUSES.map((status) => (
+                    <CommandItem
+                      value={status.value}
+                      key={status.value}
+                      onSelect={() => {
+                        setStatusValue(status.value);
+                        setStatusOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={`${statusValue === status.value ? "opacity-100" : "opacity-0"}`}
+                      />
+                      {status.label}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
         <DateRangeSelectorControlled
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
@@ -201,10 +265,11 @@ export default function CrimeChart() {
       </div>
 
       {/* Chart description */}
-      {selectedCrimeTypeLabel && dateRangeLabel && (
+      {dateRangeLabel && (
         <p className="text-center text-sm text-neutral-700 italic">
           {selectedCrimeTypeLabel} cases from {dateRangeLabel}
           {barangayValue !== 0 && ` in ${selectedBarangayLabel}`}
+          {statusValue !== "all" && ` (${selectedStatusLabel})`}
         </p>
       )}
 
@@ -264,9 +329,7 @@ export default function CrimeChart() {
           </ChartContainer>
         ) : (
           <div className="text-muted-foreground flex h-[10rem] w-full items-center justify-center">
-            {crimeTypeValue === null
-              ? "Select a crime type to view data"
-              : "No data available for the selected filters"}
+            No data available for the selected filters
           </div>
         )}
       </div>

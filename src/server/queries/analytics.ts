@@ -1,10 +1,14 @@
 import { TypedSupabaseClient } from "@/types/supabase-client";
+import type { Database } from "@/server/supabase/database.types";
+
+type CaseStatus = Database["public"]["Enums"]["status_enum"];
 
 export interface AnalyticsParams {
   startDate?: Date;
   endDate?: Date;
-  crimeType?: number;
+  crimeType?: number; // undefined or 0 = all crime types
   barangayId?: number; // 0 = all, 1-9 = specific barangay
+  status?: CaseStatus | "all"; // undefined or "all" = all statuses
 }
 
 export interface DailyCrimeCount {
@@ -22,7 +26,7 @@ export async function getDailyCrimeCounts(
   client: TypedSupabaseClient,
   params: AnalyticsParams,
 ): Promise<DailyCrimeCount[]> {
-  const { startDate, endDate, crimeType, barangayId } = params;
+  const { startDate, endDate, crimeType, barangayId, status } = params;
 
   if (!startDate || !endDate) {
     return [];
@@ -41,6 +45,20 @@ export async function getDailyCrimeCounts(
     currentDate.setDate(currentDate.getDate() + 1);
   }
 
+  // Build query filters
+  const filters: {
+    crime_type?: number;
+    case_status?: CaseStatus;
+  } = {};
+
+  if (crimeType && crimeType !== 0) {
+    filters.crime_type = crimeType;
+  }
+
+  if (status && status !== "all") {
+    filters.case_status = status;
+  }
+
   // Fetch all matching crimes in the date range with location data
   let query = client
     .from("crime_case")
@@ -48,8 +66,13 @@ export async function getDailyCrimeCounts(
     .gte("report_datetime", startDate.toISOString())
     .lte("report_datetime", endDate.toISOString());
 
-  if (crimeType) {
-    query = query.eq("crime_type", crimeType);
+  // Apply filters
+  if (filters.crime_type !== undefined) {
+    query = query.eq("crime_type", filters.crime_type);
+  }
+
+  if (filters.case_status !== undefined) {
+    query = query.eq("case_status", filters.case_status);
   }
 
   const { data, error } = await query;

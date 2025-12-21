@@ -6,12 +6,14 @@ import useSupabaseBrowser from "@/server/supabase/client";
 import {
   getDailyCrimeCounts,
   type DailyCrimeCount,
+  type AnalyticsParams,
 } from "@/server/queries/analytics";
 
 interface UseDailyCrimeCountsArgs {
   dateRange?: DateRange;
-  crimeType?: number;
-  barangayId?: number; // 0 = all, 1-9 = specific barangay
+  crimeType?: number; // 0 = all crime types
+  barangayId?: number; // 0 = all barangays
+  status?: AnalyticsParams["status"]; // "all" = all statuses
 }
 
 /**
@@ -22,6 +24,7 @@ export function useDailyCrimeCounts({
   dateRange,
   crimeType,
   barangayId,
+  status,
 }: UseDailyCrimeCountsArgs) {
   const supabase = useSupabaseBrowser();
 
@@ -33,6 +36,7 @@ export function useDailyCrimeCounts({
         to: dateRange?.to?.toISOString() ?? null,
         crimeType: crimeType ?? null,
         barangayId: barangayId ?? null,
+        status: status ?? null,
       },
     ],
     queryFn: async () => {
@@ -45,10 +49,10 @@ export function useDailyCrimeCounts({
         endDate: dateRange?.to,
         crimeType,
         barangayId,
+        status,
       });
     },
-    enabled:
-      !!supabase && !!dateRange?.from && !!dateRange?.to && !!crimeType,
+    enabled: !!supabase && !!dateRange?.from && !!dateRange?.to,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
   });
