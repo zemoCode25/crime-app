@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, ChevronsUpDown, Sparkles, TrendingUp } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Check, ChevronsUpDown, Sparkles } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -28,43 +29,87 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { BARANGAY_OPTIONS_WITH_ALL } from "@/constants/crime-case";
-import { useState } from "react";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getCrimeTypes } from "@/server/queries/crime-type";
 import useSupabaseBrowser from "@/server/supabase/client";
 import DateRangeSelectorControlled from "./DateRangeSelectorControlled";
 import { DateRange } from "react-day-picker";
+import { useDailyCrimeCounts } from "@/hooks/analytics/useCrimeAnalyticsData";
 
-export const description = "An area chart with gradient fill";
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-];
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-4)",
-  },
-  mobile: {
-    label: "Mobile",
+  count: {
+    label: "Crime Reports",
     color: "var(--chart-4)",
   },
 } satisfies ChartConfig;
 
 export default function CrimeChart() {
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
-  const [crimeTypeValue, setCrimeTypeValue] = useState(1);
+  const [crimeTypeValue, setCrimeTypeValue] = useState<number | null>(null);
   const [barangayOpen, setBarangayOpen] = useState(false);
-  const [barangayValue, setBarangayValue] = useState(1);
+  const [barangayValue, setBarangayValue] = useState(0); // 0 = All barangays
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const supabase = useSupabaseBrowser();
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
+
+  // Set default crime type when data loads
+  useMemo(() => {
+    if (crimeTypes && crimeTypes.length > 0 && crimeTypeValue === null) {
+      setCrimeTypeValue(crimeTypes[0].id);
+    }
+  }, [crimeTypes, crimeTypeValue]);
+
+  // Get selected barangay label for display
+  const selectedBarangayLabel = useMemo(() => {
+    const barangay = BARANGAY_OPTIONS_WITH_ALL.find(
+      (b) => b.id === barangayValue,
+    );
+    return barangay?.value || "All barangays";
+  }, [barangayValue]);
+
+  // Fetch daily crime counts
+  const { data: dailyCounts, isLoading: isLoadingCounts } = useDailyCrimeCounts(
+    {
+      dateRange,
+      crimeType: crimeTypeValue ?? undefined,
+      barangayId: barangayValue,
+    },
+  );
+
+  // Format chart data
+  const chartData = useMemo(() => {
+    if (!dailyCounts) return [];
+    return dailyCounts.map((point) => ({
+      date: point.label,
+      count: point.count,
+    }));
+  }, [dailyCounts]);
+
+  // Get selected crime type label
+  const selectedCrimeTypeLabel = useMemo(() => {
+    if (!crimeTypes || crimeTypeValue === null) return "";
+    const crimeType = crimeTypes.find((ct) => ct.id === crimeTypeValue);
+    return crimeType?.label || "";
+  }, [crimeTypes, crimeTypeValue]);
+
+  // Format date range for display
+  const dateRangeLabel = useMemo(() => {
+    if (!dateRange?.from || !dateRange?.to) return "";
+    const from = dateRange.from.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    const to = dateRange.to.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    return `${from} - ${to}`;
+  }, [dateRange]);
 
   return (
     <div className="mt-4 flex w-full flex-col gap-4 rounded-md border border-neutral-300 bg-white p-4">
@@ -76,7 +121,7 @@ export default function CrimeChart() {
               role="combobox"
               className={"w-[200px] justify-between"}
             >
-              {crimeTypeValue
+              {crimeTypeValue !== null
                 ? crimeTypes?.find((type) => crimeTypeValue === type.id)?.label
                 : "Select crime type..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -154,76 +199,76 @@ export default function CrimeChart() {
           onDateRangeChange={setDateRange}
         />
       </div>
+
+      {/* Chart description */}
+      {selectedCrimeTypeLabel && dateRangeLabel && (
+        <p className="text-center text-sm text-neutral-700 italic">
+          {selectedCrimeTypeLabel} cases from {dateRangeLabel}
+          {barangayValue !== 0 && ` in ${selectedBarangayLabel}`}
+        </p>
+      )}
+
+      {/* Chart area */}
       <div className="mb-2 flex w-full items-center justify-between">
-        <ChartContainer config={chartConfig} className="h-[10rem] w-full">
-          <ResponsiveContainer>
-            <AreaChart
-              accessibilityLayer
-              data={chartData}
-              margin={{
-                left: 12,
-                right: 12,
-              }}
-              className="h-[1rem] w-full"
-            >
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tickFormatter={(value) => value.slice(0, 3)}
-              />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-              <defs>
-                <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="var(--color-desktop)"
-                    stopOpacity={0.8}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="var(--color-desktop)"
-                    stopOpacity={0.1}
-                  />
-                </linearGradient>
-                <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="var(--color-mobile)"
-                    stopOpacity={0.8}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="var(--color-mobile)"
-                    stopOpacity={0.1}
-                  />
-                </linearGradient>
-              </defs>
-              <Area
-                dataKey="desktop"
-                type="linear"
-                fill="url(#fillDesktop)"
-                fillOpacity={0.4}
-                stroke="var(--color-desktop)"
-                stackId="a"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </ChartContainer>
-      </div>
-      <div>
-        <div className="flex w-full items-start gap-2 text-sm">
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2 leading-none font-medium">
-              Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-            </div>
-            <div className="text-muted-foreground flex items-center gap-2 leading-none">
-              January - June 2025
-            </div>
+        {isLoadingCounts ? (
+          <div className="flex h-[10rem] w-full items-center justify-center">
+            <Skeleton className="h-[10rem] w-full rounded-md" />
           </div>
-        </div>
+        ) : chartData.length > 0 ? (
+          <ChartContainer config={chartConfig} className="h-[10rem] w-full">
+            <ResponsiveContainer>
+              <AreaChart
+                accessibilityLayer
+                data={chartData}
+                margin={{
+                  left: 12,
+                  right: 12,
+                }}
+                className="h-[1rem] w-full"
+              >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={(value) =>
+                    value.length > 6 ? value.slice(0, 6) : value
+                  }
+                />
+                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                <defs>
+                  <linearGradient id="fillCount" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-count)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-count)"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                </defs>
+                <Area
+                  dataKey="count"
+                  type="linear"
+                  fill="url(#fillCount)"
+                  fillOpacity={0.4}
+                  stroke="var(--color-count)"
+                  stackId="a"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        ) : (
+          <div className="text-muted-foreground flex h-[10rem] w-full items-center justify-center">
+            {crimeTypeValue === null
+              ? "Select a crime type to view data"
+              : "No data available for the selected filters"}
+          </div>
+        )}
       </div>
       <div className="mt-4 rounded-sm border border-orange-300 bg-orange-50 p-4">
         <div className="mb-2 flex items-center gap-2">
