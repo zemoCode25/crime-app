@@ -33,6 +33,8 @@ import { useState } from "react";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getCrimeTypes } from "@/server/queries/crime-type";
 import useSupabaseBrowser from "@/server/supabase/client";
+import DateRangeSelectorControlled from "./DateRangeSelectorControlled";
+import { DateRange } from "react-day-picker";
 
 export const description = "An area chart with gradient fill";
 const chartData = [
@@ -59,6 +61,7 @@ export default function CrimeChart() {
   const [crimeTypeValue, setCrimeTypeValue] = useState(1);
   const [barangayOpen, setBarangayOpen] = useState(false);
   const [barangayValue, setBarangayValue] = useState(1);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const supabase = useSupabaseBrowser();
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
@@ -146,6 +149,10 @@ export default function CrimeChart() {
             </Command>
           </PopoverContent>
         </Popover>
+        <DateRangeSelectorControlled
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+        />
       </div>
       <div className="mb-2 flex w-full items-center justify-between">
         <ChartContainer config={chartConfig} className="h-[10rem] w-full">
