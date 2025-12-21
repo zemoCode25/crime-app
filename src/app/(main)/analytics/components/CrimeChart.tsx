@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronsUpDown, TrendingUp } from "lucide-react";
+import { Check, ChevronsUpDown, Sparkles, TrendingUp } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -64,7 +64,7 @@ export default function CrimeChart() {
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
 
   return (
-    <div className="mt-4 flex w-full flex-col gap-4 rounded-md border border-neutral-300 p-4">
+    <div className="mt-4 flex w-full flex-col gap-4 rounded-md border border-neutral-300 bg-white p-4">
       <div className="flex gap-2">
         <Popover open={crimeTypeOpen} onOpenChange={setCrimeTypeOpen}>
           <PopoverTrigger asChild>
@@ -217,6 +217,32 @@ export default function CrimeChart() {
             </div>
           </div>
         </div>
+      </div>
+      <div className="mt-4 rounded-sm border border-orange-300 bg-orange-50 p-4">
+        <div className="mb-2 flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-orange-600" />
+          <span className="text-sm font-semibold text-orange-800">
+            AI Insights
+          </span>
+        </div>
+        <ul className="ml-4 grid list-disc grid-cols-2 space-y-1 text-sm text-orange-900">
+          <li>
+            Peak theft activity in February with 305 cases, 64% higher than
+            average.
+          </li>
+          <li>
+            April shows lowest incidents (73 cases) - consider analyzing
+            contributing.
+          </li>
+          <li>
+            Upward trend detected from April to June, suggesting increased
+            vigilance needed.
+          </li>
+          <li>
+            Upward trend detected from April to June, suggesting increased
+            vigilance needed.
+          </li>
+        </ul>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Sparkles } from "lucide-react";
 
 export const description = "A pie chart with a legend";
 
@@ -68,7 +69,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export default function PieChartStats() {
+export default function BarangayDistributionPie() {
   return (
     <div className="flex w-full flex-col rounded-md border border-neutral-300 p-4">
       <div className="items-center pb-0">
@@ -92,6 +93,28 @@ export default function PieChartStats() {
             />
           </PieChart>
         </ChartContainer>
+      </div>
+      <div className="mt-4 rounded-sm border border-orange-300 bg-orange-50 p-4">
+        <div className="mb-2 flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-orange-600" />
+          <span className="text-sm font-semibold text-orange-800">
+            AI Insights
+          </span>
+        </div>
+        <ul className="ml-4 list-disc space-y-1 text-sm text-orange-900">
+          <li>
+            Peak theft activity in February with 305 cases, 64% higher than
+            average.
+          </li>
+          <li>
+            April shows lowest incidents (73 cases) - consider analyzing
+            contributing.
+          </li>
+          <li>
+            Upward trend detected from April to June, suggesting increased
+            vigilance needed.
+          </li>
+        </ul>
       </div>
     </div>
   );
