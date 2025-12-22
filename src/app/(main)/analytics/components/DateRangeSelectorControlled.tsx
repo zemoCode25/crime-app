@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { DateRange } from "react-day-picker";
+import { useDateRange } from "@/context/DateRangeProvider";
 
 interface TimeFrameOption {
   label: string;
@@ -82,15 +83,8 @@ const predefinedTimeFrames: TimeFrameOption[] = [
   },
 ];
 
-interface DateRangeSelectorControlledProps {
-  dateRange: DateRange | undefined;
-  onDateRangeChange: (range: DateRange | undefined) => void;
-}
-
-export default function DateRangeSelectorControlled({
-  dateRange,
-  onDateRangeChange,
-}: DateRangeSelectorControlledProps) {
+export default function DateRangeSelectorControlled() {
+  const { dateRange, setDateRange } = useDateRange();
   const [open, setOpen] = useState(false);
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<string>("last_7d");
   const [showCustomCalendar, setShowCustomCalendar] = useState(false);
@@ -102,7 +96,7 @@ export default function DateRangeSelectorControlled({
 
     if (timeFrame.getDates) {
       const { start, end } = timeFrame.getDates();
-      onDateRangeChange({ from: start, to: end });
+      setDateRange({ from: start, to: end });
     }
   };
 
@@ -114,7 +108,7 @@ export default function DateRangeSelectorControlled({
 
   const handleCustomRangeApply = () => {
     if (tempDateRange?.from && tempDateRange?.to) {
-      onDateRangeChange(tempDateRange);
+      setDateRange(tempDateRange);
       setShowCustomCalendar(false);
       setOpen(false);
     }
@@ -129,7 +123,7 @@ export default function DateRangeSelectorControlled({
       const defaultTimeFrame = predefinedTimeFrames[0];
       if (defaultTimeFrame.getDates) {
         const { start, end } = defaultTimeFrame.getDates();
-        onDateRangeChange({ from: start, to: end });
+        setDateRange({ from: start, to: end });
       }
     }
   };
@@ -194,10 +188,10 @@ export default function DateRangeSelectorControlled({
       );
       if (defaultTimeFrame?.getDates) {
         const { start, end } = defaultTimeFrame.getDates();
-        onDateRangeChange({ from: start, to: end });
+        setDateRange({ from: start, to: end });
       }
     }
-  }, [dateRange, selectedTimeFrame, onDateRangeChange]);
+  }, [dateRange, selectedTimeFrame, setDateRange]);
 
   // Safe date range handler to prevent errors
   const handleDateRangeSelect = (range: DateRange | undefined) => {
@@ -215,7 +209,7 @@ export default function DateRangeSelectorControlled({
   };
 
   return (
-    <div className="ml-auto flex items-center justify-end gap-2">
+    <div className="fixed top-24 right-30 z-50 ml-auto flex items-center justify-end gap-2">
       {/* Info tooltip */}
       <TooltipProvider>
         <Tooltip>
@@ -237,7 +231,7 @@ export default function DateRangeSelectorControlled({
             role="combobox"
             aria-expanded={open}
             className={cn(
-              "w-fit justify-between text-base",
+              "w-fit justify-between text-base shadow-md",
               !selectedTimeFrame && "text-muted-foreground",
             )}
           >

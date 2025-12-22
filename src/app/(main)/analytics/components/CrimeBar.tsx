@@ -12,6 +12,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { useDateRange } from "@/context/DateRangeProvider";
 
 export const description = "A multiple bar chart";
 
@@ -32,6 +33,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function CrimeBar() {
+  const { dateRange } = useDateRange();
   return (
     <div className="mt-4 rounded-md border border-gray-300 bg-white p-4">
       <div>
