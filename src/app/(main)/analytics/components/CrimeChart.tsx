@@ -35,9 +35,8 @@ import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import type { AnalyticsParams } from "@/server/queries/analytics";
 import { getCrimeTypes } from "@/server/queries/crime-type";
 import useSupabaseBrowser from "@/server/supabase/client";
-import DateRangeSelectorControlled from "./DateRangeSelectorControlled";
-import { DateRange } from "react-day-picker";
 import { useDailyCrimeCounts } from "@/hooks/analytics/useCrimeAnalyticsData";
+import { useDateRange } from "@/context/DateRangeProvider";
 
 const chartConfig = {
   count: {
@@ -47,6 +46,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function CrimeChart() {
+  const { dateRange } = useDateRange();
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
   const [crimeTypeValue, setCrimeTypeValue] = useState(0); // 0 = All crime types
   const [barangayOpen, setBarangayOpen] = useState(false);
@@ -54,7 +54,6 @@ export default function CrimeChart() {
   const [statusOpen, setStatusOpen] = useState(false);
   const [statusValue, setStatusValue] =
     useState<AnalyticsParams["status"]>("all");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const supabase = useSupabaseBrowser();
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
@@ -259,10 +258,6 @@ export default function CrimeChart() {
             </Command>
           </PopoverContent>
         </Popover>
-        <DateRangeSelectorControlled
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
-        />
       </div>
 
       {/* Chart description */}

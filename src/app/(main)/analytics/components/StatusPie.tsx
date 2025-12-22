@@ -12,6 +12,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Sparkles } from "lucide-react";
+import { useDateRange } from "@/context/DateRangeProvider";
 
 export const description = "A pie chart with a legend";
 
@@ -55,6 +56,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function StatusPie() {
+  const { dateRange } = useDateRange();
   return (
     <div className="flex w-full flex-col rounded-md border border-neutral-300 p-4">
       <div className="items-center pb-0">
