@@ -5,7 +5,9 @@ import { DateRange } from "react-day-picker";
 import useSupabaseBrowser from "@/server/supabase/client";
 import {
   getDailyCrimeCounts,
+  getBarangayCrimeCounts,
   type DailyCrimeCount,
+  type BarangayCrimeCount,
   type AnalyticsParams,
 } from "@/server/queries/analytics";
 
@@ -50,6 +52,41 @@ export function useDailyCrimeCounts({
         crimeType,
         barangayId,
         status,
+      });
+    },
+    enabled: !!supabase && !!dateRange?.from && !!dateRange?.to,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+}
+
+interface UseBarangayCrimeCountsArgs {
+  dateRange?: DateRange;
+}
+
+/**
+ * Hook to fetch crime counts by barangay for the pie chart.
+ * Returns the count of crimes for each barangay within the date range.
+ */
+export function useBarangayCrimeCounts({ dateRange }: UseBarangayCrimeCountsArgs) {
+  const supabase = useSupabaseBrowser();
+
+  return useQuery<BarangayCrimeCount[]>({
+    queryKey: [
+      "barangay-crime-counts",
+      {
+        from: dateRange?.from?.toISOString() ?? null,
+        to: dateRange?.to?.toISOString() ?? null,
+      },
+    ],
+    queryFn: async () => {
+      if (!supabase) {
+        throw new Error("Supabase client not available");
+      }
+
+      return getBarangayCrimeCounts(supabase, {
+        startDate: dateRange?.from,
+        endDate: dateRange?.to,
       });
     },
     enabled: !!supabase && !!dateRange?.from && !!dateRange?.to,

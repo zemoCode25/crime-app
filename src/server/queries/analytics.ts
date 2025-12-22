@@ -115,3 +115,66 @@ export async function getDailyCrimeCounts(
     };
   });
 }
+
+// ==================== BARANGAY CRIME DISTRIBUTION ====================
+
+export interface BarangayCrimeCount {
+  barangayId: number;
+  barangayName: string;
+  barangayKey: string;
+  count: number;
+  fill: string;
+}
+
+/**
+ * Get crime counts by barangay for a date range.
+ * Returns the count of crimes for each barangay.
+ */
+export async function getBarangayCrimeCounts(
+  client: TypedSupabaseClient,
+  params: Pick<AnalyticsParams, "startDate" | "endDate">,
+): Promise<BarangayCrimeCount[]> {
+  const { startDate, endDate } = params;
+
+  // Import barangay colors
+  const { BARANGAY_COLORS } = await import("@/constants/barangay");
+
+  // Build query with location data
+  let query = client
+    .from("crime_case")
+    .select("location:location_id(barangay)");
+
+  if (startDate) {
+    query = query.gte("report_datetime", startDate.toISOString());
+  }
+
+  if (endDate) {
+    query = query.lte("report_datetime", endDate.toISOString());
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  // Count crimes per barangay
+  const countsByBarangay = new Map<number, number>();
+
+  data?.forEach((record) => {
+    const location = record.location as { barangay: number | null } | null;
+    if (location?.barangay) {
+      const barangayId = location.barangay;
+      countsByBarangay.set(barangayId, (countsByBarangay.get(barangayId) || 0) + 1);
+    }
+  });
+
+  // Build result with all barangays
+  return BARANGAY_COLORS.map((barangay) => ({
+    barangayId: barangay.id,
+    barangayName: barangay.name,
+    barangayKey: barangay.key,
+    count: countsByBarangay.get(barangay.id) || 0,
+    fill: barangay.dark,
+  }));
+}
