@@ -6,8 +6,10 @@ import useSupabaseBrowser from "@/server/supabase/client";
 import {
   getDailyCrimeCounts,
   getBarangayCrimeCounts,
+  getStatusCrimeCounts,
   type DailyCrimeCount,
   type BarangayCrimeCount,
+  type StatusCrimeCount,
   type AnalyticsParams,
 } from "@/server/queries/analytics";
 
@@ -85,6 +87,41 @@ export function useBarangayCrimeCounts({ dateRange }: UseBarangayCrimeCountsArgs
       }
 
       return getBarangayCrimeCounts(supabase, {
+        startDate: dateRange?.from,
+        endDate: dateRange?.to,
+      });
+    },
+    enabled: !!supabase && !!dateRange?.from && !!dateRange?.to,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+}
+
+interface UseStatusCrimeCountsArgs {
+  dateRange?: DateRange;
+}
+
+/**
+ * Hook to fetch crime counts by status for the pie chart.
+ * Returns the count of crimes for each status within the date range.
+ */
+export function useStatusCrimeCounts({ dateRange }: UseStatusCrimeCountsArgs) {
+  const supabase = useSupabaseBrowser();
+
+  return useQuery<StatusCrimeCount[]>({
+    queryKey: [
+      "status-crime-counts",
+      {
+        from: dateRange?.from?.toISOString() ?? null,
+        to: dateRange?.to?.toISOString() ?? null,
+      },
+    ],
+    queryFn: async () => {
+      if (!supabase) {
+        throw new Error("Supabase client not available");
+      }
+
+      return getStatusCrimeCounts(supabase, {
         startDate: dateRange?.from,
         endDate: dateRange?.to,
       });
