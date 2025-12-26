@@ -238,3 +238,91 @@ export async function getStatusCrimeCounts(
     fill: status.dark,
   }));
 }
+
+// ==================== CRIME TYPE DISTRIBUTION ====================
+
+export interface CrimeTypeCount {
+  crimeTypeId: number;
+  label: string;
+  count: number;
+  fill: string;
+}
+
+/**
+ * Get crime counts by crime type for a date range.
+ * Returns the count of crimes for each crime type, sorted by count descending.
+ */
+export async function getCrimeTypeCounts(
+  client: TypedSupabaseClient,
+  params: Pick<AnalyticsParams, "startDate" | "endDate">,
+): Promise<CrimeTypeCount[]> {
+  const { startDate, endDate } = params;
+
+  // Import crime type colors
+  const { getCrimeTypeColor } = await import("@/constants/crime-case");
+
+  // Build query for crime cases
+  let query = client.from("crime_case").select("crime_type");
+
+  if (startDate) {
+    query = query.gte("report_datetime", startDate.toISOString());
+  }
+
+  if (endDate) {
+    query = query.lte("report_datetime", endDate.toISOString());
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  // Count crimes per crime type
+  const countsByCrimeType = new Map<number, number>();
+
+  data?.forEach((record) => {
+    if (record.crime_type !== null) {
+      const current = countsByCrimeType.get(record.crime_type) || 0;
+      countsByCrimeType.set(record.crime_type, current + 1);
+    }
+  });
+
+  // Get all crime type IDs that have counts
+  const crimeTypeIds = Array.from(countsByCrimeType.keys());
+
+  if (crimeTypeIds.length === 0) {
+    return [];
+  }
+
+  // Fetch crime type labels
+  const { data: crimeTypeData, error: crimeTypeError } = await client
+    .from("crime-type")
+    .select("id, label")
+    .in("id", crimeTypeIds);
+
+  if (crimeTypeError) {
+    throw crimeTypeError;
+  }
+
+  // Build label map
+  const labelMap = new Map(
+    crimeTypeData?.map((ct) => [ct.id, ct.label || `Crime Type ${ct.id}`]) || []
+  );
+
+  // Build result sorted by count descending
+  const result: CrimeTypeCount[] = Array.from(countsByCrimeType.entries())
+    .map(([crimeTypeId, count], index) => ({
+      crimeTypeId,
+      label: labelMap.get(crimeTypeId) || `Crime Type ${crimeTypeId}`,
+      count,
+      fill: getCrimeTypeColor(index),
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  // Re-assign colors after sorting so highest count gets first color
+  return result.map((item, index) => ({
+    ...item,
+    fill: getCrimeTypeColor(index),
+  }));
+}
