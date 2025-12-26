@@ -178,3 +178,63 @@ export async function getBarangayCrimeCounts(
     fill: barangay.dark,
   }));
 }
+
+// ==================== STATUS CRIME DISTRIBUTION ====================
+
+export interface StatusCrimeCount {
+  status: string;
+  statusKey: string;
+  label: string;
+  count: number;
+  fill: string;
+}
+
+/**
+ * Get crime counts by status for a date range.
+ * Returns the count of crimes for each status using colors from STATUSES.
+ */
+export async function getStatusCrimeCounts(
+  client: TypedSupabaseClient,
+  params: Pick<AnalyticsParams, "startDate" | "endDate">,
+): Promise<StatusCrimeCount[]> {
+  const { startDate, endDate } = params;
+
+  // Import status colors
+  const { STATUSES } = await import("@/constants/crime-case");
+
+  // Build query
+  let query = client.from("crime_case").select("case_status");
+
+  if (startDate) {
+    query = query.gte("report_datetime", startDate.toISOString());
+  }
+
+  if (endDate) {
+    query = query.lte("report_datetime", endDate.toISOString());
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  // Count crimes per status
+  const countsByStatus = new Map<string, number>();
+
+  data?.forEach((record) => {
+    if (record.case_status !== null) {
+      const current = countsByStatus.get(record.case_status) || 0;
+      countsByStatus.set(record.case_status, current + 1);
+    }
+  });
+
+  // Build result with all statuses from STATUSES constant
+  return STATUSES.map((status) => ({
+    status: status.value,
+    statusKey: status.value.replace(/\s+/g, "_"),
+    label: status.label,
+    count: countsByStatus.get(status.value) || 0,
+    fill: status.dark,
+  }));
+}
