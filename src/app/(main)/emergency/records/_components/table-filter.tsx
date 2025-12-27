@@ -19,7 +19,7 @@ export default function TableFilter({
         placeholder="Search by subject..."
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
-        className="pl-10"
+        className="bg-white pl-10"
       />
     </div>
   );

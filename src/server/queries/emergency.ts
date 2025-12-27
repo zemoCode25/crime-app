@@ -114,3 +114,58 @@ export async function getEmergencyRecords(
     totalPages,
   };
 }
+
+// ==================== ADD EMERGENCY NOTIFICATION ====================
+
+export interface AddEmergencyNotificationParams {
+  subject: string;
+  body: string;
+  schedule?: string | null;
+}
+
+export interface AddEmergencyNotificationResult {
+  id: number;
+  subject: string | null;
+  body: string | null;
+  schedule: string | null;
+  created_at: string;
+  user_id: string | null;
+}
+
+/**
+ * Add a new emergency notification.
+ * Automatically sets the user_id to the current authenticated user.
+ */
+export async function addEmergencyNotification(
+  client: TypedSupabaseClient,
+  params: AddEmergencyNotificationParams,
+): Promise<AddEmergencyNotificationResult> {
+  const { subject, body, schedule } = params;
+
+  // Get current user
+  const {
+    data: { user },
+    error: userError,
+  } = await client.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("User not authenticated");
+  }
+
+  const { data, error } = await client
+    .from("emergency")
+    .insert({
+      subject,
+      body,
+      schedule: schedule ?? null,
+      user_id: user.id,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}

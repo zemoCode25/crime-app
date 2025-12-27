@@ -165,7 +165,7 @@ function EmailDetailDialog({
           </div>
 
           {/* Message body */}
-          <div className="rounded-md border border-neutral-200 p-4 text-sm">
+          <div className="max-h-90 overflow-y-auto rounded-md border border-neutral-200 p-4 text-sm">
             <p className="whitespace-pre-wrap">{record.body || "No content"}</p>
           </div>
         </div>
@@ -272,10 +272,32 @@ export default function DataTable() {
         </div>
       </div>
 
-      {/* Record count */}
-      {records && records.length > 0 && (
-        <div className="text-sm text-gray-500">
-          {records.length} notification{records.length !== 1 ? "s" : ""}
+      {/* Pagination */}
+      {totalPages > 0 && (
+        <div className="flex items-center justify-end">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1 || isLoading}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            <span className="text-sm text-gray-600">
+              Page {page} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages || isLoading}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       )}
 
