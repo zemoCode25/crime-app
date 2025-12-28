@@ -21,7 +21,8 @@ import {
   useAddHotline,
   useDeleteHotline,
 } from "@/hooks/configuration/use-mutate-hotlines";
-import type { HotlineUpdate } from "@/server/queries/hotline";
+import type { HotlineUpdate, Hotline } from "@/server/queries/hotline";
+import DeleteHotlineModal from "./delete-hotline-modal";
 
 // Zod schema for hotline number validation (used in edit mode)
 const hotlineNumberSchema = z
@@ -60,6 +61,7 @@ function HotlineSkeleton() {
 export default function Hotline() {
   const [isEditing, setIsEditing] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [hotlineToDelete, setHotlineToDelete] = useState<Hotline | null>(null);
   // Track edited values: { [hotlineId]: newNumber }
   const [editedValues, setEditedValues] = useState<Record<number, string>>({});
   // Track validation errors: { [hotlineId]: errorMessage }
@@ -180,6 +182,15 @@ export default function Hotline() {
     reset();
   };
 
+  const handleConfirmDelete = () => {
+    if (!hotlineToDelete) return;
+    deleteHotline(hotlineToDelete.id, {
+      onSuccess: () => {
+        setHotlineToDelete(null);
+      },
+    });
+  };
+
   return (
     <div className="flex flex-col gap-2 p-2">
       <div className="flex items-center justify-between">
@@ -260,9 +271,8 @@ export default function Hotline() {
                   {isEditing && (
                     <button
                       type="button"
-                      onClick={() => deleteHotline(hotline.id)}
-                      disabled={isDeleting}
-                      className="absolute top-1/2 right-2 -translate-y-1/2 text-neutral-400 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => setHotlineToDelete(hotline)}
+                      className="absolute top-1/2 right-2 -translate-y-1/2 text-neutral-400 hover:text-red-500"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -342,6 +352,15 @@ export default function Hotline() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Hotline Confirmation Modal */}
+      <DeleteHotlineModal
+        open={!!hotlineToDelete}
+        onOpenChange={(open) => !open && setHotlineToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        hotlineLabel={hotlineToDelete?.label || undefined}
+      />
     </div>
   );
 }
