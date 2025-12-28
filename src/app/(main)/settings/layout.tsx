@@ -10,7 +10,7 @@ export default function SettingsLayout({
 }) {
   const pathname = usePathname();
   return (
-    <div className="mx-auto mt-30 flex w-full max-w-[40rem] flex-col">
+    <div className="mx-auto mt-20 flex w-full max-w-[40rem] flex-col">
       <header className="flex w-full justify-between">
         <Link
           href={"/settings/profile"}
@@ -53,7 +53,7 @@ export default function SettingsLayout({
           Account
         </Link>
       </header>
-      <div className="mt-4">{children}</div>
+      <div className="my-4">{children}</div>
     </div>
   );
 }

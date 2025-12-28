@@ -213,6 +213,38 @@ export type Database = {
           },
         ]
       }
+      hotline: {
+        Row: {
+          created_at: string
+          id: number
+          label: string | null
+          number: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          label?: string | null
+          number?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          label?: string | null
+          number?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotlines_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitation: {
         Row: {
           barangay: number | null
