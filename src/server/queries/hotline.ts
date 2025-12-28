@@ -59,3 +59,47 @@ export async function updateHotlines(
     throw new Error(`Failed to update ${errors.length} hotline(s)`);
   }
 }
+
+// ==================== ADD HOTLINE ====================
+
+export interface AddHotlineParams {
+  label: string;
+  number: string;
+}
+
+/**
+ * Add a new hotline.
+ * Automatically sets the user_id to the current authenticated user.
+ */
+export async function addHotline(
+  client: TypedSupabaseClient,
+  params: AddHotlineParams,
+): Promise<Hotline> {
+  const { label, number } = params;
+
+  // Get current user
+  const {
+    data: { user },
+    error: userError,
+  } = await client.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("User not authenticated");
+  }
+
+  const { data, error } = await client
+    .from("hotline")
+    .insert({
+      label,
+      number,
+      user_id: user.id,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}

@@ -2,19 +2,46 @@
 
 import { useState, useEffect } from "react";
 import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Check, Phone, Plus, SquarePen, X } from "lucide-react";
 import { useGetHotlines } from "@/hooks/configuration/use-get-hotlines";
-import { useUpdateHotlines } from "@/hooks/configuration/use-mutate-hotlines";
+import {
+  useUpdateHotlines,
+  useAddHotline,
+} from "@/hooks/configuration/use-mutate-hotlines";
 import type { HotlineUpdate } from "@/server/queries/hotline";
 
-// Zod schema for hotline number validation
+// Zod schema for hotline number validation (used in edit mode)
 const hotlineNumberSchema = z
   .string()
   .regex(/^[\d-]*$/, "Only numbers and dashes are allowed")
   .min(1, "Hotline number is required");
+
+// Zod schema for adding a new hotline
+const addHotlineSchema = z.object({
+  label: z
+    .string()
+    .min(1, "Label is required")
+    .max(100, "Label must not exceed 100 characters"),
+  number: z
+    .string()
+    .regex(/^[\d-]+$/, "Only numbers and dashes are allowed")
+    .min(1, "Hotline number is required")
+    .max(20, "Number must not exceed 20 characters"),
+});
+
+type AddHotlineFormData = z.infer<typeof addHotlineSchema>;
 
 function HotlineSkeleton() {
   return (
@@ -31,13 +58,31 @@ function HotlineSkeleton() {
 
 export default function Hotline() {
   const [isEditing, setIsEditing] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   // Track edited values: { [hotlineId]: newNumber }
   const [editedValues, setEditedValues] = useState<Record<number, string>>({});
   // Track validation errors: { [hotlineId]: errorMessage }
-  const [validationErrors, setValidationErrors] = useState<Record<number, string>>({});
+  const [validationErrors, setValidationErrors] = useState<
+    Record<number, string>
+  >({});
 
   const { data: hotlines, isLoading, error } = useGetHotlines();
-  const { mutate: updateHotlines, isPending } = useUpdateHotlines();
+  const { mutate: updateHotlines, isPending: isUpdating } = useUpdateHotlines();
+  const { mutate: addHotline, isPending: isAdding } = useAddHotline();
+
+  // Form for adding new hotline
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<AddHotlineFormData>({
+    resolver: zodResolver(addHotlineSchema),
+    defaultValues: {
+      label: "",
+      number: "",
+    },
+  });
 
   // Reset edited values when hotlines data changes (e.g., after successful update)
   useEffect(() => {
@@ -119,6 +164,20 @@ export default function Hotline() {
     setIsEditing(true);
   };
 
+  const handleAddHotline = (data: AddHotlineFormData) => {
+    addHotline(data, {
+      onSuccess: () => {
+        setIsAddDialogOpen(false);
+        reset();
+      },
+    });
+  };
+
+  const handleCloseAddDialog = () => {
+    setIsAddDialogOpen(false);
+    reset();
+  };
+
   return (
     <div className="flex flex-col gap-2 p-2">
       <div className="flex items-center justify-between">
@@ -126,7 +185,10 @@ export default function Hotline() {
           <Phone className="h-4 w-4" /> Hotlines
         </h1>
         <div className="flex items-center gap-2">
-          <Button className="flex items-center border border-orange-800 bg-orange-100 text-orange-800 hover:bg-orange-200">
+          <Button
+            className="flex items-center border border-orange-800 bg-orange-100 text-orange-800 hover:bg-orange-200"
+            onClick={() => setIsAddDialogOpen(true)}
+          >
             <Plus />
             Add hotline
           </Button>
@@ -136,7 +198,7 @@ export default function Hotline() {
                 className="flex items-center"
                 variant="outline"
                 onClick={handleCancelEdit}
-                disabled={isPending}
+                disabled={isUpdating}
               >
                 <X />
                 Cancel
@@ -145,10 +207,10 @@ export default function Hotline() {
                 className="flex items-center"
                 variant="outline"
                 onClick={handleConfirmUpdate}
-                disabled={isPending || hasValidationErrors}
+                disabled={isUpdating || hasValidationErrors}
               >
                 <Check />
-                {isPending ? "Saving..." : "Confirm update"}
+                {isUpdating ? "Saving..." : "Confirm update"}
               </Button>
             </>
           ) : (
@@ -180,11 +242,17 @@ export default function Hotline() {
                 </p>
                 <Input
                   value={getInputValue(hotline)}
-                  onChange={(e) => handleInputChange(hotline.id, e.target.value)}
-                  disabled={!isEditing || isPending}
+                  onChange={(e) =>
+                    handleInputChange(hotline.id, e.target.value)
+                  }
+                  disabled={!isEditing || isUpdating}
                   className={`disabled:cursor-default disabled:opacity-100 ${
                     validationErrors[hotline.id] ? "border-red-500" : ""
                   }`}
+                  onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                    const input = e.target as HTMLInputElement;
+                    input.value = input.value.replace(/[^\d-]/g, "");
+                  }}
                 />
                 {validationErrors[hotline.id] && (
                   <p className="text-xs text-red-500">
@@ -200,6 +268,66 @@ export default function Hotline() {
           </div>
         )}
       </form>
+
+      {/* Add Hotline Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={handleCloseAddDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Hotline</DialogTitle>
+            <DialogDescription>
+              Enter the label and number for the new hotline.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={handleSubmit(handleAddHotline)}
+            className="flex flex-col gap-4"
+          >
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Label</label>
+              <Input
+                {...register("label")}
+                placeholder="e.g., Police Emergency"
+                disabled={isAdding}
+              />
+              {errors.label && (
+                <p className="text-xs text-red-500">{errors.label.message}</p>
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Number</label>
+              <Input
+                {...register("number")}
+                placeholder="e.g., 911 or 137-175"
+                disabled={isAdding}
+                onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                  const input = e.target as HTMLInputElement;
+                  input.value = input.value.replace(/[^\d-]/g, "");
+                }}
+              />
+              {errors.number && (
+                <p className="text-xs text-red-500">{errors.number.message}</p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCloseAddDialog}
+                disabled={isAdding}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isAdding}
+                className="border border-orange-800 bg-orange-100 text-orange-800 hover:bg-orange-200"
+              >
+                {isAdding ? "Adding..." : "Add Hotline"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
