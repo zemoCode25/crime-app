@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useAddEmergencyNotification } from "@/hooks/emergency/useAddEmergencyNotification";
 
 // Zod schema for push notification form
 const pushNotificationSchema = z
@@ -48,11 +49,14 @@ export default function EmergencyPage() {
   const [date, setDate] = useState<Date>();
   const [isScheduled, setIsScheduled] = useState(false);
 
+  const { mutate: addNotification, isPending } = useAddEmergencyNotification();
+
   const {
     register,
     handleSubmit,
     setValue,
-    formState: { errors, isSubmitting },
+    reset,
+    formState: { errors },
   } = useForm<PushNotificationFormData>({
     resolver: zodResolver(pushNotificationSchema),
     defaultValues: {
@@ -80,14 +84,22 @@ export default function EmergencyPage() {
   };
 
   // Form submission handler
-  const onSubmit = async (data: PushNotificationFormData) => {
-    try {
-      console.log("Form data:", data);
-      // TODO: Implement API call to send notification
-      // await sendPushNotification(data);
-    } catch (error) {
-      console.error("Error sending notification:", error);
-    }
+  const onSubmit = (data: PushNotificationFormData) => {
+    addNotification(
+      {
+        subject: data.subject,
+        body: data.message,
+        schedule: data.scheduledDate?.toISOString() ?? null,
+      },
+      {
+        onSuccess: () => {
+          // Reset form on success
+          reset();
+          setDate(undefined);
+          setIsScheduled(false);
+        },
+      },
+    );
   };
 
   return (
@@ -150,10 +162,10 @@ export default function EmergencyPage() {
         </div>
         <Button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isPending}
           className="cursor-pointer border border-orange-600 bg-orange-100 text-orange-600 hover:bg-orange-200"
         >
-          {isSubmitting ? "Sending..." : "Send Notification"} <Send />
+          {isPending ? "Sending..." : "Send Notification"} <Send />
         </Button>
       </form>
     </div>
