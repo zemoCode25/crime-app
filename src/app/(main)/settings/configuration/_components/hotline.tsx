@@ -19,6 +19,7 @@ import { useGetHotlines } from "@/hooks/configuration/use-get-hotlines";
 import {
   useUpdateHotlines,
   useAddHotline,
+  useDeleteHotline,
 } from "@/hooks/configuration/use-mutate-hotlines";
 import type { HotlineUpdate } from "@/server/queries/hotline";
 
@@ -69,6 +70,7 @@ export default function Hotline() {
   const { data: hotlines, isLoading, error } = useGetHotlines();
   const { mutate: updateHotlines, isPending: isUpdating } = useUpdateHotlines();
   const { mutate: addHotline, isPending: isAdding } = useAddHotline();
+  const { mutate: deleteHotline, isPending: isDeleting } = useDeleteHotline();
 
   // Form for adding new hotline
   const {
@@ -240,20 +242,32 @@ export default function Hotline() {
                 <p className="text-neutral-700">
                   {hotline.label || "Untitled"}
                 </p>
-                <Input
-                  value={getInputValue(hotline)}
-                  onChange={(e) =>
-                    handleInputChange(hotline.id, e.target.value)
-                  }
-                  disabled={!isEditing || isUpdating}
-                  className={`disabled:cursor-default disabled:opacity-100 ${
-                    validationErrors[hotline.id] ? "border-red-500" : ""
-                  }`}
-                  onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                    const input = e.target as HTMLInputElement;
-                    input.value = input.value.replace(/[^\d-]/g, "");
-                  }}
-                />
+                <div className="relative">
+                  <Input
+                    value={getInputValue(hotline)}
+                    onChange={(e) =>
+                      handleInputChange(hotline.id, e.target.value)
+                    }
+                    disabled={!isEditing || isUpdating}
+                    className={`disabled:cursor-default disabled:opacity-100 ${
+                      isEditing ? "pr-8" : ""
+                    } ${validationErrors[hotline.id] ? "border-red-500" : ""}`}
+                    onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                      const input = e.target as HTMLInputElement;
+                      input.value = input.value.replace(/[^\d-]/g, "");
+                    }}
+                  />
+                  {isEditing && (
+                    <button
+                      type="button"
+                      onClick={() => deleteHotline(hotline.id)}
+                      disabled={isDeleting}
+                      className="absolute top-1/2 right-2 -translate-y-1/2 text-neutral-400 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
                 {validationErrors[hotline.id] && (
                   <p className="text-xs text-red-500">
                     {validationErrors[hotline.id]}

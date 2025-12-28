@@ -6,6 +6,7 @@ import useSupabaseBrowser from "@/server/supabase/client";
 import {
   updateHotlines,
   addHotline,
+  deleteHotline,
   type HotlineUpdate,
   type AddHotlineParams,
   type Hotline,
@@ -93,6 +94,46 @@ export function useAddHotline() {
       }
 
       console.error("Add hotline error:", error);
+    },
+  });
+}
+
+/**
+ * Hook to delete a hotline.
+ * Handles loading states, success/error toasts, and cache invalidation.
+ */
+export function useDeleteHotline() {
+  const supabase = useSupabaseBrowser();
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, number>({
+    mutationFn: async (id) => {
+      if (!supabase) {
+        throw new Error("Database connection error. Please try again.");
+      }
+
+      return deleteHotline(supabase, id);
+    },
+    onMutate: () => {
+      toast.loading("Deleting hotline...", { id: "delete-hotline" });
+    },
+    onSuccess: () => {
+      toast.dismiss("delete-hotline");
+      toast.success("Hotline deleted successfully!");
+
+      // Invalidate the hotlines query to refetch
+      queryClient.invalidateQueries({ queryKey: ["hotlines"] });
+    },
+    onError: (error) => {
+      toast.dismiss("delete-hotline");
+
+      if (error instanceof Error) {
+        toast.error(error.message || "Failed to delete hotline");
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
+
+      console.error("Delete hotline error:", error);
     },
   });
 }

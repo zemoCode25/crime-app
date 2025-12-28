@@ -103,3 +103,19 @@ export async function addHotline(
 
   return data;
 }
+
+// ==================== DELETE HOTLINE ====================
+
+/**
+ * Delete a hotline by ID.
+ */
+export async function deleteHotline(
+  client: TypedSupabaseClient,
+  id: number,
+): Promise<void> {
+  const { error } = await client.from("hotline").delete().eq("id", id);
+
+  if (error) {
+    throw error;
+  }
+}
