@@ -29,7 +29,7 @@ import TableFilter from "./table-filter";
 function TableSkeleton() {
   return (
     <div className="space-y-1">
-      {Array.from({ length: 5 }).map((_, i) => (
+      {Array.from({ length: 10 }).map((_, i) => (
         <div
           key={i}
           className="flex items-center gap-4 rounded-md border border-transparent px-4 py-3"

@@ -33,7 +33,7 @@ export async function getEmergencyRecords(
   client: TypedSupabaseClient,
   params: EmergencyRecordsParams = {},
 ): Promise<PaginatedEmergencyRecords> {
-  const { searchQuery, sortOrder = "desc", page = 1, pageSize = 5 } = params;
+  const { searchQuery, sortOrder = "desc", page = 1, pageSize = 10 } = params;
 
   // Calculate range for pagination
   const from = (page - 1) * pageSize;

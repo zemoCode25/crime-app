@@ -11,6 +11,7 @@ interface UseEmergencyRecordsArgs {
   searchQuery?: string;
   sortOrder?: "asc" | "desc";
   page?: number;
+  pageSize?: number;
 }
 
 /**
@@ -21,6 +22,7 @@ export function useEmergencyRecords({
   searchQuery,
   sortOrder = "desc",
   page = 1,
+  pageSize = 10,
 }: UseEmergencyRecordsArgs = {}) {
   const supabase = useSupabaseBrowser();
 
@@ -31,6 +33,7 @@ export function useEmergencyRecords({
         searchQuery: searchQuery ?? null,
         sortOrder,
         page,
+        pageSize,
       },
     ],
     queryFn: async () => {
@@ -42,6 +45,7 @@ export function useEmergencyRecords({
         searchQuery,
         sortOrder,
         page,
+        pageSize,
       });
     },
     enabled: !!supabase,
