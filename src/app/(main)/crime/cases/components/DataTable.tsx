@@ -352,7 +352,10 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="px-4 py-2">
+                    <TableHead
+                      key={header.id}
+                      className="bg-neutral-200/70 px-4 py-2"
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(

@@ -34,10 +34,13 @@ function transformCrimeCaseData(
 
     return {
       id: item.id,
+      case_number: item.case_number,
       crime_type: item.crime_type,
       case_status: item.case_status,
       suspect: suspectName || "Unknown",
       complainant: complainantName || "Unknown",
+      incident_datetime: item.incident_datetime,
+      report_datetime: item.report_datetime,
     };
   });
 }
