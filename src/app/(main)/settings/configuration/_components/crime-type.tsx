@@ -1,8 +1,26 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Gavel, Plus, SquarePen } from "lucide-react";
-import React from "react";
+import { Input } from "@/components/ui/input";
+import { Check, Gavel, Plus, SquarePen, X } from "lucide-react";
 
 export default function CrimeType() {
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleStartEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
+
+  const handleConfirmUpdate = () => {
+    // TODO: Implement update logic
+    setIsEditing(false);
+  };
+
   return (
     <div className="flex flex-col gap-2 p-2">
       <div className="flex items-center justify-between">
@@ -15,29 +33,53 @@ export default function CrimeType() {
             <Plus />
             Add crime type
           </Button>
-          <Button className="flex items-center" variant={"outline"}>
-            <SquarePen />
-            Update
-          </Button>
+          {isEditing ? (
+            <>
+              <Button
+                className="flex items-center"
+                variant="outline"
+                onClick={handleCancelEdit}
+              >
+                <X />
+                Cancel
+              </Button>
+              <Button
+                className="flex items-center"
+                variant="outline"
+                onClick={handleConfirmUpdate}
+              >
+                <Check />
+                Confirm update
+              </Button>
+            </>
+          ) : (
+            <Button
+              className="flex items-center"
+              variant="outline"
+              onClick={handleStartEdit}
+            >
+              <SquarePen />
+              Update
+            </Button>
+          )}
         </div>
       </div>
-      <form action="">
-        <div className="grid max-h-70 w-full grid-cols-3 gap-2">
-          <div className="flex flex-col gap-1">
-            <p className="text-neutral-700">Muntinlupa Emergency</p>
-            <p className="rounded-sm border p-2">137-175</p>
-          </div>
-          <div className="flex flex-col gap-1">
-            <p className="text-neutral-700">PNP</p>
-            <p className="rounded-sm border p-2">862-26-11</p>
-          </div>
-          <div className="flex flex-col gap-1">
-            <p className="text-neutral-700">Bureau of Fire Protection</p>
-            <p className="rounded-sm border p-2">137-175</p>
-          </div>
-          <div className="flex flex-col gap-1">
-            <p className="text-neutral-700">City of Health Office</p>
-            <p className="rounded-sm border p-2">137-175</p>
+      <form onSubmit={(e) => e.preventDefault()}>
+        <div className="grid max-h-70 w-full grid-cols-3 gap-2 p-2">
+          <div className="relative">
+            <Input
+              defaultValue="Murder"
+              disabled={!isEditing}
+              className={`disabled:cursor-default disabled:opacity-100 ${isEditing ? "pr-8" : ""}`}
+            />
+            {isEditing && (
+              <button
+                type="button"
+                className="absolute top-1/2 right-2 -translate-y-1/2 text-neutral-400 hover:text-red-500"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
       </form>
