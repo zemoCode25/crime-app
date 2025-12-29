@@ -1,11 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Check, Gavel, Plus, SquarePen, X } from "lucide-react";
 import { useCrimeTypes } from "@/hooks/crime-case/useCrimeTypes";
+import { useUpdateCrimeTypes } from "@/hooks/crime-case/use-mutate-crime-types";
+import type { CrimeTypeUpdate } from "@/server/queries/crime-type";
+
+// Zod schema for crime type label validation
+const crimeTypeLabelSchema = z
+  .string()
+  .min(1, "Crime type label is required")
+  .max(100, "Label must not exceed 100 characters");
 
 function CrimeTypeSkeleton() {
   return (
@@ -19,8 +28,56 @@ function CrimeTypeSkeleton() {
 
 export default function CrimeType() {
   const [isEditing, setIsEditing] = useState(false);
+  // Track edited values: { [crimeTypeId]: newLabel }
+  const [editedValues, setEditedValues] = useState<Record<number, string>>({});
+  // Track validation errors: { [crimeTypeId]: errorMessage }
+  const [validationErrors, setValidationErrors] = useState<
+    Record<number, string>
+  >({});
 
   const { data: crimeTypes, isLoading, error } = useCrimeTypes();
+  const { mutate: updateCrimeTypes, isPending: isUpdating } =
+    useUpdateCrimeTypes();
+
+  // Reset edited values when crimeTypes data changes (e.g., after successful update)
+  useEffect(() => {
+    if (crimeTypes) {
+      setEditedValues({});
+      setValidationErrors({});
+    }
+  }, [crimeTypes]);
+
+  const handleInputChange = (id: number, value: string) => {
+    setEditedValues((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+
+    // Validate the input
+    const result = crimeTypeLabelSchema.safeParse(value);
+    if (!result.success) {
+      setValidationErrors((prev) => ({
+        ...prev,
+        [id]: result.error.issues[0].message,
+      }));
+    } else {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[id];
+        return newErrors;
+      });
+    }
+  };
+
+  const hasValidationErrors = Object.keys(validationErrors).length > 0;
+
+  const getInputValue = (crimeType: { id: number; label: string }) => {
+    // If we have an edited value, use it; otherwise use original
+    if (editedValues[crimeType.id] !== undefined) {
+      return editedValues[crimeType.id];
+    }
+    return crimeType.label || "";
+  };
 
   const handleStartEdit = () => {
     setIsEditing(true);
@@ -28,11 +85,38 @@ export default function CrimeType() {
 
   const handleCancelEdit = () => {
     setIsEditing(false);
+    setEditedValues({});
+    setValidationErrors({});
   };
 
   const handleConfirmUpdate = () => {
-    // TODO: Implement update logic
-    setIsEditing(false);
+    if (!crimeTypes) return;
+
+    // Get only the changed values
+    const updates: CrimeTypeUpdate[] = [];
+
+    for (const [idStr, newLabel] of Object.entries(editedValues)) {
+      const id = parseInt(idStr, 10);
+      const original = crimeTypes.find((ct) => ct.id === id);
+
+      // Only include if the value actually changed
+      if (original && newLabel !== (original.label || "")) {
+        updates.push({ id, label: newLabel });
+      }
+    }
+
+    if (updates.length === 0) {
+      // No changes, just exit edit mode
+      setIsEditing(false);
+      return;
+    }
+
+    updateCrimeTypes(updates, {
+      onSuccess: () => {
+        setIsEditing(false);
+        setEditedValues({});
+      },
+    });
   };
 
   return (
@@ -53,6 +137,7 @@ export default function CrimeType() {
                 className="flex items-center"
                 variant="outline"
                 onClick={handleCancelEdit}
+                disabled={isUpdating}
               >
                 <X />
                 Cancel
@@ -61,9 +146,10 @@ export default function CrimeType() {
                 className="flex items-center"
                 variant="outline"
                 onClick={handleConfirmUpdate}
+                disabled={isUpdating || hasValidationErrors}
               >
                 <Check />
-                Confirm update
+                {isUpdating ? "Saving..." : "Confirm update"}
               </Button>
             </>
           ) : (
@@ -89,19 +175,31 @@ export default function CrimeType() {
         ) : crimeTypes && crimeTypes.length > 0 ? (
           <div className="grid max-h-70 w-full grid-cols-3 gap-2 overflow-y-auto p-2">
             {crimeTypes.map((crimeType) => (
-              <div key={crimeType.id} className="relative">
-                <Input
-                  defaultValue={crimeType.label}
-                  disabled={!isEditing}
-                  className={`disabled:cursor-default disabled:opacity-100 ${isEditing ? "pr-8" : ""}`}
-                />
-                {isEditing && (
-                  <button
-                    type="button"
-                    className="absolute top-1/2 right-2 -translate-y-1/2 text-neutral-400 hover:text-red-500"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+              <div key={crimeType.id} className="flex flex-col gap-1">
+                <div className="relative">
+                  <Input
+                    value={getInputValue(crimeType)}
+                    onChange={(e) =>
+                      handleInputChange(crimeType.id, e.target.value)
+                    }
+                    disabled={!isEditing || isUpdating}
+                    className={`disabled:cursor-default disabled:opacity-100 ${
+                      isEditing ? "pr-8" : ""
+                    } ${validationErrors[crimeType.id] ? "border-red-500" : ""}`}
+                  />
+                  {isEditing && (
+                    <button
+                      type="button"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-red-500"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                {validationErrors[crimeType.id] && (
+                  <p className="text-xs text-red-500">
+                    {validationErrors[crimeType.id]}
+                  </p>
                 )}
               </div>
             ))}
