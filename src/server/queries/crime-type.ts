@@ -44,3 +44,50 @@ export async function updateCrimeTypes(
     );
   }
 }
+
+// ==================== ADD CRIME TYPE ====================
+
+export interface AddCrimeTypeParams {
+  label: string;
+}
+
+export interface CrimeType {
+  id: number;
+  label: string | null;
+}
+
+/**
+ * Add a new crime type.
+ */
+export async function addCrimeType(
+  client: TypedSupabaseClient,
+  params: AddCrimeTypeParams,
+): Promise<CrimeType> {
+  const { data, error } = await client
+    .from("crime-type")
+    .insert({ label: params.label })
+    .select()
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+// ==================== DELETE CRIME TYPE ====================
+
+/**
+ * Delete a crime type by ID.
+ */
+export async function deleteCrimeType(
+  client: TypedSupabaseClient,
+  id: number,
+): Promise<void> {
+  const { error } = await client.from("crime-type").delete().eq("id", id);
+
+  if (error) {
+    throw error;
+  }
+}

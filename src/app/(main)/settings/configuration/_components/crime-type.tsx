@@ -7,8 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Check, Gavel, Plus, SquarePen, X } from "lucide-react";
 import { useCrimeTypes } from "@/hooks/crime-case/useCrimeTypes";
-import { useUpdateCrimeTypes } from "@/hooks/crime-case/use-mutate-crime-types";
-import type { CrimeTypeUpdate } from "@/server/queries/crime-type";
+import {
+  useUpdateCrimeTypes,
+  useAddCrimeType,
+  useDeleteCrimeType,
+} from "@/hooks/crime-case/use-mutate-crime-types";
+import type { CrimeTypeUpdate, CrimeType } from "@/server/queries/crime-type";
+import AddCrimeTypeModal, {
+  type AddCrimeTypeFormData,
+} from "./add-crime-type-modal";
+import DeleteCrimeTypeModal from "./delete-crime-type-modal";
 
 // Zod schema for crime type label validation
 const crimeTypeLabelSchema = z
@@ -26,8 +34,12 @@ function CrimeTypeSkeleton() {
   );
 }
 
-export default function CrimeType() {
+export default function CrimeTypeComponent() {
   const [isEditing, setIsEditing] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [crimeTypeToDelete, setCrimeTypeToDelete] = useState<CrimeType | null>(
+    null,
+  );
   // Track edited values: { [crimeTypeId]: newLabel }
   const [editedValues, setEditedValues] = useState<Record<number, string>>({});
   // Track validation errors: { [crimeTypeId]: errorMessage }
@@ -38,6 +50,9 @@ export default function CrimeType() {
   const { data: crimeTypes, isLoading, error } = useCrimeTypes();
   const { mutate: updateCrimeTypes, isPending: isUpdating } =
     useUpdateCrimeTypes();
+  const { mutate: addCrimeType, isPending: isAdding } = useAddCrimeType();
+  const { mutate: deleteCrimeType, isPending: isDeleting } =
+    useDeleteCrimeType();
 
   // Reset edited values when crimeTypes data changes (e.g., after successful update)
   useEffect(() => {
@@ -71,7 +86,7 @@ export default function CrimeType() {
 
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
 
-  const getInputValue = (crimeType: { id: number; label: string }) => {
+  const getInputValue = (crimeType: { id: number; label: string | null }) => {
     // If we have an edited value, use it; otherwise use original
     if (editedValues[crimeType.id] !== undefined) {
       return editedValues[crimeType.id];
@@ -119,6 +134,23 @@ export default function CrimeType() {
     });
   };
 
+  const handleAddCrimeType = (data: AddCrimeTypeFormData) => {
+    addCrimeType(data, {
+      onSuccess: () => {
+        setIsAddDialogOpen(false);
+      },
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!crimeTypeToDelete) return;
+    deleteCrimeType(crimeTypeToDelete.id, {
+      onSuccess: () => {
+        setCrimeTypeToDelete(null);
+      },
+    });
+  };
+
   return (
     <div className="flex flex-col gap-2 p-2">
       <div className="flex items-center justify-between">
@@ -127,7 +159,10 @@ export default function CrimeType() {
           Crime Type
         </h1>
         <div className="flex items-center gap-2 text-sm">
-          <Button className="flex items-center border border-orange-800 bg-orange-100 text-orange-800 hover:bg-orange-200">
+          <Button
+            className="flex items-center border border-orange-800 bg-orange-100 text-orange-800 hover:bg-orange-200"
+            onClick={() => setIsAddDialogOpen(true)}
+          >
             <Plus />
             Add crime type
           </Button>
@@ -190,6 +225,12 @@ export default function CrimeType() {
                   {isEditing && (
                     <button
                       type="button"
+                      onClick={() =>
+                        setCrimeTypeToDelete({
+                          id: crimeType.id,
+                          label: crimeType.label,
+                        })
+                      }
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-red-500"
                     >
                       <X className="h-4 w-4" />
@@ -210,6 +251,23 @@ export default function CrimeType() {
           </div>
         )}
       </form>
+
+      {/* Add Crime Type Modal */}
+      <AddCrimeTypeModal
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        onSubmit={handleAddCrimeType}
+        isAdding={isAdding}
+      />
+
+      {/* Delete Crime Type Confirmation Modal */}
+      <DeleteCrimeTypeModal
+        open={!!crimeTypeToDelete}
+        onOpenChange={(open: boolean) => !open && setCrimeTypeToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        isDeleting={isDeleting}
+        crimeTypeLabel={crimeTypeToDelete?.label || undefined}
+      />
     </div>
   );
 }
