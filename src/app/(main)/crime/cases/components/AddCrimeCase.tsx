@@ -97,7 +97,7 @@ export default function MyForm() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <MainButton>
+        <MainButton className="border border-orange-600 bg-orange-100 text-orange-600 hover:bg-orange-200 dark:border-orange-700 dark:bg-[var(--dark-accent)] dark:text-orange-300 dark:hover:bg-[var(--dark-accent-hover)]">
           <Plus />
           Add Crime Record
         </MainButton>

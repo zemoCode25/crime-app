@@ -10,6 +10,8 @@ export async function getTableCrimeCases(client: TypedSupabaseClient) {
       case_number,
       crime_type,
       case_status,
+      incident_datetime,
+      report_datetime,
       case_person (
         case_role,
         person_profile (

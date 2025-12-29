@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal } from "lucide-react";
+import { format } from "date-fns";
 import { CaseStatus } from "@/types/form-schema";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,8 @@ export type CrimeTableRow = {
   case_status: CaseStatus | null;
   suspect: string;
   complainant: string;
+  incident_datetime: string | null;
+  report_datetime: string | null;
 };
 
 type ActionsCellProps = {
@@ -81,7 +84,11 @@ export const createColumns = (
     header: "Case Number",
     cell: ({ row }) => {
       const caseNumber = row.getValue("case_number") as string | null;
-      return <div className="font-medium">{caseNumber || `ID-${row.original.id}`}</div>;
+      return (
+        <div className="font-medium">
+          {caseNumber || `ID-${row.original.id}`}
+        </div>
+      );
     },
   },
   {
@@ -161,6 +168,54 @@ export const createColumns = (
       return <div className="text-left font-medium">{suspect}</div>;
     },
     enableGlobalFilter: true,
+  },
+  {
+    accessorKey: "incident_datetime",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="!p-0 text-left font-bold"
+      >
+        Incident Date
+        {column.getIsSorted() === "desc" ? (
+          <ArrowDown className="ml-2 h-4 w-4" />
+        ) : column.getIsSorted() === "asc" ? (
+          <ArrowUp className="ml-2 h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        )}
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const dateValue = row.getValue("incident_datetime") as string | null;
+      if (!dateValue) return <div className="text-neutral-400">-</div>;
+      return <div>{format(new Date(dateValue), "MMM d, yyyy")}</div>;
+    },
+  },
+  {
+    accessorKey: "report_datetime",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="!p-0 text-left font-bold"
+      >
+        Date Reported
+        {column.getIsSorted() === "desc" ? (
+          <ArrowDown className="ml-2 h-4 w-4" />
+        ) : column.getIsSorted() === "asc" ? (
+          <ArrowUp className="ml-2 h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        )}
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const dateValue = row.getValue("report_datetime") as string | null;
+      if (!dateValue) return <div className="text-neutral-400">-</div>;
+      return <div>{format(new Date(dateValue), "MMM d, yyyy")}</div>;
+    },
   },
 ];
 

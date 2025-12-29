@@ -79,17 +79,20 @@ type CasePersonWithProfile = Pick<
 
 export type CrimeCaseListRecord = Pick<
   Database["public"]["Tables"]["crime_case"]["Row"],
-  "id" | "crime_type" | "case_status"
+  "id" | "case_number" | "crime_type" | "case_status" | "incident_datetime" | "report_datetime"
 > & {
   case_person: CasePersonWithProfile[] | null;
 };
 
 export type CrimeCaseListItem = {
   id: number;
+  case_number: string | null;
   crime_type: number | null;
   case_status: CaseStatus | null;
   suspect: string;
   complainant: string;
+  incident_datetime: string | null;
+  report_datetime: string | null;
 };
 
 type LocationRow = Database["public"]["Tables"]["location"]["Row"];
