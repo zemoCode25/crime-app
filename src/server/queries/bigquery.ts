@@ -75,25 +75,25 @@ export async function getTimePatterns() {
 export async function predictHighRiskAreas() {
   const query = `
     WITH recent_crimes AS (
-      SELECT 
+      SELECT
         latitude,
         longitude,
         crime_location,
         COUNT(*) as recent_count,
         COUNT(*) / NULLIF(COUNT(DISTINCT DATE(incident_datetime)), 0) as daily_avg
       FROM \`${process.env.GOOGLE_CLOUD_PROJECT_ID}.crime_analytics.crime_cases\`
-      WHERE 
+      WHERE
         incident_datetime >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 DAY)
         AND visibility = 'public'
       GROUP BY latitude, longitude, crime_location
     )
-    SELECT 
+    SELECT
       latitude,
       longitude,
       crime_location,
       recent_count,
       daily_avg,
-      CASE 
+      CASE
         WHEN daily_avg >= 1.0 THEN 'CRITICAL'
         WHEN daily_avg >= 0.5 THEN 'HIGH'
         WHEN daily_avg >= 0.2 THEN 'MEDIUM'
@@ -107,4 +107,96 @@ export async function predictHighRiskAreas() {
 
   const [rows] = await bigquery.query({ query });
   return rows;
+}
+
+// Risk level thresholds based on crime count (matches training data thresholds)
+const CRIME_COUNT_THRESHOLDS = {
+  HIGH: 8,        // >= 8 crimes
+  MEDIUM_HIGH: 5, // >= 5 crimes
+  MEDIUM: 3,      // >= 3 crimes
+  LOW_MEDIUM: 2,  // == 2 crimes
+} as const;
+
+export type RiskLevel = 'HIGH' | 'MEDIUM_HIGH' | 'MEDIUM' | 'LOW_MEDIUM' | 'LOW';
+
+export interface CrimeTypeCount {
+  type: string;
+  count: number;
+  percentage: number;
+}
+
+export interface RiskAssessmentResult {
+  riskLevel: RiskLevel;
+  crimeCount: number;
+  perimeter: {
+    radius: number;
+    crimeTypes: CrimeTypeCount[];
+    totalCrimes: number;
+  };
+}
+
+function getRiskLevelFromCrimeCount(crimeCount: number): RiskLevel {
+  if (crimeCount >= CRIME_COUNT_THRESHOLDS.HIGH) return 'HIGH';
+  if (crimeCount >= CRIME_COUNT_THRESHOLDS.MEDIUM_HIGH) return 'MEDIUM_HIGH';
+  if (crimeCount >= CRIME_COUNT_THRESHOLDS.MEDIUM) return 'MEDIUM';
+  if (crimeCount >= CRIME_COUNT_THRESHOLDS.LOW_MEDIUM) return 'LOW_MEDIUM';
+  return 'LOW';
+}
+
+export async function getRiskAssessment(
+  lat: number,
+  lng: number,
+  _hour?: number,
+  _dayOfWeek?: string,
+  _month?: number
+): Promise<RiskAssessmentResult> {
+  // Get crime types within 500m radius (~0.0045 degrees)
+  // This directly determines risk level based on crime density
+  const perimeterQuery = `
+    SELECT
+      crime_type_name as type,
+      COUNT(*) as count
+    FROM \`${process.env.GOOGLE_CLOUD_PROJECT_ID}.crime_analytics.crime_cases\`
+    WHERE
+      ABS(latitude - @lat) <= 0.0045
+      AND ABS(longitude - @lng) <= 0.0045
+      AND visibility = 'public'
+      AND latitude IS NOT NULL
+      AND longitude IS NOT NULL
+    GROUP BY crime_type_name
+    ORDER BY count DESC
+  `;
+
+  const [perimeterRows] = await bigquery.query({
+    query: perimeterQuery,
+    params: { lat, lng },
+  });
+
+  // Calculate total crimes in perimeter
+  const totalCrimes = perimeterRows.reduce(
+    (sum: number, row: { count: number }) => sum + row.count,
+    0
+  );
+
+  // Determine risk level from crime count (matches training thresholds)
+  const riskLevel = getRiskLevelFromCrimeCount(totalCrimes);
+
+  // Process crime type breakdown
+  const crimeTypes: CrimeTypeCount[] = perimeterRows.map(
+    (row: { type: string; count: number }) => ({
+      type: row.type,
+      count: row.count,
+      percentage: totalCrimes > 0 ? Math.round((row.count / totalCrimes) * 100) : 0,
+    })
+  );
+
+  return {
+    riskLevel,
+    crimeCount: totalCrimes,
+    perimeter: {
+      radius: 500,
+      crimeTypes,
+      totalCrimes,
+    },
+  };
 }

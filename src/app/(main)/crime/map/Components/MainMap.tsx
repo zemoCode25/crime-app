@@ -251,6 +251,20 @@ export default function Map({
 
         markerRef.current = marker;
 
+        // Trigger initial location on map load for risk assessment
+        if (onLocationChangeRef.current) {
+          const [initLng, initLat] = initialCenter;
+          reverseGeocodeMapbox(initLat, initLng).then((address) => {
+            if (onLocationChangeRef.current) {
+              onLocationChangeRef.current({
+                lat: initLat,
+                lng: initLng,
+                address: address || "",
+              });
+            }
+          });
+        }
+
         marker.on("dragend", async () => {
           const lngLat = marker.getLngLat();
 

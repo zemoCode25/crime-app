@@ -1,58 +1,112 @@
 "use client";
 import { SelectedLocation } from "@/types/map";
-import { MapPinned, ShieldCheck, ShieldAlert, ShieldX } from "lucide-react";
+import {
+  MapPinned,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
+  Shield,
+  ShieldOff,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
 import { Badge } from "@/components/ui/badge";
 import { useCrimeType } from "@/context/CrimeTypeProvider";
-import Link from "next/link";
+
+export type RiskLevel =
+  | "HIGH"
+  | "MEDIUM_HIGH"
+  | "MEDIUM"
+  | "LOW_MEDIUM"
+  | "LOW";
+
+export interface CrimeTypeCount {
+  type: string;
+  count: number;
+  percentage: number;
+}
+
+export interface RiskAssessmentData {
+  riskLevel: RiskLevel;
+  crimeCount: number;
+  perimeter: {
+    radius: number;
+    crimeTypes: CrimeTypeCount[];
+    totalCrimes: number;
+    safetyTips: string[];
+  };
+}
 
 interface MapSettingProps {
   selectedLocation: SelectedLocation | null;
   onLocationChange: (location: SelectedLocation | null) => void;
   selectedCase: CrimeCaseMapRecord | null;
+  riskAssessment?: RiskAssessmentData | null;
+  isLoadingRisk?: boolean;
+  riskError?: Error | null;
 }
 
 const LOCATION_HAZARD_CONFIG: Record<
-  string,
+  RiskLevel,
   {
     label: string;
     icon: LucideIcon;
     colors: { bg: string; text: string; border: string };
   }
 > = {
-  low: {
+  LOW: {
     label: "Low Risk Area",
     icon: ShieldCheck,
     colors: {
       bg: "bg-green-100",
       text: "text-green-800",
-      border: "border-green-900",
+      border: "border-green-500",
     },
   },
-  medium: {
+  LOW_MEDIUM: {
+    label: "Low-Medium Risk Area",
+    icon: Shield,
+    colors: {
+      bg: "bg-emerald-100",
+      text: "text-emerald-800",
+      border: "border-emerald-500",
+    },
+  },
+  MEDIUM: {
     label: "Medium Risk Area",
     icon: ShieldAlert,
     colors: {
       bg: "bg-yellow-100",
       text: "text-yellow-800",
-      border: "border-yellow-900",
+      border: "border-yellow-500",
     },
   },
-  high: {
+  MEDIUM_HIGH: {
+    label: "Medium-High Risk Area",
+    icon: ShieldOff,
+    colors: {
+      bg: "bg-orange-100",
+      text: "text-orange-800",
+      border: "border-orange-500",
+    },
+  },
+  HIGH: {
     label: "High Risk Area",
     icon: ShieldX,
     colors: {
       bg: "bg-red-100",
       text: "text-red-800",
-      border: "border-red-900",
+      border: "border-red-500",
     },
   },
 };
 
-function HazardWarning({ warningLevel }: { warningLevel: string }) {
-  const Icon = LOCATION_HAZARD_CONFIG[warningLevel]?.icon;
-  const colors = LOCATION_HAZARD_CONFIG[warningLevel]?.colors;
+function HazardWarning({ warningLevel }: { warningLevel: RiskLevel }) {
+  const config = LOCATION_HAZARD_CONFIG[warningLevel];
+  const Icon = config?.icon;
+  const colors = config?.colors;
 
   if (!colors) return null;
 
@@ -61,9 +115,90 @@ function HazardWarning({ warningLevel }: { warningLevel: string }) {
       className={`flex items-center gap-2 rounded-md border ${colors.border} ${colors.bg} w-full justify-center py-2`}
     >
       {Icon && <Icon className={`${colors.text} h-5 w-5 flex-shrink-0`} />}
-      <p className={`text-sm font-semibold ${colors.text}`}>
-        {LOCATION_HAZARD_CONFIG[warningLevel].label}
+      <p className={`text-sm font-semibold ${colors.text}`}>{config.label}</p>
+    </div>
+  );
+}
+
+function RiskLoadingState() {
+  return (
+    <div className="flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 bg-gray-100 py-2">
+      <Loader2 className="h-5 w-5 animate-spin text-gray-500" />
+      <p className="text-sm font-semibold text-gray-600">Assessing risk...</p>
+    </div>
+  );
+}
+
+function RiskErrorState({ error }: { error: Error }) {
+  return (
+    <div className="flex w-full flex-col gap-1 rounded-md border border-red-300 bg-red-50 p-2">
+      <div className="flex items-center gap-2">
+        <AlertCircle className="h-5 w-5 text-red-500" />
+        <p className="text-sm font-semibold text-red-700">Risk assessment failed</p>
+      </div>
+      <p className="text-xs text-red-600">{error.message}</p>
+    </div>
+  );
+}
+
+function SafetyTips({ tips }: { tips: string[] }) {
+  if (!tips.length) return null;
+
+  return (
+    <div className="rounded-md border border-blue-200 bg-blue-50 p-3">
+      <p className="mb-2 text-xs font-semibold text-blue-700 uppercase">
+        Safety Tips
       </p>
+      <ul className="space-y-1">
+        {tips.map((tip, index) => (
+          <li
+            key={index}
+            className="flex items-start gap-2 text-sm text-blue-800"
+          >
+            <span className="mt-0.5 text-blue-500">•</span>
+            {tip}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function CrimeTypeBreakdown({
+  crimeTypes,
+  totalCrimes,
+}: {
+  crimeTypes: CrimeTypeCount[];
+  totalCrimes: number;
+}) {
+  if (!crimeTypes.length) return null;
+
+  return (
+    <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+      <p className="mb-2 text-xs font-semibold text-gray-700 uppercase">
+        Nearby Crime Activity ({totalCrimes} cases within 500m)
+      </p>
+      <div className="space-y-1.5">
+        {crimeTypes.slice(0, 5).map((crime) => (
+          <div
+            key={crime.type}
+            className="flex items-center justify-between text-sm"
+          >
+            <span className="text-gray-700">{crime.type}</span>
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-20 overflow-hidden rounded-full bg-gray-200">
+                <div
+                  className="h-full rounded-full bg-orange-400"
+                  style={{ width: `${crime.percentage}%` }}
+                />
+              </div>
+              <span className="w-8 text-xs text-gray-500">
+                {crime.percentage}%
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -188,11 +323,39 @@ export default function MapSetting({
   selectedLocation,
   // onLocationChange, // kept for future use
   selectedCase,
+  riskAssessment,
+  isLoadingRisk,
+  riskError,
 }: MapSettingProps) {
   return (
     <div className="max-h-full w-full max-w-[450px] overflow-y-auto rounded-l-sm border border-gray-200 bg-white/95 p-4 pr-4 shadow-sm backdrop-blur-sm">
       <div className="flex flex-col gap-3">
-        <HazardWarning warningLevel="medium" />
+        {/* Risk Level Display */}
+        {isLoadingRisk ? (
+          <RiskLoadingState />
+        ) : riskError ? (
+          <RiskErrorState error={riskError} />
+        ) : riskAssessment ? (
+          <HazardWarning warningLevel={riskAssessment.riskLevel} />
+        ) : (
+          <HazardWarning warningLevel="MEDIUM" />
+        )}
+
+        {/* Safety Tips */}
+        {riskAssessment?.perimeter.safetyTips && (
+          <SafetyTips tips={riskAssessment.perimeter.safetyTips} />
+        )}
+
+        {/* Crime Type Breakdown */}
+        {riskAssessment?.perimeter.crimeTypes &&
+          riskAssessment.perimeter.crimeTypes.length > 0 && (
+            <CrimeTypeBreakdown
+              crimeTypes={riskAssessment.perimeter.crimeTypes}
+              totalCrimes={riskAssessment.perimeter.totalCrimes}
+            />
+          )}
+
+        {/* Selected Case Card */}
         <SelectedCaseCard
           selectedCase={selectedCase}
           selectedLocation={selectedLocation}
