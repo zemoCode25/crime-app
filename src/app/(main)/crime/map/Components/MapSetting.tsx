@@ -9,11 +9,18 @@ import {
   ShieldOff,
   Loader2,
   AlertCircle,
+  Navigation,
+  X,
+  Clock,
+  Route,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useCrimeType } from "@/context/CrimeTypeProvider";
+import type { RouteAssessmentResult } from "@/types/route-assessment";
+import { ROUTE_RISK_COLORS, TRANSPORT_MODE_CONFIG } from "@/types/route-assessment";
 
 export type RiskLevel =
   | "HIGH"
@@ -46,6 +53,9 @@ interface MapSettingProps {
   riskAssessment?: RiskAssessmentData | null;
   isLoadingRisk?: boolean;
   riskError?: Error | null;
+  routeAssessment?: RouteAssessmentResult | null;
+  onClearRoute?: () => void;
+  isRouteMode?: boolean;
 }
 
 const LOCATION_HAZARD_CONFIG: Record<
@@ -326,6 +336,179 @@ function SelectedCaseCard({
   );
 }
 
+function RouteAssessmentCard({
+  routeAssessment,
+  onClearRoute,
+}: {
+  routeAssessment: RouteAssessmentResult;
+  onClearRoute?: () => void;
+}) {
+  const { overallAssessment, route } = routeAssessment;
+  const config = LOCATION_HAZARD_CONFIG[overallAssessment.riskLevel];
+
+  // Format distance
+  const formatDistance = (meters: number) => {
+    if (meters >= 1000) {
+      return `${(meters / 1000).toFixed(1)} km`;
+    }
+    return `${Math.round(meters)} m`;
+  };
+
+  // Format duration
+  const formatDuration = (seconds: number) => {
+    const mins = Math.round(seconds / 60);
+    if (mins >= 60) {
+      const hrs = Math.floor(mins / 60);
+      const remainMins = mins % 60;
+      return `${hrs}h ${remainMins}m`;
+    }
+    return `${mins} min`;
+  };
+
+  return (
+    <div className="rounded-lg border-2 border-orange-300 bg-gradient-to-br from-orange-50 to-amber-50 p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Navigation className="h-5 w-5 text-orange-600" />
+          <h3 className="font-semibold text-orange-900">Route Assessment</h3>
+        </div>
+        {onClearRoute && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClearRoute}
+            className="h-7 w-7 p-0 text-gray-500 hover:text-gray-700"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+
+      {/* Overall Risk Level */}
+      <div
+        className={`flex items-center gap-2 rounded-md border ${config.colors.border} ${config.colors.bg} justify-center py-2 mb-3`}
+      >
+        {config.icon && (
+          <config.icon className={`${config.colors.text} h-5 w-5 flex-shrink-0`} />
+        )}
+        <p className={`text-sm font-semibold ${config.colors.text}`}>
+          {config.label}
+        </p>
+      </div>
+
+      {/* Route Stats */}
+      <div className="mb-3 grid grid-cols-2 gap-2">
+        <div className="rounded-md bg-white/70 p-2 text-center">
+          <div className="flex items-center justify-center gap-1 text-gray-500">
+            <Route className="h-3.5 w-3.5" />
+            <span className="text-xs">Distance</span>
+          </div>
+          <p className="font-semibold text-gray-800">
+            {formatDistance(route.distance)}
+          </p>
+        </div>
+        <div className="rounded-md bg-white/70 p-2 text-center">
+          <div className="flex items-center justify-center gap-1 text-gray-500">
+            <Clock className="h-3.5 w-3.5" />
+            <span className="text-xs capitalize">
+              {TRANSPORT_MODE_CONFIG[routeAssessment.transportMode]?.speedLabel || "Time"}
+            </span>
+          </div>
+          <p className="font-semibold text-gray-800">
+            {formatDuration(route.duration)}
+          </p>
+        </div>
+      </div>
+
+      {/* Safety Score */}
+      <div className="mb-3">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-600">Safety Score</span>
+          <span className="font-semibold text-gray-800">
+            {overallAssessment.safetyScore}/100
+          </span>
+        </div>
+        <div className="mt-1 h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
+          <div
+            className="h-full rounded-full transition-all"
+            style={{
+              width: `${overallAssessment.safetyScore}%`,
+              backgroundColor:
+                overallAssessment.safetyScore >= 80
+                  ? ROUTE_RISK_COLORS.LOW
+                  : overallAssessment.safetyScore >= 60
+                    ? ROUTE_RISK_COLORS.MEDIUM
+                    : ROUTE_RISK_COLORS.HIGH,
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Segment Breakdown */}
+      <div className="mb-3 space-y-1">
+        <p className="text-xs font-semibold uppercase text-gray-500">
+          Route Segments
+        </p>
+        <div className="flex gap-2 text-xs">
+          {overallAssessment.lowRiskSegments > 0 && (
+            <div className="flex items-center gap-1">
+              <div
+                className="h-3 w-3 rounded-full"
+                style={{ backgroundColor: ROUTE_RISK_COLORS.LOW }}
+              />
+              <span className="text-gray-600">
+                {overallAssessment.lowRiskSegments} safe
+              </span>
+            </div>
+          )}
+          {overallAssessment.mediumRiskSegments > 0 && (
+            <div className="flex items-center gap-1">
+              <div
+                className="h-3 w-3 rounded-full"
+                style={{ backgroundColor: ROUTE_RISK_COLORS.MEDIUM }}
+              />
+              <span className="text-gray-600">
+                {overallAssessment.mediumRiskSegments} moderate
+              </span>
+            </div>
+          )}
+          {overallAssessment.highRiskSegments > 0 && (
+            <div className="flex items-center gap-1">
+              <div
+                className="h-3 w-3 rounded-full"
+                style={{ backgroundColor: ROUTE_RISK_COLORS.HIGH }}
+              />
+              <span className="text-gray-600">
+                {overallAssessment.highRiskSegments} caution
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Recommendations */}
+      {overallAssessment.recommendations.length > 0 && (
+        <div className="border-t border-orange-200 pt-3">
+          <p className="mb-2 text-xs font-semibold uppercase text-blue-700">
+            Recommendations
+          </p>
+          <ul className="space-y-1">
+            {overallAssessment.recommendations.map((rec, idx) => (
+              <li
+                key={idx}
+                className="flex items-start gap-2 text-sm text-blue-800"
+              >
+                <span className="mt-0.5 text-blue-500">•</span>
+                {rec}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function MapSetting({
   selectedLocation,
   // onLocationChange, // kept for future use
@@ -333,26 +516,43 @@ export default function MapSetting({
   riskAssessment,
   isLoadingRisk,
   riskError,
+  routeAssessment,
+  onClearRoute,
+  isRouteMode = false,
 }: MapSettingProps) {
   return (
-    <div className="max-h-full w-full max-w-[450px] overflow-y-auto rounded-l-sm border border-gray-200 bg-white/95 p-4 pr-4 shadow-sm backdrop-blur-sm">
+    <div className="max-h-dvh w-full max-w-[450px] overflow-y-auto rounded-l-sm border border-gray-200 bg-white/95 p-4 pr-4 shadow-sm backdrop-blur-sm">
       <div className="flex flex-col gap-3">
-        {/* Current Location */}
-        <CurrentLocationCard selectedLocation={selectedLocation} />
-
-        {/* Risk Level Display */}
-        {isLoadingRisk ? (
-          <RiskLoadingState />
-        ) : riskError ? (
-          <RiskErrorState error={riskError} />
-        ) : riskAssessment ? (
-          <HazardWarning warningLevel={riskAssessment.riskLevel} />
-        ) : (
-          <HazardWarning warningLevel="MEDIUM" />
+        {/* Current Location - hidden in route mode */}
+        {!isRouteMode && (
+          <CurrentLocationCard selectedLocation={selectedLocation} />
         )}
 
-        {/* Perimeter Analysis (Crime Breakdown + Safety Tips) */}
-        {riskAssessment && (
+        {/* Risk Level Display - hidden in route mode */}
+        {!isRouteMode && (
+          <>
+            {isLoadingRisk ? (
+              <RiskLoadingState />
+            ) : riskError ? (
+              <RiskErrorState error={riskError} />
+            ) : riskAssessment ? (
+              <HazardWarning warningLevel={riskAssessment.riskLevel} />
+            ) : selectedLocation ? (
+              <HazardWarning warningLevel="MEDIUM" />
+            ) : null}
+          </>
+        )}
+
+        {/* Route Assessment Card */}
+        {routeAssessment && (
+          <RouteAssessmentCard
+            routeAssessment={routeAssessment}
+            onClearRoute={onClearRoute}
+          />
+        )}
+
+        {/* Perimeter Analysis (Crime Breakdown + Safety Tips) - hidden in route mode */}
+        {!isRouteMode && riskAssessment && (
           <PerimeterAnalysis
             crimeTypes={riskAssessment.perimeter.crimeTypes}
             totalCrimes={riskAssessment.perimeter.totalCrimes}
@@ -361,7 +561,7 @@ export default function MapSetting({
           />
         )}
 
-        {/* Selected Case Card */}
+        {/* Selected Case Card - always visible */}
         <SelectedCaseCard
           selectedCase={selectedCase}
           selectedLocation={selectedLocation}
