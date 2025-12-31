@@ -143,33 +143,71 @@ function getRiskLevelFromCrimeCount(crimeCount: number): RiskLevel {
   return 'LOW';
 }
 
+export interface RiskAssessmentFilters {
+  crimeTypeIds?: number[];
+  statusFilters?: string[];
+  barangayFilters?: string[];
+  dateFrom?: string;
+  dateTo?: string;
+}
+
 export async function getRiskAssessment(
   lat: number,
   lng: number,
-  _hour?: number,
-  _dayOfWeek?: string,
-  _month?: number
+  filters?: RiskAssessmentFilters
 ): Promise<RiskAssessmentResult> {
-  // Get crime types within 500m radius (~0.0045 degrees)
-  // This directly determines risk level based on crime density
+  // Build dynamic WHERE conditions based on filters
+  const conditions: string[] = [
+    'ABS(latitude - @lat) <= 0.0027', // 300m radius (~0.0027 degrees)
+    'ABS(longitude - @lng) <= 0.0027',
+    "visibility = 'public'",
+    'latitude IS NOT NULL',
+    'longitude IS NOT NULL',
+  ];
+
+  const params: Record<string, unknown> = { lat, lng };
+
+  // Add filter conditions
+  if (filters?.crimeTypeIds && filters.crimeTypeIds.length > 0) {
+    conditions.push('crime_type_id IN UNNEST(@crimeTypeIds)');
+    params.crimeTypeIds = filters.crimeTypeIds;
+  }
+
+  if (filters?.statusFilters && filters.statusFilters.length > 0) {
+    conditions.push('case_status IN UNNEST(@statusFilters)');
+    params.statusFilters = filters.statusFilters;
+  }
+
+  if (filters?.barangayFilters && filters.barangayFilters.length > 0) {
+    conditions.push('barangay_id IN UNNEST(@barangayFilters)');
+    // Convert string IDs to numbers for BigQuery
+    params.barangayFilters = filters.barangayFilters.map(Number).filter(n => !isNaN(n));
+  }
+
+  if (filters?.dateFrom) {
+    conditions.push('incident_datetime >= @dateFrom');
+    params.dateFrom = filters.dateFrom;
+  }
+
+  if (filters?.dateTo) {
+    conditions.push('incident_datetime <= @dateTo');
+    params.dateTo = filters.dateTo;
+  }
+
+  // Get crime types within 300m radius
   const perimeterQuery = `
     SELECT
       crime_type_name as type,
       COUNT(*) as count
     FROM \`${process.env.GOOGLE_CLOUD_PROJECT_ID}.crime_analytics.crime_cases\`
-    WHERE
-      ABS(latitude - @lat) <= 0.0045
-      AND ABS(longitude - @lng) <= 0.0045
-      AND visibility = 'public'
-      AND latitude IS NOT NULL
-      AND longitude IS NOT NULL
+    WHERE ${conditions.join('\n      AND ')}
     GROUP BY crime_type_name
     ORDER BY count DESC
   `;
 
   const [perimeterRows] = await bigquery.query({
     query: perimeterQuery,
-    params: { lat, lng },
+    params,
   });
 
   // Calculate total crimes in perimeter
@@ -194,7 +232,7 @@ export async function getRiskAssessment(
     riskLevel,
     crimeCount: totalCrimes,
     perimeter: {
-      radius: 500,
+      radius: 300,
       crimeTypes,
       totalCrimes,
     },

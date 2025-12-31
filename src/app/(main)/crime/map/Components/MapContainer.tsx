@@ -7,7 +7,7 @@ import MapFilters from "./MapFilters";
 import type { MapFiltersState } from "./mapFiltersState";
 import { useCrimeCasesForMap } from "@/hooks/crime-case/useCrimeCasesForMap";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
-import { useRiskAssessment } from "@/hooks/map/useRiskAssessment";
+import { useRiskAssessment, type RiskAssessmentFilters } from "@/hooks/map/useRiskAssessment";
 
 const initialFilters: MapFiltersState = {
   statusFilters: [],
@@ -29,9 +29,19 @@ export default function MapContainer() {
     setSelectedLocation(location);
   };
 
+  // Convert map filters to risk assessment filters
+  const riskFilters: RiskAssessmentFilters = {
+    crimeTypeIds: filters.typeFilters.length > 0 ? filters.typeFilters : undefined,
+    statusFilters: filters.statusFilters.length > 0 ? filters.statusFilters : undefined,
+    barangayFilters: filters.barangayFilters.length > 0 ? filters.barangayFilters : undefined,
+    dateFrom: filters.dateRange?.from?.toISOString(),
+    dateTo: filters.dateRange?.to?.toISOString(),
+  };
+
   const { data: riskAssessment, isLoading: isLoadingRisk, error: riskError } = useRiskAssessment({
     lat: selectedLocation?.lat ?? null,
     lng: selectedLocation?.lng ?? null,
+    filters: riskFilters,
     enabled: selectedLocation !== null,
   });
 

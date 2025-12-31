@@ -134,7 +134,9 @@ function RiskErrorState({ error }: { error: Error }) {
     <div className="flex w-full flex-col gap-1 rounded-md border border-red-300 bg-red-50 p-2">
       <div className="flex items-center gap-2">
         <AlertCircle className="h-5 w-5 text-red-500" />
-        <p className="text-sm font-semibold text-red-700">Risk assessment failed</p>
+        <p className="text-sm font-semibold text-red-700">
+          Risk assessment failed
+        </p>
       </div>
       <p className="text-xs text-red-600">{error.message}</p>
     </div>

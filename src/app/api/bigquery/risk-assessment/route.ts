@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRiskAssessment, RiskLevel } from '@/server/queries/bigquery';
+import { getRiskAssessment, RiskLevel, RiskAssessmentFilters } from '@/server/queries/bigquery';
 
 // Safety tips based on crime types
 const SAFETY_TIPS: Record<string, string> = {
@@ -67,16 +67,39 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get optional time parameters (default to current time)
-    const now = new Date();
-    const hour = parseInt(searchParams.get('hour') || now.getHours().toString());
-    const dayOfWeek = searchParams.get('day') || now.toLocaleDateString('en-US', { weekday: 'long' });
-    const month = parseInt(searchParams.get('month') || (now.getMonth() + 1).toString());
+    // Parse optional filter parameters
+    const filters: RiskAssessmentFilters = {};
 
-    console.log(`📍 Risk assessment for: (${lat}, ${lng}) at ${dayOfWeek} ${hour}:00, Month ${month}`);
+    const crimeTypeIds = searchParams.get('crimeTypeIds');
+    if (crimeTypeIds) {
+      filters.crimeTypeIds = crimeTypeIds.split(',').map(Number).filter(n => !isNaN(n));
+    }
+
+    const statusFilters = searchParams.get('statusFilters');
+    if (statusFilters) {
+      filters.statusFilters = statusFilters.split(',');
+    }
+
+    const barangayFilters = searchParams.get('barangayFilters');
+    if (barangayFilters) {
+      filters.barangayFilters = barangayFilters.split(',');
+    }
+
+    const dateFrom = searchParams.get('dateFrom');
+    if (dateFrom) {
+      filters.dateFrom = dateFrom;
+    }
+
+    const dateTo = searchParams.get('dateTo');
+    if (dateTo) {
+      filters.dateTo = dateTo;
+    }
+
+    const hasFilters = Object.keys(filters).length > 0;
+    console.log(`📍 Risk assessment for: (${lat}, ${lng})${hasFilters ? ' with filters' : ''}`);
 
     // Get risk assessment from BigQuery
-    const assessment = await getRiskAssessment(lat, lng, hour, dayOfWeek, month);
+    const assessment = await getRiskAssessment(lat, lng, hasFilters ? filters : undefined);
 
     // Generate safety tips
     const safetyTips = generateSafetyTips(
