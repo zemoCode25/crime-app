@@ -4,10 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import useSupabaseBrowser from "@/server/supabase/client";
 import { getCrimeCasesForMap } from "@/server/queries/crime";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
+import type { DateRangeValue } from "@/components/DateRangeSelector";
+import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 
 export interface CrimeCasesMapFilters {
   statusFilters?: string[];
   crimeTypeIds?: number[];
+  barangayFilters?: string[];
+  dateRange?: DateRangeValue;
 }
 
 export function useCrimeCasesForMap(filters?: CrimeCasesMapFilters) {
@@ -42,6 +46,30 @@ export function useCrimeCasesForMap(filters?: CrimeCasesMapFilters) {
         records = records.filter((record) =>
           record.case_status != null ? set.has(record.case_status) : false,
         );
+      }
+
+      if (filters?.barangayFilters && filters.barangayFilters.length > 0) {
+        const barangayIds = filters.barangayFilters
+          .map((name) => BARANGAY_OPTIONS.find((b) => b.value === name)?.id)
+          .filter((id): id is number => id !== undefined);
+
+        if (barangayIds.length > 0) {
+          const set = new Set(barangayIds);
+          records = records.filter((record) =>
+            record.location?.barangay != null
+              ? set.has(record.location.barangay)
+              : false,
+          );
+        }
+      }
+
+      if (filters?.dateRange) {
+        const { from, to } = filters.dateRange;
+        records = records.filter((record) => {
+          if (!record.incident_datetime) return false;
+          const incidentDate = new Date(record.incident_datetime);
+          return incidentDate >= from && incidentDate <= to;
+        });
       }
 
       return records;

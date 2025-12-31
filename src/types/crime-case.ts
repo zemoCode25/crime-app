@@ -99,7 +99,7 @@ type LocationRow = Database["public"]["Tables"]["location"]["Row"];
 
 export type CrimeLocationForMap = Pick<
   LocationRow,
-  "lat" | "long" | "crime_location" | "landmark"
+  "lat" | "long" | "crime_location" | "landmark" | "barangay"
 >;
 
 export type CrimeCaseMapRecord = Pick<

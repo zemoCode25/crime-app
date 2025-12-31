@@ -31,6 +31,8 @@ export default function MapContainer() {
   const crimeCasesQuery = useCrimeCasesForMap({
     statusFilters: filters.statusFilters,
     crimeTypeIds: filters.typeFilters,
+    barangayFilters: filters.barangayFilters,
+    dateRange: filters.dateRange,
   });
   const crimeCases = crimeCasesQuery.data ?? [];
 

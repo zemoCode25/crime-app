@@ -25,7 +25,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { BARANGAY_OPTIONS_WITH_ALL, STATUSES } from "@/constants/crime-case";
+import { BARANGAY_OPTIONS, STATUSES } from "@/constants/crime-case";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
@@ -449,7 +449,7 @@ export default function MapFilters({
               <CommandList>
                 <CommandEmpty>No barangay found.</CommandEmpty>
                 <CommandGroup className="max-h-36 overflow-auto">
-                  {BARANGAY_OPTIONS_WITH_ALL.map((barangay) => (
+                  {BARANGAY_OPTIONS.map((barangay) => (
                     <CommandItem
                       key={barangay.value}
                       value={barangay.value}
@@ -505,7 +505,7 @@ export default function MapFilters({
                 {label}
                 <button
                   type="button"
-                  onClick={() => value}
+                  onClick={() => handleStatusFilterToggle(value)}
                   className="ml-1 text-xs text-gray-500 hover:text-gray-700"
                 >
                   <X className="h-3 w-3 text-white" />

@@ -40,7 +40,8 @@ export async function getCrimeCasesForMap(client: TypedSupabaseClient) {
         lat,
         long,
         crime_location,
-        landmark
+        landmark,
+        barangay
       )
       `,
     )
