@@ -143,90 +143,95 @@ function RiskErrorState({ error }: { error: Error }) {
   );
 }
 
-function SafetyTips({ tips }: { tips: string[] }) {
-  if (!tips.length) return null;
-
-  return (
-    <div className="rounded-md border border-blue-200 bg-blue-50 p-3">
-      <p className="mb-2 text-xs font-semibold text-blue-700 uppercase">
-        Safety Tips
-      </p>
-      <ul className="space-y-1">
-        {tips.map((tip, index) => (
-          <li
-            key={index}
-            className="flex items-start gap-2 text-sm text-blue-800"
-          >
-            <span className="mt-0.5 text-blue-500">•</span>
-            {tip}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function CrimeTypeBreakdown({
+function PerimeterAnalysis({
   crimeTypes,
   totalCrimes,
+  safetyTips,
+  radius,
 }: {
   crimeTypes: CrimeTypeCount[];
   totalCrimes: number;
+  safetyTips: string[];
+  radius: number;
 }) {
-  if (!crimeTypes.length) return null;
+  const hasCrimes = crimeTypes.length > 0;
+  const hasTips = safetyTips.length > 0;
+
+  if (!hasCrimes && !hasTips) return null;
 
   return (
     <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-      <p className="mb-2 text-xs font-semibold text-gray-700 uppercase">
-        Nearby Crime Activity ({totalCrimes} cases within 500m)
+      <p className="mb-3 text-xs font-semibold text-gray-700 uppercase">
+        {radius}m Perimeter Analysis ({totalCrimes} {totalCrimes === 1 ? 'case' : 'cases'})
       </p>
-      <div className="space-y-1.5">
-        {crimeTypes.slice(0, 5).map((crime) => (
-          <div
-            key={crime.type}
-            className="flex items-center justify-between text-sm"
-          >
-            <span className="text-gray-700">{crime.type}</span>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-20 overflow-hidden rounded-full bg-gray-200">
+
+      {/* Crime Type Breakdown */}
+      {hasCrimes && (
+        <div className="space-y-2">
+          {crimeTypes.slice(0, 5).map((crime) => (
+            <div key={crime.type} className="space-y-0.5">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-700">{crime.type}</span>
+                <span className="text-xs text-gray-500">
+                  {crime.count} ({crime.percentage}%)
+                </span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
                 <div
-                  className="h-full rounded-full bg-orange-400"
+                  className="h-full rounded-full bg-orange-400 transition-all"
                   style={{ width: `${crime.percentage}%` }}
                 />
               </div>
-              <span className="w-8 text-xs text-gray-500">
-                {crime.percentage}%
-              </span>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {/* Safety Tips */}
+      {hasTips && (
+        <div className={hasCrimes ? "mt-4 border-t border-gray-200 pt-3" : ""}>
+          <p className="mb-2 text-xs font-semibold text-blue-700 uppercase">
+            Safety Tips
+          </p>
+          <ul className="space-y-1">
+            {safetyTips.map((tip, index) => (
+              <li
+                key={index}
+                className="flex items-start gap-2 text-sm text-blue-800"
+              >
+                <span className="mt-0.5 text-blue-500">•</span>
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
 
-// function SelectedLocationCard({
-//   selectedLocation,
-// }: {
-//   selectedLocation: SelectedLocation | null;
-// }) {
-//   if (!selectedLocation) return null;
+function CurrentLocationCard({
+  selectedLocation,
+}: {
+  selectedLocation: SelectedLocation | null;
+}) {
+  if (!selectedLocation) return null;
 
-//   return (
-//     <div className="w-full rounded-lg border border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 p-4 shadow-sm">
-//       <p className="text-xs font-semibold tracking-wide text-orange-700 uppercase">
-//         Focused map location
-//       </p>
-//       <p className="mt-1 text-sm text-orange-900">
-//         {selectedLocation.address || "Location selected from map"}
-//       </p>
-//       <p className="mt-2 flex items-center gap-1 font-mono text-sm text-orange-700">
-//         <MapPinned className="h-4 w-4 text-orange-600" />
-//         {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-//       </p>
-//     </div>
-//   );
-// }
+  return (
+    <div className="w-full rounded-lg border border-slate-200 bg-gradient-to-br from-slate-50 to-gray-50 p-3 shadow-sm">
+      <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+        Current Location
+      </p>
+      <p className="mt-1 text-sm text-slate-800">
+        {selectedLocation.address || "Location selected from map"}
+      </p>
+      <p className="mt-2 flex items-center gap-1 font-mono text-xs text-slate-600">
+        <MapPinned className="h-3.5 w-3.5 text-slate-500" />
+        {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+      </p>
+    </div>
+  );
+}
 
 function SelectedCaseCard({
   selectedCase,
@@ -332,6 +337,9 @@ export default function MapSetting({
   return (
     <div className="max-h-full w-full max-w-[450px] overflow-y-auto rounded-l-sm border border-gray-200 bg-white/95 p-4 pr-4 shadow-sm backdrop-blur-sm">
       <div className="flex flex-col gap-3">
+        {/* Current Location */}
+        <CurrentLocationCard selectedLocation={selectedLocation} />
+
         {/* Risk Level Display */}
         {isLoadingRisk ? (
           <RiskLoadingState />
@@ -343,19 +351,15 @@ export default function MapSetting({
           <HazardWarning warningLevel="MEDIUM" />
         )}
 
-        {/* Safety Tips */}
-        {riskAssessment?.perimeter.safetyTips && (
-          <SafetyTips tips={riskAssessment.perimeter.safetyTips} />
+        {/* Perimeter Analysis (Crime Breakdown + Safety Tips) */}
+        {riskAssessment && (
+          <PerimeterAnalysis
+            crimeTypes={riskAssessment.perimeter.crimeTypes}
+            totalCrimes={riskAssessment.perimeter.totalCrimes}
+            safetyTips={riskAssessment.perimeter.safetyTips}
+            radius={riskAssessment.perimeter.radius}
+          />
         )}
-
-        {/* Crime Type Breakdown */}
-        {riskAssessment?.perimeter.crimeTypes &&
-          riskAssessment.perimeter.crimeTypes.length > 0 && (
-            <CrimeTypeBreakdown
-              crimeTypes={riskAssessment.perimeter.crimeTypes}
-              totalCrimes={riskAssessment.perimeter.totalCrimes}
-            />
-          )}
 
         {/* Selected Case Card */}
         <SelectedCaseCard
