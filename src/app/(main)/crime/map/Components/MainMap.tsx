@@ -16,6 +16,8 @@ import { crimeCasesToGeoJSON } from "@/lib/map/crimeCasesToGeoJSON";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
 import { CrimePopup } from "./CrimePopup";
 import { useCrimeType } from "@/context/CrimeTypeProvider";
+import type { RouteAssessmentResult, RoutePoint } from "@/types/route-assessment";
+import { ROUTE_RISK_COLORS } from "@/types/route-assessment";
 
 type CrimeCaseFeatureProperties = {
   id?: number;
@@ -35,6 +37,14 @@ interface MapProps {
   onLocationChange?: (location: SelectedLocation) => void;
   crimeCases: CrimeCaseMapRecord[];
   onCaseSelect?: (crimeCase: CrimeCaseMapRecord | null) => void;
+  routeAssessment?: RouteAssessmentResult | null;
+  onClearRoute?: () => void;
+  // Route mode props
+  isRouteMode?: boolean;
+  activePointSelection?: "A" | "B" | null;
+  routePointA?: RoutePoint | null;
+  routePointB?: RoutePoint | null;
+  onRoutePointSelected?: (point: "A" | "B", location: RoutePoint) => void;
 }
 
 export default function Map({
@@ -42,15 +52,29 @@ export default function Map({
   onLocationChange,
   crimeCases,
   onCaseSelect,
+  routeAssessment,
+  onClearRoute,
+  isRouteMode = false,
+  activePointSelection,
+  routePointA,
+  routePointB,
+  onRoutePointSelected,
 }: MapProps) {
   const { crimeTypeConverter } = useCrimeType();
   const mapRef = useRef<MapboxMap | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<MapboxMarker | null>(null);
+  const routeStartMarkerRef = useRef<MapboxMarker | null>(null);
+  const routeEndMarkerRef = useRef<MapboxMarker | null>(null);
+  const routePointAMarkerRef = useRef<MapboxMarker | null>(null);
+  const routePointBMarkerRef = useRef<MapboxMarker | null>(null);
   const onLocationChangeRef = useRef<MapProps["onLocationChange"] | null>(null);
   const crimeCasesRef = useRef<CrimeCaseMapRecord[]>([]);
   const onCaseSelectRef = useRef<MapProps["onCaseSelect"] | null>(null);
   const crimeTypeConverterRef = useRef(crimeTypeConverter);
+  const onClearRouteRef = useRef<MapProps["onClearRoute"] | null>(null);
+  const onRoutePointSelectedRef = useRef<MapProps["onRoutePointSelected"] | null>(null);
+  const activePointSelectionRef = useRef<"A" | "B" | null>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,6 +107,20 @@ export default function Map({
   useEffect(() => {
     crimeTypeConverterRef.current = crimeTypeConverter;
   }, [crimeTypeConverter]);
+
+  // Keep latest onClearRoute in a ref
+  useEffect(() => {
+    onClearRouteRef.current = onClearRoute ?? null;
+  }, [onClearRoute]);
+
+  // Keep latest route point selection refs
+  useEffect(() => {
+    onRoutePointSelectedRef.current = onRoutePointSelected ?? null;
+  }, [onRoutePointSelected]);
+
+  useEffect(() => {
+    activePointSelectionRef.current = activePointSelection ?? null;
+  }, [activePointSelection]);
 
   // When selectedLocation prop changes, move marker and fly without changing zoom
   useEffect(() => {
@@ -251,8 +289,27 @@ export default function Map({
 
         markerRef.current = marker;
 
+        // Trigger initial location on map load for risk assessment
+        if (onLocationChangeRef.current) {
+          const [initLng, initLat] = initialCenter;
+          reverseGeocodeMapbox(initLat, initLng).then((address) => {
+            if (onLocationChangeRef.current) {
+              onLocationChangeRef.current({
+                lat: initLat,
+                lng: initLng,
+                address: address || "",
+              });
+            }
+          });
+        }
+
         marker.on("dragend", async () => {
           const lngLat = marker.getLngLat();
+
+          // Clear selected case when marker is dragged to a new location
+          if (onCaseSelectRef.current) {
+            onCaseSelectRef.current(null);
+          }
 
           const newLocation: SelectedLocation = {
             lat: lngLat.lat,
@@ -392,6 +449,312 @@ export default function Map({
 
     source.setData(crimeCasesToGeoJSON(crimeCases));
   }, [crimeCases, isLoaded]);
+
+  // Handle map clicks for route point selection
+  useEffect(() => {
+    if (!mapRef.current || !isLoaded) return;
+
+    const map = mapRef.current;
+
+    const handleMapClick = async (e: mapboxgl.MapMouseEvent) => {
+      // Only handle if in route mode and a point is being selected
+      if (!activePointSelectionRef.current || !onRoutePointSelectedRef.current) {
+        return;
+      }
+
+      const { lng, lat } = e.lngLat;
+
+      // Reverse geocode to get address
+      const address = await reverseGeocodeMapbox(lat, lng);
+
+      onRoutePointSelectedRef.current(activePointSelectionRef.current, {
+        lat: Number(lat.toFixed(6)),
+        lng: Number(lng.toFixed(6)),
+        address: address || `${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+      });
+    };
+
+    map.on("click", handleMapClick);
+
+    return () => {
+      map.off("click", handleMapClick);
+    };
+  }, [isLoaded]);
+
+  // Manage route point markers (A and B) during route mode
+  useEffect(() => {
+    if (!mapRef.current || !isLoaded) return;
+
+    const map = mapRef.current;
+
+    // Import mapbox-gl for marker creation
+    import("mapbox-gl").then((mapboxgl) => {
+      // Update Point A marker
+      if (routePointA && !routeAssessment) {
+        if (routePointAMarkerRef.current) {
+          routePointAMarkerRef.current.setLngLat([routePointA.lng, routePointA.lat]);
+        } else {
+          const el = document.createElement("div");
+          el.innerHTML = `
+            <div style="
+              width: 28px;
+              height: 28px;
+              background: #22c55e;
+              border: 3px solid white;
+              border-radius: 50%;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-weight: bold;
+              font-size: 14px;
+              cursor: move;
+            ">A</div>
+          `;
+          routePointAMarkerRef.current = new mapboxgl.default.Marker({
+            element: el,
+            draggable: true,
+          })
+            .setLngLat([routePointA.lng, routePointA.lat])
+            .addTo(map);
+
+          // Handle drag end
+          routePointAMarkerRef.current.on("dragend", async () => {
+            const lngLat = routePointAMarkerRef.current?.getLngLat();
+            if (lngLat && onRoutePointSelectedRef.current) {
+              const address = await reverseGeocodeMapbox(lngLat.lat, lngLat.lng);
+              onRoutePointSelectedRef.current("A", {
+                lat: Number(lngLat.lat.toFixed(6)),
+                lng: Number(lngLat.lng.toFixed(6)),
+                address: address || `${lngLat.lat.toFixed(6)}, ${lngLat.lng.toFixed(6)}`,
+              });
+            }
+          });
+        }
+      } else if (!routePointA && routePointAMarkerRef.current) {
+        routePointAMarkerRef.current.remove();
+        routePointAMarkerRef.current = null;
+      }
+
+      // Update Point B marker
+      if (routePointB && !routeAssessment) {
+        if (routePointBMarkerRef.current) {
+          routePointBMarkerRef.current.setLngLat([routePointB.lng, routePointB.lat]);
+        } else {
+          const el = document.createElement("div");
+          el.innerHTML = `
+            <div style="
+              width: 28px;
+              height: 28px;
+              background: #ef4444;
+              border: 3px solid white;
+              border-radius: 50%;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-weight: bold;
+              font-size: 14px;
+              cursor: move;
+            ">B</div>
+          `;
+          routePointBMarkerRef.current = new mapboxgl.default.Marker({
+            element: el,
+            draggable: true,
+          })
+            .setLngLat([routePointB.lng, routePointB.lat])
+            .addTo(map);
+
+          // Handle drag end
+          routePointBMarkerRef.current.on("dragend", async () => {
+            const lngLat = routePointBMarkerRef.current?.getLngLat();
+            if (lngLat && onRoutePointSelectedRef.current) {
+              const address = await reverseGeocodeMapbox(lngLat.lat, lngLat.lng);
+              onRoutePointSelectedRef.current("B", {
+                lat: Number(lngLat.lat.toFixed(6)),
+                lng: Number(lngLat.lng.toFixed(6)),
+                address: address || `${lngLat.lat.toFixed(6)}, ${lngLat.lng.toFixed(6)}`,
+              });
+            }
+          });
+        }
+      } else if (!routePointB && routePointBMarkerRef.current) {
+        routePointBMarkerRef.current.remove();
+        routePointBMarkerRef.current = null;
+      }
+    });
+
+    // Cleanup when route assessment is shown (route layers handle markers)
+    if (routeAssessment) {
+      if (routePointAMarkerRef.current) {
+        routePointAMarkerRef.current.remove();
+        routePointAMarkerRef.current = null;
+      }
+      if (routePointBMarkerRef.current) {
+        routePointBMarkerRef.current.remove();
+        routePointBMarkerRef.current = null;
+      }
+    }
+  }, [routePointA, routePointB, routeAssessment, isLoaded]);
+
+  // Hide main marker when in route mode
+  useEffect(() => {
+    if (!markerRef.current) return;
+
+    if (isRouteMode) {
+      markerRef.current.getElement().style.display = "none";
+    } else {
+      markerRef.current.getElement().style.display = "";
+    }
+  }, [isRouteMode]);
+
+  // Render route assessment on the map
+  useEffect(() => {
+    if (!mapRef.current || !isLoaded) return;
+
+    const map = mapRef.current;
+
+    // Helper to remove existing route layers/sources
+    const removeRouteElements = () => {
+      // Remove layers first (before sources)
+      if (map.getLayer("route-segments")) {
+        map.removeLayer("route-segments");
+      }
+      if (map.getSource("route-segments")) {
+        map.removeSource("route-segments");
+      }
+
+      // Remove route markers
+      if (routeStartMarkerRef.current) {
+        routeStartMarkerRef.current.remove();
+        routeStartMarkerRef.current = null;
+      }
+      if (routeEndMarkerRef.current) {
+        routeEndMarkerRef.current.remove();
+        routeEndMarkerRef.current = null;
+      }
+    };
+
+    // If no route assessment, clear everything
+    if (!routeAssessment) {
+      removeRouteElements();
+      return;
+    }
+
+    // Remove existing route elements before adding new ones
+    removeRouteElements();
+
+    // Create GeoJSON FeatureCollection for route segments
+    const segmentFeatures = routeAssessment.route.segments.map((segment, idx) => ({
+      type: "Feature" as const,
+      properties: {
+        riskLevel: segment.riskLevel,
+        crimeCount: segment.crimeCount,
+        segmentIndex: idx,
+        color: ROUTE_RISK_COLORS[segment.riskLevel],
+      },
+      geometry: {
+        type: "LineString" as const,
+        coordinates: segment.coordinates,
+      },
+    }));
+
+    // Add route segments source
+    map.addSource("route-segments", {
+      type: "geojson",
+      data: {
+        type: "FeatureCollection",
+        features: segmentFeatures,
+      },
+    });
+
+    // Add route segments layer with color based on risk level
+    map.addLayer({
+      id: "route-segments",
+      type: "line",
+      source: "route-segments",
+      layout: {
+        "line-join": "round",
+        "line-cap": "round",
+      },
+      paint: {
+        "line-color": ["get", "color"],
+        "line-width": 6,
+        "line-opacity": 0.85,
+      },
+    });
+
+    // Add start and end markers
+    const routeCoords = routeAssessment.route.geometry.coordinates;
+    if (routeCoords.length >= 2) {
+      const startCoord = routeCoords[0] as [number, number];
+      const endCoord = routeCoords[routeCoords.length - 1] as [number, number];
+
+      // Dynamically import mapbox-gl for markers
+      import("mapbox-gl").then((mapboxgl) => {
+        // Start marker (green)
+        const startEl = document.createElement("div");
+        startEl.className = "route-marker route-start";
+        startEl.innerHTML = `
+          <div style="
+            width: 24px;
+            height: 24px;
+            background: #22c55e;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+          ">A</div>
+        `;
+
+        routeStartMarkerRef.current = new mapboxgl.default.Marker({ element: startEl })
+          .setLngLat(startCoord)
+          .addTo(map);
+
+        // End marker (red)
+        const endEl = document.createElement("div");
+        endEl.className = "route-marker route-end";
+        endEl.innerHTML = `
+          <div style="
+            width: 24px;
+            height: 24px;
+            background: #ef4444;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+          ">B</div>
+        `;
+
+        routeEndMarkerRef.current = new mapboxgl.default.Marker({ element: endEl })
+          .setLngLat(endCoord)
+          .addTo(map);
+
+        // Fit map bounds to show the entire route
+        const bounds = new mapboxgl.default.LngLatBounds();
+        routeCoords.forEach((coord) => {
+          bounds.extend(coord as [number, number]);
+        });
+
+        map.fitBounds(bounds, {
+          padding: { top: 50, bottom: 50, left: 50, right: 50 },
+          duration: 1000,
+        });
+      });
+    }
+  }, [routeAssessment, isLoaded]);
 
   if (error) {
     return (

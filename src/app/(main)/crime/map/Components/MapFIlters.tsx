@@ -25,7 +25,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { BARANGAY_OPTIONS_WITH_ALL, STATUSES } from "@/constants/crime-case";
+import { BARANGAY_OPTIONS, STATUSES } from "@/constants/crime-case";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/popover";
 import DateRangeSelector from "@/components/DateRangeSelector";
 import type { MapFiltersState } from "./mapFiltersState";
+import RouteInputBar from "./RouteInputBar";
+import type { RoutePoint, TransportMode } from "@/types/route-assessment";
 
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
 
@@ -44,12 +46,40 @@ interface MapFiltersProps {
   filters: MapFiltersState;
   onFiltersChange: (filters: MapFiltersState) => void;
   selectedCase: CrimeCaseMapRecord | null;
+  // Route mode props
+  isRouteMode?: boolean;
+  onToggleRouteMode?: () => void;
+  routePointA?: RoutePoint | null;
+  routePointB?: RoutePoint | null;
+  transportMode?: TransportMode;
+  onTransportModeChange?: (mode: TransportMode) => void;
+  onPointAChange?: (point: RoutePoint | null) => void;
+  onPointBChange?: (point: RoutePoint | null) => void;
+  onCalculateRoute?: () => void;
+  onCancelRouteMode?: () => void;
+  isCalculatingRoute?: boolean;
+  activePointSelection?: "A" | "B" | null;
+  onSetActivePointSelection?: (point: "A" | "B" | null) => void;
 }
 
 export default function MapFilters({
   onLocationChange,
   filters,
   onFiltersChange,
+  // Route mode props
+  isRouteMode = false,
+  onToggleRouteMode,
+  routePointA,
+  routePointB,
+  transportMode = "walking",
+  onTransportModeChange,
+  onPointAChange,
+  onPointBChange,
+  onCalculateRoute,
+  onCancelRouteMode,
+  isCalculatingRoute = false,
+  activePointSelection,
+  onSetActivePointSelection,
 }: MapFiltersProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [barangayOpen, setBarangayOpen] = useState(false);
@@ -198,31 +228,52 @@ export default function MapFilters({
 
   return (
     <div>
-      <div className="relative w-fit">
-        <div className="flex items-center gap-2">
-          <div>
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input
-              id="location-search"
-              type="text"
-              placeholder="Search in Muntinlupa City..."
-              value={searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="bg-white pr-10 pl-10"
-            />
+      {isRouteMode ? (
+        // Route mode input bar
+        <RouteInputBar
+          pointA={routePointA ?? null}
+          pointB={routePointB ?? null}
+          transportMode={transportMode}
+          onTransportModeChange={onTransportModeChange ?? (() => {})}
+          onPointAChange={onPointAChange ?? (() => {})}
+          onPointBChange={onPointBChange ?? (() => {})}
+          onCalculateRoute={onCalculateRoute ?? (() => {})}
+          onCancel={onCancelRouteMode ?? (() => {})}
+          isCalculating={isCalculatingRoute}
+          activePointSelection={activePointSelection ?? null}
+          onSetActivePointSelection={onSetActivePointSelection ?? (() => {})}
+        />
+      ) : (
+        // Normal search bar
+        <div className="relative w-fit">
+          <div className="flex items-center gap-2">
+            <div>
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input
+                id="location-search"
+                type="text"
+                placeholder="Search in Muntinlupa City..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="bg-white pr-10 pl-10"
+              />
+            </div>
+            <Button
+              onClick={onToggleRouteMode}
+              className="cursor-pointer rounded-md bg-orange-600 px-3 py-2.5 text-white hover:bg-orange-700"
+              title="Route Safety Assessment"
+            >
+              <CircleArrowOutUpRight className="h-4 w-4 text-white" />
+            </Button>
           </div>
-          <Button className="cursor-pointer rounded-md bg-orange-600 px-3 py-2.5 text-white hover:bg-orange-700">
-            <CircleArrowOutUpRight className="h-4 w-4 text-white" />
-          </Button>
-        </div>
-        {searchQuery && (
-          <button
-            onClick={() => {
-              setSearchQuery("");
-              setSearchOpen(false);
-              setHighlightedIndex(-1);
-            }}
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setSearchOpen(false);
+                setHighlightedIndex(-1);
+              }}
             className="absolute top-1/2 right-15 -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
             <X className="h-4 w-4" />
@@ -336,6 +387,7 @@ export default function MapFilters({
           </div>
         )}
       </div>
+      )}
 
       {/* Filters Section */}
       <div className="my-2 flex flex-wrap items-center gap-2">
@@ -449,7 +501,7 @@ export default function MapFilters({
               <CommandList>
                 <CommandEmpty>No barangay found.</CommandEmpty>
                 <CommandGroup className="max-h-36 overflow-auto">
-                  {BARANGAY_OPTIONS_WITH_ALL.map((barangay) => (
+                  {BARANGAY_OPTIONS.map((barangay) => (
                     <CommandItem
                       key={barangay.value}
                       value={barangay.value}
@@ -505,7 +557,7 @@ export default function MapFilters({
                 {label}
                 <button
                   type="button"
-                  onClick={() => value}
+                  onClick={() => handleStatusFilterToggle(value)}
                   className="ml-1 text-xs text-gray-500 hover:text-gray-700"
                 >
                   <X className="h-3 w-3 text-white" />
