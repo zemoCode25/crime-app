@@ -7,9 +7,17 @@ import MapFilters from "./MapFilters";
 import type { MapFiltersState } from "./mapFiltersState";
 import { useCrimeCasesForMap } from "@/hooks/crime-case/useCrimeCasesForMap";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
-import { useRiskAssessment, type RiskAssessmentFilters } from "@/hooks/map/useRiskAssessment";
+import {
+  useRiskAssessment,
+  type RiskAssessmentFilters,
+} from "@/hooks/map/useRiskAssessment";
 import { useRouteAssessment } from "@/hooks/map/useRouteAssessment";
-import type { RouteAssessmentResult, RoutePoint, TransportMode } from "@/types/route-assessment";
+import { useFacilities } from "@/hooks/map/useFacilities";
+import type {
+  RouteAssessmentResult,
+  RoutePoint,
+  TransportMode,
+} from "@/types/route-assessment";
 
 const initialFilters: MapFiltersState = {
   statusFilters: [],
@@ -17,6 +25,7 @@ const initialFilters: MapFiltersState = {
   barangayFilters: [],
   dateRange: undefined,
   selectedTimeFrame: "last_7d",
+  showFacilities: true,
 };
 
 export default function MapContainer() {
@@ -32,8 +41,11 @@ export default function MapContainer() {
   const [routePointA, setRoutePointA] = useState<RoutePoint | null>(null);
   const [routePointB, setRoutePointB] = useState<RoutePoint | null>(null);
   const [transportMode, setTransportMode] = useState<TransportMode>("walking");
-  const [activePointSelection, setActivePointSelection] = useState<"A" | "B" | null>(null);
-  const [routeAssessment, setRouteAssessment] = useState<RouteAssessmentResult | null>(null);
+  const [activePointSelection, setActivePointSelection] = useState<
+    "A" | "B" | null
+  >(null);
+  const [routeAssessment, setRouteAssessment] =
+    useState<RouteAssessmentResult | null>(null);
 
   const handleLocationChange = (location: SelectedLocation | null) => {
     setSelectedLocation(location);
@@ -41,14 +53,21 @@ export default function MapContainer() {
 
   // Convert map filters to risk assessment filters
   const riskFilters: RiskAssessmentFilters = {
-    crimeTypeIds: filters.typeFilters.length > 0 ? filters.typeFilters : undefined,
-    statusFilters: filters.statusFilters.length > 0 ? filters.statusFilters : undefined,
-    barangayFilters: filters.barangayFilters.length > 0 ? filters.barangayFilters : undefined,
+    crimeTypeIds:
+      filters.typeFilters.length > 0 ? filters.typeFilters : undefined,
+    statusFilters:
+      filters.statusFilters.length > 0 ? filters.statusFilters : undefined,
+    barangayFilters:
+      filters.barangayFilters.length > 0 ? filters.barangayFilters : undefined,
     dateFrom: filters.dateRange?.from?.toISOString(),
     dateTo: filters.dateRange?.to?.toISOString(),
   };
 
-  const { data: riskAssessment, isLoading: isLoadingRisk, error: riskError } = useRiskAssessment({
+  const {
+    data: riskAssessment,
+    isLoading: isLoadingRisk,
+    error: riskError,
+  } = useRiskAssessment({
     lat: selectedLocation?.lat ?? null,
     lng: selectedLocation?.lng ?? null,
     filters: riskFilters,
@@ -64,6 +83,9 @@ export default function MapContainer() {
     dateRange: filters.dateRange,
   });
   const crimeCases = crimeCasesQuery.data ?? [];
+
+  // Fetch facilities when toggle is enabled
+  const { data: facilities } = useFacilities(filters.showFacilities);
 
   // Toggle route mode
   const handleToggleRouteMode = () => {
@@ -132,6 +154,29 @@ export default function MapContainer() {
     setRouteAssessment(null);
   };
 
+  // Handle facility click - activate route mode from current pin to facility
+  const handleFacilityRouteSelect = (facility: RoutePoint) => {
+    // Set Point A as current selected location (or use default marker position)
+    const pointA: RoutePoint = selectedLocation
+      ? {
+          lat: selectedLocation.lat,
+          lng: selectedLocation.lng,
+          address: selectedLocation.address,
+        }
+      : {
+          lat: 14.389263,
+          lng: 121.04491,
+          address: "Current location",
+        };
+
+    // Enter route mode with Point A (current location) and Point B (facility)
+    setIsRouteMode(true);
+    setRoutePointA(pointA);
+    setRoutePointB(facility);
+    setActivePointSelection(null);
+    setRouteAssessment(null);
+  };
+
   return (
     <div className="relative mt-10 flex gap-4">
       <div className="flex w-full flex-col gap-2">
@@ -169,6 +214,10 @@ export default function MapContainer() {
           routePointA={routePointA}
           routePointB={routePointB}
           onRoutePointSelected={handleRoutePointSelected}
+          // Facilities props
+          facilities={facilities}
+          showFacilities={filters.showFacilities}
+          onFacilityRouteSelect={handleFacilityRouteSelect}
         />
       </div>
       <MapSetting

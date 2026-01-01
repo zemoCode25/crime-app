@@ -13,8 +13,11 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates, SelectedLocation } from "@/types/map";
 import { reverseGeocodeMapbox } from "@/hooks/map/useMapboxSearch";
 import { crimeCasesToGeoJSON } from "@/lib/map/crimeCasesToGeoJSON";
+import { facilitiesToGeoJSON, type FacilityFeatureProperties } from "@/lib/map/facilitiesToGeoJSON";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
+import type { Facility, FacilityType } from "@/types/facilities";
 import { CrimePopup } from "./CrimePopup";
+import { FacilityPopup } from "./FacilityPopup";
 import { useCrimeType } from "@/context/CrimeTypeProvider";
 import type { RouteAssessmentResult, RoutePoint } from "@/types/route-assessment";
 import { ROUTE_RISK_COLORS } from "@/types/route-assessment";
@@ -45,6 +48,10 @@ interface MapProps {
   routePointA?: RoutePoint | null;
   routePointB?: RoutePoint | null;
   onRoutePointSelected?: (point: "A" | "B", location: RoutePoint) => void;
+  // Facilities props
+  facilities?: Facility[];
+  showFacilities?: boolean;
+  onFacilityRouteSelect?: (facility: RoutePoint) => void;
 }
 
 export default function Map({
@@ -59,6 +66,9 @@ export default function Map({
   routePointA,
   routePointB,
   onRoutePointSelected,
+  facilities,
+  showFacilities = true,
+  onFacilityRouteSelect,
 }: MapProps) {
   const { crimeTypeConverter } = useCrimeType();
   const mapRef = useRef<MapboxMap | null>(null);
@@ -68,6 +78,7 @@ export default function Map({
   const routeEndMarkerRef = useRef<MapboxMarker | null>(null);
   const routePointAMarkerRef = useRef<MapboxMarker | null>(null);
   const routePointBMarkerRef = useRef<MapboxMarker | null>(null);
+  const facilityMarkersRef = useRef<MapboxMarker[]>([]);
   const onLocationChangeRef = useRef<MapProps["onLocationChange"] | null>(null);
   const crimeCasesRef = useRef<CrimeCaseMapRecord[]>([]);
   const onCaseSelectRef = useRef<MapProps["onCaseSelect"] | null>(null);
@@ -75,6 +86,7 @@ export default function Map({
   const onClearRouteRef = useRef<MapProps["onClearRoute"] | null>(null);
   const onRoutePointSelectedRef = useRef<MapProps["onRoutePointSelected"] | null>(null);
   const activePointSelectionRef = useRef<"A" | "B" | null>(null);
+  const onFacilityRouteSelectRef = useRef<MapProps["onFacilityRouteSelect"] | null>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,6 +133,11 @@ export default function Map({
   useEffect(() => {
     activePointSelectionRef.current = activePointSelection ?? null;
   }, [activePointSelection]);
+
+  // Keep latest onFacilityRouteSelect in a ref
+  useEffect(() => {
+    onFacilityRouteSelectRef.current = onFacilityRouteSelect ?? null;
+  }, [onFacilityRouteSelect]);
 
   // When selectedLocation prop changes, move marker and fly without changing zoom
   useEffect(() => {
@@ -268,6 +285,93 @@ export default function Map({
               "circle-stroke-width": 1,
               "circle-stroke-color": "#ffffff",
             },
+          });
+
+          // Add facilities source with clustering
+          map.addSource("facilities", {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: [] },
+            cluster: true,
+            clusterMaxZoom: 14,
+            clusterRadius: 50,
+          });
+
+          // Facility cluster circles
+          map.addLayer({
+            id: "facility-clusters",
+            type: "circle",
+            source: "facilities",
+            filter: ["has", "point_count"],
+            paint: {
+              "circle-color": [
+                "step",
+                ["get", "point_count"],
+                "#51bbd6", // Blue for small clusters
+                5,
+                "#f1f075", // Yellow for medium
+                10,
+                "#f28cb1", // Pink for large
+              ],
+              "circle-radius": [
+                "step",
+                ["get", "point_count"],
+                20,
+                5,
+                25,
+                10,
+                30,
+              ],
+              "circle-stroke-width": 2,
+              "circle-stroke-color": "#ffffff",
+            },
+          });
+
+          // Cluster count labels
+          map.addLayer({
+            id: "facility-cluster-count",
+            type: "symbol",
+            source: "facilities",
+            filter: ["has", "point_count"],
+            layout: {
+              "text-field": ["get", "point_count_abbreviated"],
+              "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+              "text-size": 12,
+            },
+            paint: {
+              "text-color": "#000000",
+            },
+          });
+
+          // Note: Individual facility markers are now rendered as HTML markers
+          // See the useEffect hook that manages facilityMarkersRef
+
+          // Cluster click handler - zoom into cluster
+          map.on("click", "facility-clusters", (e) => {
+            const features = map.queryRenderedFeatures(e.point, {
+              layers: ["facility-clusters"],
+            });
+
+            if (!features.length) return;
+
+            const clusterId = features[0].properties?.cluster_id;
+            const source = map.getSource("facilities") as GeoJSONSource;
+
+            source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+              if (err) return;
+
+              map.easeTo({
+                center: (features[0].geometry as GeoJSON.Point).coordinates as [number, number],
+                zoom: zoom!,
+              });
+            });
+          });
+
+          // Cursor changes for facility clusters
+          map.on("mouseenter", "facility-clusters", () => {
+            map.getCanvas().style.cursor = "pointer";
+          });
+          map.on("mouseleave", "facility-clusters", () => {
+            map.getCanvas().style.cursor = "";
           });
 
           setIsLoaded(true);
@@ -449,6 +553,124 @@ export default function Map({
 
     source.setData(crimeCasesToGeoJSON(crimeCases));
   }, [crimeCases, isLoaded]);
+
+  // Sync facilities data into the GeoJSON source
+  useEffect(() => {
+    if (!mapRef.current || !facilities || !isLoaded || !showFacilities) return;
+
+    const source = mapRef.current.getSource("facilities") as
+      | GeoJSONSource
+      | undefined;
+
+    if (!source) return;
+
+    source.setData(facilitiesToGeoJSON(facilities));
+  }, [facilities, isLoaded, showFacilities]);
+
+  // Toggle facility cluster layer visibility
+  useEffect(() => {
+    if (!mapRef.current || !isLoaded) return;
+
+    const visibility = showFacilities ? "visible" : "none";
+
+    ["facility-clusters", "facility-cluster-count"].forEach(
+      (layerId) => {
+        if (mapRef.current?.getLayer(layerId)) {
+          mapRef.current.setLayoutProperty(layerId, "visibility", visibility);
+        }
+      }
+    );
+  }, [showFacilities, isLoaded]);
+
+  // Create HTML markers for individual facilities
+  useEffect(() => {
+    if (!mapRef.current || !facilities || !isLoaded || !showFacilities) {
+      // Clear existing markers if facilities are hidden
+      facilityMarkersRef.current.forEach(marker => marker.remove());
+      facilityMarkersRef.current = [];
+      return;
+    }
+
+    const map = mapRef.current;
+
+    // Import mapbox-gl for marker creation
+    import("mapbox-gl").then((mapboxgl) => {
+      // Clear existing facility markers
+      facilityMarkersRef.current.forEach(marker => marker.remove());
+      facilityMarkersRef.current = [];
+
+      // Define facility type icons and colors
+      const FACILITY_STYLES: Record<FacilityType, { icon: string; color: string }> = {
+        hospital: { icon: '🏥', color: '#ef4444' },
+        police: { icon: '👮', color: '#3b82f6' },
+        fire_station: { icon: '🚒', color: '#f97316' },
+        clinic: { icon: '⚕️', color: '#10b981' },
+        government: { icon: '🏛️', color: '#8b5cf6' },
+      };
+
+      // Create a marker for each facility
+      facilities.forEach((facility) => {
+        if (facility.lat == null || facility.lng == null) return;
+
+        const style = FACILITY_STYLES[facility.type] || FACILITY_STYLES.government;
+
+        // Create marker element
+        const el = document.createElement('div');
+        el.className = 'facility-marker';
+        el.innerHTML = `
+          <div style="
+            width: 36px;
+            height: 36px;
+            background: ${style.color};
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+          " class="facility-marker-inner">${style.icon}</div>
+        `;
+
+        // Add hover effect
+        el.addEventListener('mouseenter', () => {
+          const inner = el.querySelector('.facility-marker-inner') as HTMLElement;
+          if (inner) inner.style.transform = 'scale(1.2)';
+        });
+        el.addEventListener('mouseleave', () => {
+          const inner = el.querySelector('.facility-marker-inner') as HTMLElement;
+          if (inner) inner.style.transform = 'scale(1)';
+        });
+
+        // Add click handler for route mode
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (onFacilityRouteSelectRef.current) {
+            onFacilityRouteSelectRef.current({
+              lat: facility.lat,
+              lng: facility.lng,
+              address: facility.name || facility.address || `${facility.lat.toFixed(6)}, ${facility.lng.toFixed(6)}`,
+            });
+          }
+        });
+
+        // Create and add marker
+        const marker = new mapboxgl.default.Marker({ element: el })
+          .setLngLat([facility.lng, facility.lat])
+          .addTo(map);
+
+        facilityMarkersRef.current.push(marker);
+      });
+    });
+
+    // Cleanup on unmount
+    return () => {
+      facilityMarkersRef.current.forEach(marker => marker.remove());
+      facilityMarkersRef.current = [];
+    };
+  }, [facilities, isLoaded, showFacilities]);
 
   // Handle map clicks for route point selection
   useEffect(() => {

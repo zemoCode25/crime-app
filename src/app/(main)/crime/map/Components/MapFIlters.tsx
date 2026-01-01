@@ -7,6 +7,7 @@ import {
   CircleArrowOutUpRight,
   ChevronsUpDownIcon,
   FunnelX,
+  Building2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -209,6 +210,14 @@ export default function MapFilters({
       barangayFilters: [],
       dateRange: undefined,
       selectedTimeFrame: "last_7d",
+      showFacilities: filters.showFacilities, // Preserve facility toggle
+    });
+  };
+
+  const handleToggleFacilities = () => {
+    onFiltersChange({
+      ...filters,
+      showFacilities: !filters.showFacilities,
     });
   };
 
@@ -537,6 +546,21 @@ export default function MapFilters({
             onFiltersChange({ ...filters, selectedTimeFrame: next })
           }
         />
+
+        {/* Facilities Toggle */}
+        <Button
+          variant={filters.showFacilities ? "default" : "outline"}
+          size="sm"
+          onClick={handleToggleFacilities}
+          className={
+            filters.showFacilities
+              ? "bg-blue-600 hover:bg-blue-700"
+              : ""
+          }
+        >
+          <Building2 className="mr-1.5 h-4 w-4" />
+          Facilities
+        </Button>
       </div>
 
       {/* Active filter badges */}
