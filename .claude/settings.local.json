@@ -1,8 +1,9 @@
 {
-  "spinnerTipsEnabled": true,
   "permissions": {
     "allow": [
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(dir:*)"
     ]
-  }
+  },
+  "spinnerTipsEnabled": true
 }

@@ -13,8 +13,11 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates, SelectedLocation } from "@/types/map";
 import { reverseGeocodeMapbox } from "@/hooks/map/useMapboxSearch";
 import { crimeCasesToGeoJSON } from "@/lib/map/crimeCasesToGeoJSON";
+import { facilitiesToGeoJSON, type FacilityFeatureProperties } from "@/lib/map/facilitiesToGeoJSON";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
+import type { Facility, FacilityType } from "@/types/facilities";
 import { CrimePopup } from "./CrimePopup";
+import { FacilityPopup } from "./FacilityPopup";
 import { useCrimeType } from "@/context/CrimeTypeProvider";
 import type { RouteAssessmentResult, RoutePoint } from "@/types/route-assessment";
 import { ROUTE_RISK_COLORS } from "@/types/route-assessment";
@@ -45,6 +48,9 @@ interface MapProps {
   routePointA?: RoutePoint | null;
   routePointB?: RoutePoint | null;
   onRoutePointSelected?: (point: "A" | "B", location: RoutePoint) => void;
+  // Facilities props
+  facilities?: Facility[];
+  showFacilities?: boolean;
 }
 
 export default function Map({
@@ -59,6 +65,8 @@ export default function Map({
   routePointA,
   routePointB,
   onRoutePointSelected,
+  facilities,
+  showFacilities = true,
 }: MapProps) {
   const { crimeTypeConverter } = useCrimeType();
   const mapRef = useRef<MapboxMap | null>(null);
@@ -270,6 +278,159 @@ export default function Map({
             },
           });
 
+          // Add facilities source with clustering
+          map.addSource("facilities", {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: [] },
+            cluster: true,
+            clusterMaxZoom: 14,
+            clusterRadius: 50,
+          });
+
+          // Facility cluster circles
+          map.addLayer({
+            id: "facility-clusters",
+            type: "circle",
+            source: "facilities",
+            filter: ["has", "point_count"],
+            paint: {
+              "circle-color": [
+                "step",
+                ["get", "point_count"],
+                "#51bbd6", // Blue for small clusters
+                5,
+                "#f1f075", // Yellow for medium
+                10,
+                "#f28cb1", // Pink for large
+              ],
+              "circle-radius": [
+                "step",
+                ["get", "point_count"],
+                20,
+                5,
+                25,
+                10,
+                30,
+              ],
+              "circle-stroke-width": 2,
+              "circle-stroke-color": "#ffffff",
+            },
+          });
+
+          // Cluster count labels
+          map.addLayer({
+            id: "facility-cluster-count",
+            type: "symbol",
+            source: "facilities",
+            filter: ["has", "point_count"],
+            layout: {
+              "text-field": ["get", "point_count_abbreviated"],
+              "text-font": ["DIN Pro Medium", "Arial Unicode MS Bold"],
+              "text-size": 12,
+            },
+            paint: {
+              "text-color": "#000000",
+            },
+          });
+
+          // Individual facility markers (symbol layer)
+          map.addLayer({
+            id: "facility-markers",
+            type: "symbol",
+            source: "facilities",
+            filter: ["!", ["has", "point_count"]],
+            layout: {
+              "icon-image": ["get", "icon"],
+              "icon-size": 1.2,
+              "icon-allow-overlap": false,
+              "text-field": ["get", "name"],
+              "text-font": ["DIN Pro Regular", "Arial Unicode MS Regular"],
+              "text-size": 11,
+              "text-offset": [0, 1.5],
+              "text-anchor": "top",
+              "text-optional": true,
+            },
+            paint: {
+              "text-color": "#333333",
+              "text-halo-color": "#ffffff",
+              "text-halo-width": 1,
+            },
+          });
+
+          // Facility marker click handler
+          map.on("click", "facility-markers", (e: MapLayerMouseEvent) => {
+            if (!mapRef.current || !e.features || !e.features.length) return;
+
+            const feature = e.features[0];
+            if (feature.geometry.type !== "Point") return;
+
+            const [lng, lat] = feature.geometry.coordinates as [number, number];
+            const properties = feature.properties as FacilityFeatureProperties;
+
+            const popupNode = document.createElement("div");
+            const root = createRoot(popupNode);
+
+            root.render(
+              <FacilityPopup
+                name={properties.name}
+                type={properties.type as FacilityType}
+                address={properties.address}
+                openingHours={properties.openingHours}
+                phone={properties.phone}
+              />
+            );
+
+            import("mapbox-gl").then((mapboxgl) => {
+              const popup = new mapboxgl.Popup({
+                closeButton: true,
+                maxWidth: "300px",
+                className: "facility-popup",
+              })
+                .setLngLat([lng, lat])
+                .setDOMContent(popupNode)
+                .addTo(mapRef.current!);
+
+              popup.on("close", () => {
+                root.unmount();
+              });
+            });
+          });
+
+          // Cluster click handler - zoom into cluster
+          map.on("click", "facility-clusters", (e) => {
+            const features = map.queryRenderedFeatures(e.point, {
+              layers: ["facility-clusters"],
+            });
+
+            if (!features.length) return;
+
+            const clusterId = features[0].properties?.cluster_id;
+            const source = map.getSource("facilities") as GeoJSONSource;
+
+            source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+              if (err) return;
+
+              map.easeTo({
+                center: (features[0].geometry as GeoJSON.Point).coordinates as [number, number],
+                zoom: zoom!,
+              });
+            });
+          });
+
+          // Cursor changes for facilities
+          map.on("mouseenter", "facility-markers", () => {
+            map.getCanvas().style.cursor = "pointer";
+          });
+          map.on("mouseleave", "facility-markers", () => {
+            map.getCanvas().style.cursor = "";
+          });
+          map.on("mouseenter", "facility-clusters", () => {
+            map.getCanvas().style.cursor = "pointer";
+          });
+          map.on("mouseleave", "facility-clusters", () => {
+            map.getCanvas().style.cursor = "";
+          });
+
           setIsLoaded(true);
           setError(null);
         });
@@ -449,6 +610,34 @@ export default function Map({
 
     source.setData(crimeCasesToGeoJSON(crimeCases));
   }, [crimeCases, isLoaded]);
+
+  // Sync facilities data into the GeoJSON source
+  useEffect(() => {
+    if (!mapRef.current || !facilities || !isLoaded || !showFacilities) return;
+
+    const source = mapRef.current.getSource("facilities") as
+      | GeoJSONSource
+      | undefined;
+
+    if (!source) return;
+
+    source.setData(facilitiesToGeoJSON(facilities));
+  }, [facilities, isLoaded, showFacilities]);
+
+  // Toggle facility layer visibility
+  useEffect(() => {
+    if (!mapRef.current || !isLoaded) return;
+
+    const visibility = showFacilities ? "visible" : "none";
+
+    ["facility-clusters", "facility-cluster-count", "facility-markers"].forEach(
+      (layerId) => {
+        if (mapRef.current?.getLayer(layerId)) {
+          mapRef.current.setLayoutProperty(layerId, "visibility", visibility);
+        }
+      }
+    );
+  }, [showFacilities, isLoaded]);
 
   // Handle map clicks for route point selection
   useEffect(() => {
