@@ -190,18 +190,17 @@ export async function getRiskAssessment(
   }
 
   if (filters?.dateTo) {
-    conditions.push('incident_datetime <= @dateTo');
     params.dateTo = filters.dateTo;
   }
-
-  // Get crime types within 300m radius
   const perimeterQuery = `
     SELECT
-      crime_type_name as type,
+      COALESCE(t.label, c.crime_type_name, 'Uncategorized') as type,
       COUNT(*) as count
-    FROM \`${process.env.GOOGLE_CLOUD_PROJECT_ID}.crime_analytics.crime_cases\`
+    FROM \`${process.env.GOOGLE_CLOUD_PROJECT_ID}.crime_analytics.crime_cases\` c
+    LEFT JOIN \`${process.env.GOOGLE_CLOUD_PROJECT_ID}.crime_analytics.crime_types\` t
+      ON c.crime_type_id = t.id
     WHERE ${conditions.join('\n      AND ')}
-    GROUP BY crime_type_name
+    GROUP BY type
     ORDER BY count DESC
   `;
 

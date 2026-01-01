@@ -283,119 +283,119 @@ export default function MapFilters({
                 setSearchOpen(false);
                 setHighlightedIndex(-1);
               }}
-            className="absolute top-1/2 right-15 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
-        {/* Suggestions Dropdown */}
-        {searchOpen && (
-          <div className="absolute top-full right-0 left-0 z-50 mt-1 rounded-md border border-gray-200 bg-white shadow-lg">
-            <div className="max-h-60 overflow-y-auto">
-              {loading ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleUseCurrentLocation}
-                    className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
-                      highlightedIndex === 0 ? "bg-gray-100" : ""
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {isLocating ? (
-                        <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600" />
-                      ) : (
-                        <MapPinIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-                      )}
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">
-                          {isLocating
-                            ? "Locating your current position..."
-                            : "Use my current location"}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {isLocating
-                            ? "Waiting for browser permission"
-                            : "Center map on where you are now"}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                  <div className="p-4 text-center text-sm text-gray-500">
-                    Searching...
-                  </div>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleUseCurrentLocation}
-                    className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
-                      highlightedIndex === 0 ? "bg-gray-100" : ""
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {isLocating ? (
-                        <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600" />
-                      ) : (
-                        <MapPinIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-                      )}
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">
-                          {isLocating
-                            ? "Locating your current position..."
-                            : "Use my current location"}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {isLocating
-                            ? "Waiting for browser permission"
-                            : "Center map on where you are now"}
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-                  {suggestions.length > 0
-                    ? suggestions.map(
-                        (suggestion: SearchSuggestion, index: number) => (
-                          <button
-                            key={suggestion.mapbox_id}
-                            onClick={() =>
-                              handleSelectLocation(
-                                suggestion.mapbox_id,
-                                suggestion.name,
-                              )
-                            }
-                            className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-gray-50 ${
-                              index + 1 === highlightedIndex
-                                ? "bg-gray-100"
-                                : ""
-                            }`}
-                          >
-                            <div className="flex items-start gap-2">
-                              <MapPinIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600" />
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-medium text-gray-900">
-                                  {suggestion.name}
-                                </p>
-                                <p className="truncate text-xs text-gray-500">
-                                  {suggestion.place_formatted}
-                                </p>
-                              </div>
-                            </div>
-                          </button>
-                        ),
-                      )
-                    : searchQuery.length > 2 && (
-                        <div className="p-4 text-center text-sm text-gray-500">
-                          No locations found
+              className="absolute top-1/2 right-15 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+          {/* Suggestions Dropdown */}
+          {searchOpen && (
+            <div className="absolute top-full right-0 left-0 z-50 mt-1 rounded-md border border-gray-200 bg-white shadow-lg">
+              <div className="max-h-60 overflow-y-auto">
+                {loading ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleUseCurrentLocation}
+                      className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
+                        highlightedIndex === 0 ? "bg-gray-100" : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {isLocating ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600" />
+                        ) : (
+                          <MapPinIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+                        )}
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">
+                            {isLocating
+                              ? "Locating your current position..."
+                              : "Use my current location"}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {isLocating
+                              ? "Waiting for browser permission"
+                              : "Center map on where you are now"}
+                          </span>
                         </div>
-                      )}
-                </>
-              )}
+                      </div>
+                    </button>
+                    <div className="p-4 text-center text-sm text-gray-500">
+                      Searching...
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleUseCurrentLocation}
+                      className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
+                        highlightedIndex === 0 ? "bg-gray-100" : ""
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {isLocating ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600" />
+                        ) : (
+                          <MapPinIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+                        )}
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">
+                            {isLocating
+                              ? "Locating your current position..."
+                              : "Use my current location"}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {isLocating
+                              ? "Waiting for browser permission"
+                              : "Center map on where you are now"}
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                    {suggestions.length > 0
+                      ? suggestions.map(
+                          (suggestion: SearchSuggestion, index: number) => (
+                            <button
+                              key={suggestion.mapbox_id}
+                              onClick={() =>
+                                handleSelectLocation(
+                                  suggestion.mapbox_id,
+                                  suggestion.name,
+                                )
+                              }
+                              className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-gray-50 ${
+                                index + 1 === highlightedIndex
+                                  ? "bg-gray-100"
+                                  : ""
+                              }`}
+                            >
+                              <div className="flex items-start gap-2">
+                                <MapPinIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm font-medium text-gray-900">
+                                    {suggestion.name}
+                                  </p>
+                                  <p className="truncate text-xs text-gray-500">
+                                    {suggestion.place_formatted}
+                                  </p>
+                                </div>
+                              </div>
+                            </button>
+                          ),
+                        )
+                      : searchQuery.length > 2 && (
+                          <div className="p-4 text-center text-sm text-gray-500">
+                            No locations found
+                          </div>
+                        )}
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       )}
 
       {/* Filters Section */}
@@ -553,9 +553,7 @@ export default function MapFilters({
           size="sm"
           onClick={handleToggleFacilities}
           className={
-            filters.showFacilities
-              ? "bg-blue-600 hover:bg-blue-700"
-              : ""
+            filters.showFacilities ? "bg-blue-600 hover:bg-blue-700" : ""
           }
         >
           <Building2 className="mr-1.5 h-4 w-4" />
