@@ -7,6 +7,7 @@ import type { SafetyAnalysisInput, AISafetyAnalysis } from "@/lib/gemini/gemini-
 function buildSafetyPrompt(input: SafetyAnalysisInput): string {
   const { riskLevel, crimeCount, crimeTypes, coordinates } = input;
 
+
   // Format crime type breakdown
   const crimeBreakdown =
     crimeTypes.length > 0
@@ -36,12 +37,12 @@ CRIME TYPE BREAKDOWN:
 ${crimeBreakdown}
 
 INSTRUCTIONS:
-1. Generate exactly 3 Risk Explanations analyzing why this area has its current risk level based on the crime types present
-2. Generate exactly 3 Safety Tips with actionable advice specific to the crime types in this area
-3. Consider local context (barangay patrols, tanod, local emergency numbers like 911 or local police)
-4. Keep all responses concise and practical for everyday citizens
-5. Focus on prevention and awareness, not fear-inducing language
-6. If the area is low risk, still provide helpful general safety tips
+1. You MUST use the exact crime types listed in the "CRIME TYPE BREAKDOWN" section. Do not invent crime types or use generic terms like "Unspecified Incidents".
+2. If the breakdown shows specific crimes (e.g., "Theft", "Physical Injury"), your analysis MUST address them directly.
+3. Generate exactly 3 Risk Explanations based on the MOST FREQUENT crimes listed above.
+4. Generate exactly 3 Safety Tips with actionable advice specific to the crime types in this area.
+5. Consider local context (barangay patrols, tanod, local emergency numbers like 911 or local police).
+6. Keep all responses concise and practical for everyday citizens.
 
 Prioritize tips based on the most common crime types in the area. Make recommendations specific to the types of crimes reported.
 
