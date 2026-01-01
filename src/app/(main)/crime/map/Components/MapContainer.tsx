@@ -154,6 +154,29 @@ export default function MapContainer() {
     setRouteAssessment(null);
   };
 
+  // Handle facility click - activate route mode from current pin to facility
+  const handleFacilityRouteSelect = (facility: RoutePoint) => {
+    // Set Point A as current selected location (or use default marker position)
+    const pointA: RoutePoint = selectedLocation
+      ? {
+          lat: selectedLocation.lat,
+          lng: selectedLocation.lng,
+          address: selectedLocation.address,
+        }
+      : {
+          lat: 14.389263,
+          lng: 121.04491,
+          address: "Current location",
+        };
+
+    // Enter route mode with Point A (current location) and Point B (facility)
+    setIsRouteMode(true);
+    setRoutePointA(pointA);
+    setRoutePointB(facility);
+    setActivePointSelection(null);
+    setRouteAssessment(null);
+  };
+
   return (
     <div className="relative mt-10 flex gap-4">
       <div className="flex w-full flex-col gap-2">
@@ -194,6 +217,7 @@ export default function MapContainer() {
           // Facilities props
           facilities={facilities}
           showFacilities={filters.showFacilities}
+          onFacilityRouteSelect={handleFacilityRouteSelect}
         />
       </div>
       <MapSetting

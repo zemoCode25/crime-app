@@ -51,6 +51,7 @@ interface MapProps {
   // Facilities props
   facilities?: Facility[];
   showFacilities?: boolean;
+  onFacilityRouteSelect?: (facility: RoutePoint) => void;
 }
 
 export default function Map({
@@ -67,6 +68,7 @@ export default function Map({
   onRoutePointSelected,
   facilities,
   showFacilities = true,
+  onFacilityRouteSelect,
 }: MapProps) {
   const { crimeTypeConverter } = useCrimeType();
   const mapRef = useRef<MapboxMap | null>(null);
@@ -76,6 +78,7 @@ export default function Map({
   const routeEndMarkerRef = useRef<MapboxMarker | null>(null);
   const routePointAMarkerRef = useRef<MapboxMarker | null>(null);
   const routePointBMarkerRef = useRef<MapboxMarker | null>(null);
+  const facilityMarkersRef = useRef<MapboxMarker[]>([]);
   const onLocationChangeRef = useRef<MapProps["onLocationChange"] | null>(null);
   const crimeCasesRef = useRef<CrimeCaseMapRecord[]>([]);
   const onCaseSelectRef = useRef<MapProps["onCaseSelect"] | null>(null);
@@ -83,6 +86,7 @@ export default function Map({
   const onClearRouteRef = useRef<MapProps["onClearRoute"] | null>(null);
   const onRoutePointSelectedRef = useRef<MapProps["onRoutePointSelected"] | null>(null);
   const activePointSelectionRef = useRef<"A" | "B" | null>(null);
+  const onFacilityRouteSelectRef = useRef<MapProps["onFacilityRouteSelect"] | null>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -129,6 +133,11 @@ export default function Map({
   useEffect(() => {
     activePointSelectionRef.current = activePointSelection ?? null;
   }, [activePointSelection]);
+
+  // Keep latest onFacilityRouteSelect in a ref
+  useEffect(() => {
+    onFacilityRouteSelectRef.current = onFacilityRouteSelect ?? null;
+  }, [onFacilityRouteSelect]);
 
   // When selectedLocation prop changes, move marker and fly without changing zoom
   useEffect(() => {
@@ -333,68 +342,8 @@ export default function Map({
             },
           });
 
-          // Individual facility markers (symbol layer)
-          map.addLayer({
-            id: "facility-markers",
-            type: "symbol",
-            source: "facilities",
-            filter: ["!", ["has", "point_count"]],
-            layout: {
-              "icon-image": ["get", "icon"],
-              "icon-size": 1.2,
-              "icon-allow-overlap": false,
-              "text-field": ["get", "name"],
-              "text-font": ["DIN Pro Regular", "Arial Unicode MS Regular"],
-              "text-size": 11,
-              "text-offset": [0, 1.5],
-              "text-anchor": "top",
-              "text-optional": true,
-            },
-            paint: {
-              "text-color": "#333333",
-              "text-halo-color": "#ffffff",
-              "text-halo-width": 1,
-            },
-          });
-
-          // Facility marker click handler
-          map.on("click", "facility-markers", (e: MapLayerMouseEvent) => {
-            if (!mapRef.current || !e.features || !e.features.length) return;
-
-            const feature = e.features[0];
-            if (feature.geometry.type !== "Point") return;
-
-            const [lng, lat] = feature.geometry.coordinates as [number, number];
-            const properties = feature.properties as FacilityFeatureProperties;
-
-            const popupNode = document.createElement("div");
-            const root = createRoot(popupNode);
-
-            root.render(
-              <FacilityPopup
-                name={properties.name}
-                type={properties.type as FacilityType}
-                address={properties.address}
-                openingHours={properties.openingHours}
-                phone={properties.phone}
-              />
-            );
-
-            import("mapbox-gl").then((mapboxgl) => {
-              const popup = new mapboxgl.Popup({
-                closeButton: true,
-                maxWidth: "300px",
-                className: "facility-popup",
-              })
-                .setLngLat([lng, lat])
-                .setDOMContent(popupNode)
-                .addTo(mapRef.current!);
-
-              popup.on("close", () => {
-                root.unmount();
-              });
-            });
-          });
+          // Note: Individual facility markers are now rendered as HTML markers
+          // See the useEffect hook that manages facilityMarkersRef
 
           // Cluster click handler - zoom into cluster
           map.on("click", "facility-clusters", (e) => {
@@ -417,13 +366,7 @@ export default function Map({
             });
           });
 
-          // Cursor changes for facilities
-          map.on("mouseenter", "facility-markers", () => {
-            map.getCanvas().style.cursor = "pointer";
-          });
-          map.on("mouseleave", "facility-markers", () => {
-            map.getCanvas().style.cursor = "";
-          });
+          // Cursor changes for facility clusters
           map.on("mouseenter", "facility-clusters", () => {
             map.getCanvas().style.cursor = "pointer";
           });
@@ -624,13 +567,13 @@ export default function Map({
     source.setData(facilitiesToGeoJSON(facilities));
   }, [facilities, isLoaded, showFacilities]);
 
-  // Toggle facility layer visibility
+  // Toggle facility cluster layer visibility
   useEffect(() => {
     if (!mapRef.current || !isLoaded) return;
 
     const visibility = showFacilities ? "visible" : "none";
 
-    ["facility-clusters", "facility-cluster-count", "facility-markers"].forEach(
+    ["facility-clusters", "facility-cluster-count"].forEach(
       (layerId) => {
         if (mapRef.current?.getLayer(layerId)) {
           mapRef.current.setLayoutProperty(layerId, "visibility", visibility);
@@ -638,6 +581,96 @@ export default function Map({
       }
     );
   }, [showFacilities, isLoaded]);
+
+  // Create HTML markers for individual facilities
+  useEffect(() => {
+    if (!mapRef.current || !facilities || !isLoaded || !showFacilities) {
+      // Clear existing markers if facilities are hidden
+      facilityMarkersRef.current.forEach(marker => marker.remove());
+      facilityMarkersRef.current = [];
+      return;
+    }
+
+    const map = mapRef.current;
+
+    // Import mapbox-gl for marker creation
+    import("mapbox-gl").then((mapboxgl) => {
+      // Clear existing facility markers
+      facilityMarkersRef.current.forEach(marker => marker.remove());
+      facilityMarkersRef.current = [];
+
+      // Define facility type icons and colors
+      const FACILITY_STYLES: Record<FacilityType, { icon: string; color: string }> = {
+        hospital: { icon: '🏥', color: '#ef4444' },
+        police: { icon: '👮', color: '#3b82f6' },
+        fire_station: { icon: '🚒', color: '#f97316' },
+        clinic: { icon: '⚕️', color: '#10b981' },
+        government: { icon: '🏛️', color: '#8b5cf6' },
+      };
+
+      // Create a marker for each facility
+      facilities.forEach((facility) => {
+        if (facility.lat == null || facility.lng == null) return;
+
+        const style = FACILITY_STYLES[facility.type] || FACILITY_STYLES.government;
+
+        // Create marker element
+        const el = document.createElement('div');
+        el.className = 'facility-marker';
+        el.innerHTML = `
+          <div style="
+            width: 36px;
+            height: 36px;
+            background: ${style.color};
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.2s;
+          " class="facility-marker-inner">${style.icon}</div>
+        `;
+
+        // Add hover effect
+        el.addEventListener('mouseenter', () => {
+          const inner = el.querySelector('.facility-marker-inner') as HTMLElement;
+          if (inner) inner.style.transform = 'scale(1.2)';
+        });
+        el.addEventListener('mouseleave', () => {
+          const inner = el.querySelector('.facility-marker-inner') as HTMLElement;
+          if (inner) inner.style.transform = 'scale(1)';
+        });
+
+        // Add click handler for route mode
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (onFacilityRouteSelectRef.current) {
+            onFacilityRouteSelectRef.current({
+              lat: facility.lat,
+              lng: facility.lng,
+              address: facility.name || facility.address || `${facility.lat.toFixed(6)}, ${facility.lng.toFixed(6)}`,
+            });
+          }
+        });
+
+        // Create and add marker
+        const marker = new mapboxgl.default.Marker({ element: el })
+          .setLngLat([facility.lng, facility.lat])
+          .addTo(map);
+
+        facilityMarkersRef.current.push(marker);
+      });
+    });
+
+    // Cleanup on unmount
+    return () => {
+      facilityMarkersRef.current.forEach(marker => marker.remove());
+      facilityMarkersRef.current = [];
+    };
+  }, [facilities, isLoaded, showFacilities]);
 
   // Handle map clicks for route point selection
   useEffect(() => {
