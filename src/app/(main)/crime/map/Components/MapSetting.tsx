@@ -20,7 +20,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useCrimeType } from "@/context/CrimeTypeProvider";
 import type { RouteAssessmentResult } from "@/types/route-assessment";
-import { ROUTE_RISK_COLORS, TRANSPORT_MODE_CONFIG } from "@/types/route-assessment";
+import {
+  ROUTE_RISK_COLORS,
+  TRANSPORT_MODE_CONFIG,
+} from "@/types/route-assessment";
+import { useAISafetyTips } from "@/hooks/map/useAISafetyTips";
+import AISafetyTips from "./AISafetyTips";
 
 export type RiskLevel =
   | "HIGH"
@@ -172,7 +177,8 @@ function PerimeterAnalysis({
   return (
     <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
       <p className="mb-3 text-xs font-semibold text-gray-700 uppercase">
-        {radius}m Perimeter Analysis ({totalCrimes} {totalCrimes === 1 ? 'case' : 'cases'})
+        {radius}m Perimeter Analysis ({totalCrimes}{" "}
+        {totalCrimes === 1 ? "case" : "cases"})
       </p>
 
       {/* Crime Type Breakdown */}
@@ -386,10 +392,12 @@ function RouteAssessmentCard({
 
       {/* Overall Risk Level */}
       <div
-        className={`flex items-center gap-2 rounded-md border ${config.colors.border} ${config.colors.bg} justify-center py-2 mb-3`}
+        className={`flex items-center gap-2 rounded-md border ${config.colors.border} ${config.colors.bg} mb-3 justify-center py-2`}
       >
         {config.icon && (
-          <config.icon className={`${config.colors.text} h-5 w-5 flex-shrink-0`} />
+          <config.icon
+            className={`${config.colors.text} h-5 w-5 flex-shrink-0`}
+          />
         )}
         <p className={`text-sm font-semibold ${config.colors.text}`}>
           {config.label}
@@ -411,7 +419,8 @@ function RouteAssessmentCard({
           <div className="flex items-center justify-center gap-1 text-gray-500">
             <Clock className="h-3.5 w-3.5" />
             <span className="text-xs capitalize">
-              {TRANSPORT_MODE_CONFIG[routeAssessment.transportMode]?.speedLabel || "Time"}
+              {TRANSPORT_MODE_CONFIG[routeAssessment.transportMode]
+                ?.speedLabel || "Time"}
             </span>
           </div>
           <p className="font-semibold text-gray-800">
@@ -446,7 +455,7 @@ function RouteAssessmentCard({
 
       {/* Segment Breakdown */}
       <div className="mb-3 space-y-1">
-        <p className="text-xs font-semibold uppercase text-gray-500">
+        <p className="text-xs font-semibold text-gray-500 uppercase">
           Route Segments
         </p>
         <div className="flex gap-2 text-xs">
@@ -489,7 +498,7 @@ function RouteAssessmentCard({
       {/* Recommendations */}
       {overallAssessment.recommendations.length > 0 && (
         <div className="border-t border-orange-200 pt-3">
-          <p className="mb-2 text-xs font-semibold uppercase text-blue-700">
+          <p className="mb-2 text-xs font-semibold text-blue-700 uppercase">
             Recommendations
           </p>
           <ul className="space-y-1">
@@ -520,6 +529,21 @@ export default function MapSetting({
   onClearRoute,
   isRouteMode = false,
 }: MapSettingProps) {
+  // AI Safety Tips hook - only runs when risk assessment is available
+  const {
+    data: aiAnalysis,
+    isLoading: isLoadingAI,
+    error: aiError,
+  } = useAISafetyTips({
+    riskLevel: riskAssessment?.riskLevel ?? null,
+    crimeCount: riskAssessment?.crimeCount ?? 0,
+    crimeTypes: riskAssessment?.perimeter.crimeTypes ?? [],
+    coordinates: selectedLocation
+      ? { lat: selectedLocation.lat, lng: selectedLocation.lng }
+      : null,
+    enabled: !!riskAssessment && !isLoadingRisk && !isRouteMode,
+  });
+
   return (
     <div className="max-h-dvh w-full max-w-[450px] overflow-y-auto rounded-l-sm border border-gray-200 bg-white/95 p-4 pr-4 shadow-sm backdrop-blur-sm">
       <div className="flex flex-col gap-3">
@@ -551,12 +575,12 @@ export default function MapSetting({
           />
         )}
 
-        {/* Perimeter Analysis (Crime Breakdown + Safety Tips) - hidden in route mode */}
+        {/* Perimeter Analysis (Crime Breakdown) - hidden in route mode */}
         {!isRouteMode && riskAssessment && (
           <PerimeterAnalysis
             crimeTypes={riskAssessment.perimeter.crimeTypes}
             totalCrimes={riskAssessment.perimeter.totalCrimes}
-            safetyTips={riskAssessment.perimeter.safetyTips}
+            safetyTips={[]} // Static tips removed, using AI tips instead
             radius={riskAssessment.perimeter.radius}
           />
         )}
@@ -566,6 +590,15 @@ export default function MapSetting({
           selectedCase={selectedCase}
           selectedLocation={selectedLocation}
         />
+
+        {/* AI-Powered Safety Tips - hidden in route mode */}
+        {!isRouteMode && riskAssessment && (
+          <AISafetyTips
+            analysis={aiAnalysis}
+            isLoading={isLoadingAI}
+            error={aiError}
+          />
+        )}
       </div>
     </div>
   );
