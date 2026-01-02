@@ -1,5 +1,12 @@
-import { getSafetyAnalysisModel } from "@/lib/gemini/client";
-import type { SafetyAnalysisInput, AISafetyAnalysis } from "@/lib/gemini/gemini-schema";
+import { getSafetyAnalysisModel, getAnalyticsModel } from "@/lib/gemini/client";
+import type {
+  SafetyAnalysisInput,
+  AISafetyAnalysis,
+} from "@/lib/gemini/gemini-schema";
+import type {
+  AnalyticsInput,
+  CrimeAnalyticsAI,
+} from "@/lib/gemini/analytics-schema";
 
 /**
  * Build the analysis prompt from crime data
@@ -113,6 +120,121 @@ export async function analyzeCrimeData(
   return {
     ...analysis,
     timePatterns: analysis.timePatterns || [],
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+// ==================== ANALYTICS AI ====================
+
+/**
+ * Build the analytics prompt from crime data
+ */
+function buildAnalyticsPrompt(input: AnalyticsInput): string {
+  const { dailyCounts, crimeType, barangay, status, dateRange } = input;
+
+  // Calculate statistics
+  const totalCrimes = dailyCounts.reduce((sum, day) => sum + day.count, 0);
+  const avgPerDay = totalCrimes / dailyCounts.length;
+  const maxDay = dailyCounts.reduce((max, day) =>
+    day.count > max.count ? day : max
+  );
+  const minDay = dailyCounts.reduce((min, day) =>
+    day.count < min.count ? day : min
+  );
+
+  // Format the data for the prompt
+  const dataPoints = dailyCounts
+    .map((d) => `${d.label}: ${d.count} cases`)
+    .join("\n");
+
+  return `You are a crime data analyst for Muntinlupa City, Philippines. Analyze the following crime statistics and provide 4 specific, data-driven insights.
+
+DATASET OVERVIEW:
+- Crime Type: ${crimeType}
+- Location: ${barangay}
+- Status Filter: ${status}
+- Date Range: ${dateRange.from} to ${dateRange.to}
+- Total Cases: ${totalCrimes}
+- Average per Day: ${avgPerDay.toFixed(1)}
+- Highest: ${maxDay.label} (${maxDay.count} cases)
+- Lowest: ${minDay.label} (${minDay.count} cases)
+
+DAILY BREAKDOWN:
+${dataPoints}
+
+INSTRUCTIONS:
+1. Generate exactly 4 insights analyzing the data
+2. Each insight must reference specific numbers from the data
+3. Identify trends (upward/downward), peaks (highest days), anomalies (unusual patterns), or comparisons (day-to-day changes)
+4. Be specific - mention actual dates, numbers, and percentages
+5. Keep each insight to 1-2 sentences
+6. Focus on actionable patterns that law enforcement or community can use
+
+Examples of good insights:
+- "Peak activity in February with 305 cases, 64% higher than January's 186 cases"
+- "April shows lowest incidents (73 cases), suggesting seasonal patterns worth investigating"
+- "Upward trend from April to June, with cases increasing by 41% over the quarter"
+
+RESPONSE FORMAT (JSON):
+{
+  "insights": [
+    { "insight": "specific insight with data", "type": "trend|peak|anomaly|comparison" }
+  ],
+  "summary": "1-sentence overview of the overall pattern"
+}
+
+Return ONLY valid JSON, no additional text.`;
+}
+
+/**
+ * Analyze crime analytics data and generate AI insights
+ */
+export async function analyzeCrimeAnalytics(
+  input: AnalyticsInput
+): Promise<CrimeAnalyticsAI> {
+  const model = getAnalyticsModel();
+  const prompt = buildAnalyticsPrompt(input);
+
+  const result = await model.generateContent(prompt);
+
+  const response = result.response;
+  const text = response.text();
+
+  // Clean up the response text (remove markdown code blocks if present)
+  let jsonText = text.trim();
+  if (jsonText.startsWith("```json")) {
+    jsonText = jsonText.slice(7);
+  } else if (jsonText.startsWith("```")) {
+    jsonText = jsonText.slice(3);
+  }
+  if (jsonText.endsWith("```")) {
+    jsonText = jsonText.slice(0, -3);
+  }
+  jsonText = jsonText.trim();
+
+  console.log("Analytics AI response:", jsonText.substring(0, 300));
+
+  // Parse the JSON response with error handling
+  let analytics: Omit<CrimeAnalyticsAI, "generatedAt">;
+  try {
+    analytics = JSON.parse(jsonText);
+  } catch (parseError) {
+    console.error("Analytics JSON parse error:", parseError);
+    console.error("Failed JSON:", jsonText);
+
+    throw new Error(
+      `Failed to parse analytics AI response. Please try again.`
+    );
+  }
+
+  // Validate the response structure
+  if (!analytics.insights || !analytics.summary) {
+    console.error("Invalid analytics response structure:", analytics);
+    throw new Error("Analytics AI response is missing required fields");
+  }
+
+  return {
+    ...analytics,
     generatedAt: new Date().toISOString(),
   };
 }
