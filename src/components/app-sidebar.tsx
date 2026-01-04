@@ -20,14 +20,10 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import useSupabaseBrowser from "@/server/supabase/client";
 
-// This is sample data.
-const data = {
-  user: {
-    name: "James Magan",
-    email: "jamesmagan@gmail.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+// Navigation data
+const sidebarData = {
   teams: [
     {
       name: "Muntinlupa City",
@@ -92,16 +88,37 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const supabase = useSupabaseBrowser();
+  const [userData, setUserData] = React.useState({
+    name: "John Doe",
+    email: "john.doe@example.com",
+    avatar: "",
+  });
+
+  React.useEffect(() => {
+    async function fetchUser() {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        setUserData({
+          name: data.user.user_metadata?.full_name || "John Doe",
+          email: data.user.email || "john.doe@example.com",
+          avatar: data.user.user_metadata?.avatar_url || "",
+        });
+      }
+    }
+    fetchUser();
+  }, [supabase]);
+
   return (
     <Sidebar collapsible="icon" {...props} className="z-50">
       <SidebarHeader className="!z-50">
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={sidebarData.teams} />
       </SidebarHeader>
       <SidebarContent className="!z-50">
-        <NavMain items={data.navMain} />
+        <NavMain items={sidebarData.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
