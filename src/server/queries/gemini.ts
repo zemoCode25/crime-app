@@ -10,6 +10,7 @@ import type {
 import type {
   BarangayDistributionInput,
   StatusDistributionInput,
+  CrimeTypeDistributionInput,
   DistributionAnalyticsAI,
 } from "@/lib/gemini/distribution-schema";
 
@@ -424,6 +425,99 @@ export async function analyzeStatusDistribution(
   if (!analysis.insights || analysis.insights.length !== 3) {
     console.error("Invalid status distribution response:", analysis);
     throw new Error("Status distribution AI response is missing required fields");
+  }
+
+  return {
+    ...analysis,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Build the crime type distribution prompt
+ */
+function buildCrimeTypeDistributionPrompt(input: CrimeTypeDistributionInput): string {
+  const { distribution, totalCases, dateRange } = input;
+
+  // Format the distribution data
+  const distributionData = distribution
+    .map((d) => `- ${d.crimeType}: ${d.count} cases (${d.percentage.toFixed(1)}%)`)
+    .join("\n");
+
+  return `You are a crime data analyst for Muntinlupa City, Philippines. Analyze the following crime type distribution and provide 3 specific, data-driven insights.
+
+DISTRIBUTION OVERVIEW:
+- Total Cases: ${totalCases}
+- Date Range: ${dateRange.from} to ${dateRange.to}
+- Number of Crime Types: ${distribution.length}
+
+CRIME TYPE BREAKDOWN:
+${distributionData}
+
+INSTRUCTIONS:
+1. Generate exactly 3 insights analyzing the crime type distribution
+2. Each insight must reference specific crime types and percentages
+3. Identify which crimes are most prevalent and patterns in crime composition
+4. Compare relative distributions (e.g., "Theft is 3x more common than Robbery")
+5. Keep each insight to 1 sentence
+6. Focus on actionable patterns for law enforcement resource allocation
+
+Examples of good insights:
+- "Theft dominates at 42% of all cases, suggesting need for enhanced property crime prevention"
+- "Physical Injury and Robbery combined account for 35% of incidents, requiring focus on violent crime intervention"
+- "Vehicle-related crimes (Carnapping, Motorcycle Theft) represent only 8%, indicating effective vehicle security measures"
+
+RESPONSE FORMAT (JSON):
+{
+  "insights": [
+    { "insight": "specific insight with crime types and data" }
+  ]
+}
+
+Return ONLY valid JSON, no additional text.`;
+}
+
+/**
+ * Analyze crime type distribution and generate AI insights
+ */
+export async function analyzeCrimeTypeDistribution(
+  input: CrimeTypeDistributionInput
+): Promise<DistributionAnalyticsAI> {
+  const model = getDistributionModel();
+  const prompt = buildCrimeTypeDistributionPrompt(input);
+
+  const result = await model.generateContent(prompt);
+  const response = result.response;
+  const text = response.text();
+
+  // Clean up the response text
+  let jsonText = text.trim();
+  if (jsonText.startsWith("```json")) {
+    jsonText = jsonText.slice(7);
+  } else if (jsonText.startsWith("```")) {
+    jsonText = jsonText.slice(3);
+  }
+  if (jsonText.endsWith("```")) {
+    jsonText = jsonText.slice(0, -3);
+  }
+  jsonText = jsonText.trim();
+
+  console.log("Crime type distribution AI response:", jsonText.substring(0, 300));
+
+  // Parse the JSON response
+  let analysis: Omit<DistributionAnalyticsAI, "generatedAt">;
+  try {
+    analysis = JSON.parse(jsonText);
+  } catch (parseError) {
+    console.error("Crime type distribution JSON parse error:", parseError);
+    console.error("Failed JSON:", jsonText);
+    throw new Error(`Failed to parse crime type distribution AI response. Please try again.`);
+  }
+
+  // Validate the response structure
+  if (!analysis.insights || analysis.insights.length !== 3) {
+    console.error("Invalid crime type distribution response:", analysis);
+    throw new Error("Crime type distribution AI response is missing required fields");
   }
 
   return {

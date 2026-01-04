@@ -43,6 +43,20 @@ export interface StatusDistributionInput {
   };
 }
 
+/** Input data for crime type distribution AI */
+export interface CrimeTypeDistributionInput {
+  distribution: {
+    crimeType: string;
+    count: number;
+    percentage: number;
+  }[];
+  totalCases: number;
+  dateRange: {
+    from: string; // ISO date string
+    to: string; // ISO date string
+  };
+}
+
 // ============================================
 // Gemini Response Schema Definition
 // ============================================
