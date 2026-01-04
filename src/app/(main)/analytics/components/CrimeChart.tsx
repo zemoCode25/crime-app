@@ -37,6 +37,8 @@ import { getCrimeTypes } from "@/server/queries/crime-type";
 import useSupabaseBrowser from "@/server/supabase/client";
 import { useDailyCrimeCounts } from "@/hooks/analytics/useCrimeAnalyticsData";
 import { useDateRange } from "@/context/DateRangeProvider";
+import { useAnalyticsAI } from "@/hooks/analytics/useAnalyticsAI";
+import type { CrimeInsight } from "@/lib/gemini/analytics-schema";
 
 const chartConfig = {
   count: {
@@ -57,6 +59,14 @@ export default function CrimeChart() {
 
   const supabase = useSupabaseBrowser();
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
+
+  // Get selected crime type label
+  const selectedCrimeTypeLabel = useMemo(() => {
+    if (crimeTypeValue === 0) return "All crime types";
+    if (!crimeTypes) return "";
+    const crimeType = crimeTypes.find((ct) => ct.id === crimeTypeValue);
+    return crimeType?.label || "";
+  }, [crimeTypes, crimeTypeValue]);
 
   // Get selected barangay label for display
   const selectedBarangayLabel = useMemo(() => {
@@ -83,6 +93,23 @@ export default function CrimeChart() {
     },
   );
 
+  // Fetch AI insights based on the crime data
+  const {
+    data: aiInsights,
+    isLoading: isLoadingAI,
+    error: aiError,
+  } = useAnalyticsAI({
+    dailyCounts: dailyCounts || [],
+    crimeType: selectedCrimeTypeLabel,
+    barangay: selectedBarangayLabel,
+    status: selectedStatusLabel,
+    dateRange: {
+      from: dateRange?.from?.toISOString() || "",
+      to: dateRange?.to?.toISOString() || "",
+    },
+    enabled: !isLoadingCounts && (dailyCounts?.length ?? 0) > 0,
+  });
+
   // Format chart data
   const chartData = useMemo(() => {
     if (!dailyCounts) return [];
@@ -91,14 +118,6 @@ export default function CrimeChart() {
       count: point.count,
     }));
   }, [dailyCounts]);
-
-  // Get selected crime type label
-  const selectedCrimeTypeLabel = useMemo(() => {
-    if (crimeTypeValue === 0) return "All crime types";
-    if (!crimeTypes) return "";
-    const crimeType = crimeTypes.find((ct) => ct.id === crimeTypeValue);
-    return crimeType?.label || "";
-  }, [crimeTypes, crimeTypeValue]);
 
   // Format date range for display
   const dateRangeLabel = useMemo(() => {
@@ -337,11 +356,11 @@ export default function CrimeChart() {
         )}
       </div>
       {/* AI Insights */}
-      {isLoadingCounts ? (
-        <div className="mt-4 rounded-sm border border-neutral-200 bg-neutral-50 p-4">
+      {isLoadingCounts || isLoadingAI ? (
+        <div className="mt-4 rounded-sm border border-purple-200 bg-purple-50 p-4">
           <div className="mb-3 flex items-center gap-2">
-            <Skeleton className="h-4 w-4 rounded" />
-            <Skeleton className="h-4 w-20 rounded" />
+            <Sparkles className="h-4 w-4 animate-pulse text-purple-500" />
+            <Skeleton className="h-4 w-24 rounded" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Skeleton className="h-4 w-full rounded" />
@@ -350,34 +369,43 @@ export default function CrimeChart() {
             <Skeleton className="h-4 w-5/6 rounded" />
           </div>
         </div>
-      ) : (
-        <div className="mt-4 rounded-sm border border-orange-300 bg-orange-50 p-4">
+      ) : aiError ? (
+        <div className="mt-4 rounded-sm border border-orange-200 bg-orange-50 p-4">
           <div className="mb-2 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-orange-600" />
             <span className="text-sm font-semibold text-orange-800">
-              AI Insights
+              AI Insights Unavailable
             </span>
           </div>
-          <ul className="ml-4 grid list-disc grid-cols-2 space-y-1 text-sm text-orange-900">
-            <li>
-              Peak theft activity in February with 305 cases, 64% higher than
-              average.
-            </li>
-            <li>
-              April shows lowest incidents (73 cases) - consider analyzing
-              contributing.
-            </li>
-            <li>
-              Upward trend detected from April to June, suggesting increased
-              vigilance needed.
-            </li>
-            <li>
-              Upward trend detected from April to June, suggesting increased
-              vigilance needed.
-            </li>
+          <p className="text-sm text-orange-700">
+            {aiError.message || "Unable to generate insights for this dataset"}
+          </p>
+        </div>
+      ) : aiInsights ? (
+        <div className="mt-4 rounded-sm border border-purple-300 bg-gradient-to-br from-purple-50 to-indigo-50 p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-purple-600" />
+              <span className="text-sm font-semibold text-purple-900">
+                AI Insights
+              </span>
+            </div>
+            <span className="w-1/2 text-xs text-purple-600 italic">
+              {aiInsights.summary}
+            </span>
+          </div>
+          <ul className="ml-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-purple-900">
+            {aiInsights.insights.map((insight, idx) => (
+              <li
+                key={idx}
+                className="rounded border border-purple-300 bg-purple-100 p-2"
+              >
+                {insight.insight}
+              </li>
+            ))}
           </ul>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
