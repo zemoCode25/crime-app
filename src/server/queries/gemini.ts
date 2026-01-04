@@ -1,4 +1,4 @@
-import { getSafetyAnalysisModel, getAnalyticsModel } from "@/lib/gemini/client";
+import { getSafetyAnalysisModel, getAnalyticsModel, getDistributionModel } from "@/lib/gemini/client";
 import type {
   SafetyAnalysisInput,
   AISafetyAnalysis,
@@ -7,6 +7,11 @@ import type {
   AnalyticsInput,
   CrimeAnalyticsAI,
 } from "@/lib/gemini/analytics-schema";
+import type {
+  BarangayDistributionInput,
+  StatusDistributionInput,
+  DistributionAnalyticsAI,
+} from "@/lib/gemini/distribution-schema";
 
 /**
  * Build the analysis prompt from crime data
@@ -235,6 +240,194 @@ export async function analyzeCrimeAnalytics(
 
   return {
     ...analytics,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+// ==================== DISTRIBUTION AI ====================
+
+/**
+ * Build the barangay distribution prompt
+ */
+function buildBarangayDistributionPrompt(input: BarangayDistributionInput): string {
+  const { distribution, totalCases, dateRange } = input;
+
+  // Format the distribution data
+  const distributionData = distribution
+    .map((d) => `- ${d.barangay}: ${d.count} cases (${d.percentage.toFixed(1)}%)`)
+    .join("\n");
+
+  return `You are a crime data analyst for Muntinlupa City, Philippines. Analyze the following barangay crime distribution and provide 3 specific, data-driven insights.
+
+DISTRIBUTION OVERVIEW:
+- Total Cases: ${totalCases}
+- Date Range: ${dateRange.from} to ${dateRange.to}
+- Number of Barangays: ${distribution.length}
+
+BARANGAY BREAKDOWN:
+${distributionData}
+
+INSTRUCTIONS:
+1. Generate exactly 3 insights analyzing the distribution
+2. Each insight must reference specific barangays and percentages
+3. Identify concentration patterns (which barangays have highest/lowest crime)
+4. Compare relative distributions (e.g., "X has 3x more cases than Y")
+5. Keep each insight to 1 sentence
+6. Focus on actionable patterns for resource allocation
+
+Examples of good insights:
+- "Poblacion leads with 245 cases (32% of total), requiring increased police presence"
+- "Tunasan and Putatan combined account for 51% of all incidents"
+- "Ayala Alabang shows lowest activity with only 12 cases (1.6%), suggesting effective security measures"
+
+RESPONSE FORMAT (JSON):
+{
+  "insights": [
+    { "insight": "specific insight with barangay names and data" }
+  ]
+}
+
+Return ONLY valid JSON, no additional text.`;
+}
+
+/**
+ * Build the status distribution prompt
+ */
+function buildStatusDistributionPrompt(input: StatusDistributionInput): string {
+  const { distribution, totalCases, dateRange } = input;
+
+  // Format the distribution data
+  const distributionData = distribution
+    .map((d) => `- ${d.status}: ${d.count} cases (${d.percentage.toFixed(1)}%)`)
+    .join("\n");
+
+  return `You are a crime data analyst for Muntinlupa City, Philippines. Analyze the following case status distribution and provide 3 specific, data-driven insights.
+
+DISTRIBUTION OVERVIEW:
+- Total Cases: ${totalCases}
+- Date Range: ${dateRange.from} to ${dateRange.to}
+- Number of Status Categories: ${distribution.length}
+
+STATUS BREAKDOWN:
+${distributionData}
+
+INSTRUCTIONS:
+1. Generate exactly 3 insights analyzing the status distribution
+2. Each insight must reference specific statuses and percentages
+3. Identify case resolution patterns (investigation progress, resolution rates)
+4. Compare statuses to assess police effectiveness
+5. Keep each insight to 1 sentence
+6. Focus on operational efficiency and case management
+
+Examples of good insights:
+- "64% of cases remain under investigation, indicating potential resource constraints"
+- "Resolved cases account for only 18%, suggesting need for improved closure rates"
+- "Pending cases (23%) may benefit from expedited processing procedures"
+
+RESPONSE FORMAT (JSON):
+{
+  "insights": [
+    { "insight": "specific insight with status names and data" }
+  ]
+}
+
+Return ONLY valid JSON, no additional text.`;
+}
+
+/**
+ * Analyze barangay distribution and generate AI insights
+ */
+export async function analyzeBarangayDistribution(
+  input: BarangayDistributionInput
+): Promise<DistributionAnalyticsAI> {
+  const model = getDistributionModel();
+  const prompt = buildBarangayDistributionPrompt(input);
+
+  const result = await model.generateContent(prompt);
+  const response = result.response;
+  const text = response.text();
+
+  // Clean up the response text
+  let jsonText = text.trim();
+  if (jsonText.startsWith("```json")) {
+    jsonText = jsonText.slice(7);
+  } else if (jsonText.startsWith("```")) {
+    jsonText = jsonText.slice(3);
+  }
+  if (jsonText.endsWith("```")) {
+    jsonText = jsonText.slice(0, -3);
+  }
+  jsonText = jsonText.trim();
+
+  console.log("Barangay distribution AI response:", jsonText.substring(0, 300));
+
+  // Parse the JSON response
+  let analysis: Omit<DistributionAnalyticsAI, "generatedAt">;
+  try {
+    analysis = JSON.parse(jsonText);
+  } catch (parseError) {
+    console.error("Barangay distribution JSON parse error:", parseError);
+    console.error("Failed JSON:", jsonText);
+    throw new Error(`Failed to parse barangay distribution AI response. Please try again.`);
+  }
+
+  // Validate the response structure
+  if (!analysis.insights || analysis.insights.length !== 3) {
+    console.error("Invalid barangay distribution response:", analysis);
+    throw new Error("Barangay distribution AI response is missing required fields");
+  }
+
+  return {
+    ...analysis,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Analyze status distribution and generate AI insights
+ */
+export async function analyzeStatusDistribution(
+  input: StatusDistributionInput
+): Promise<DistributionAnalyticsAI> {
+  const model = getDistributionModel();
+  const prompt = buildStatusDistributionPrompt(input);
+
+  const result = await model.generateContent(prompt);
+  const response = result.response;
+  const text = response.text();
+
+  // Clean up the response text
+  let jsonText = text.trim();
+  if (jsonText.startsWith("```json")) {
+    jsonText = jsonText.slice(7);
+  } else if (jsonText.startsWith("```")) {
+    jsonText = jsonText.slice(3);
+  }
+  if (jsonText.endsWith("```")) {
+    jsonText = jsonText.slice(0, -3);
+  }
+  jsonText = jsonText.trim();
+
+  console.log("Status distribution AI response:", jsonText.substring(0, 300));
+
+  // Parse the JSON response
+  let analysis: Omit<DistributionAnalyticsAI, "generatedAt">;
+  try {
+    analysis = JSON.parse(jsonText);
+  } catch (parseError) {
+    console.error("Status distribution JSON parse error:", parseError);
+    console.error("Failed JSON:", jsonText);
+    throw new Error(`Failed to parse status distribution AI response. Please try again.`);
+  }
+
+  // Validate the response structure
+  if (!analysis.insights || analysis.insights.length !== 3) {
+    console.error("Invalid status distribution response:", analysis);
+    throw new Error("Status distribution AI response is missing required fields");
+  }
+
+  return {
+    ...analysis,
     generatedAt: new Date().toISOString(),
   };
 }

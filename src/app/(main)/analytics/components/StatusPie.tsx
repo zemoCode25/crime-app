@@ -17,6 +17,7 @@ import { Sparkles } from "lucide-react";
 import { useDateRange } from "@/context/DateRangeProvider";
 import { useStatusCrimeCounts } from "@/hooks/analytics/useCrimeAnalyticsData";
 import { STATUSES } from "@/constants/crime-case";
+import { useStatusDistributionAI } from "@/hooks/analytics/useStatusDistributionAI";
 
 export const description = "A pie chart with a legend";
 
@@ -41,15 +42,15 @@ function PieChartSkeleton() {
 
 function AIInsightsSkeleton() {
   return (
-    <div className="mt-4 rounded-sm border border-orange-300 bg-orange-50 p-4">
+    <div className="mt-4 rounded-sm border border-purple-200 bg-purple-50 p-4">
       <div className="mb-2 flex items-center gap-2">
-        <Skeleton className="h-4 w-4 rounded" />
-        <Skeleton className="h-4 w-20" />
+        <Sparkles className="h-4 w-4 animate-pulse text-purple-500" />
+        <Skeleton className="h-4 w-20 rounded" />
       </div>
       <div className="ml-4 space-y-2">
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-[90%]" />
-        <Skeleton className="h-4 w-[85%]" />
+        <Skeleton className="h-4 w-full rounded" />
+        <Skeleton className="h-4 w-[90%] rounded" />
+        <Skeleton className="h-4 w-[85%] rounded" />
       </div>
     </div>
   );
@@ -109,6 +110,34 @@ export default function StatusPie() {
     });
   }, [statusData]);
 
+  // Prepare distribution data with percentages for AI analysis
+  const distributionData = React.useMemo(() => {
+    if (!statusData || statusData.length === 0) return [];
+
+    const total = statusData.reduce((sum, item) => sum + item.count, 0);
+
+    return statusData.map((item) => ({
+      status: item.statusLabel,
+      count: item.count,
+      percentage: (item.count / total) * 100,
+    }));
+  }, [statusData]);
+
+  // Fetch AI insights
+  const {
+    data: aiInsights,
+    isLoading: isLoadingAI,
+    error: aiError,
+  } = useStatusDistributionAI({
+    distribution: distributionData,
+    totalCases: distributionData.reduce((sum, d) => sum + d.count, 0),
+    dateRange: {
+      from: dateRange?.from?.toISOString() || "",
+      to: dateRange?.to?.toISOString() || "",
+    },
+    enabled: !isLoading && distributionData.length > 0,
+  });
+
   return (
     <div className="flex w-full flex-col rounded-md border border-neutral-300 p-4">
       <div className="items-center pb-0">
@@ -141,32 +170,35 @@ export default function StatusPie() {
           </div>
         )}
       </div>
-      {isLoading ? (
+      {isLoading || isLoadingAI ? (
         <AIInsightsSkeleton />
-      ) : (
-        <div className="mt-4 rounded-sm border border-orange-300 bg-orange-50 p-4">
+      ) : aiError ? (
+        <div className="mt-4 rounded-sm border border-orange-200 bg-orange-50 p-4">
           <div className="mb-2 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-orange-600" />
             <span className="text-sm font-semibold text-orange-800">
+              AI Insights Unavailable
+            </span>
+          </div>
+          <p className="text-sm text-orange-700">
+            {aiError.message || "Unable to generate insights for this dataset"}
+          </p>
+        </div>
+      ) : aiInsights ? (
+        <div className="mt-4 rounded-sm border border-purple-300 bg-gradient-to-br from-purple-50 to-indigo-50 p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-purple-600" />
+            <span className="text-sm font-semibold text-purple-900">
               AI Insights
             </span>
           </div>
-          <ul className="ml-4 list-disc space-y-1 text-sm text-orange-900">
-            <li>
-              Peak theft activity in February with 305 cases, 64% higher than
-              average.
-            </li>
-            <li>
-              April shows lowest incidents (73 cases) - consider analyzing
-              contributing.
-            </li>
-            <li>
-              Upward trend detected from April to June, suggesting increased
-              vigilance needed.
-            </li>
+          <ul className="ml-4 list-disc space-y-1 text-sm text-purple-900">
+            {aiInsights.insights.map((item, idx) => (
+              <li key={idx}>{item.insight}</li>
+            ))}
           </ul>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
