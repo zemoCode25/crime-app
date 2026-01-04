@@ -8,6 +8,10 @@ import type { MapFiltersState } from "./mapFiltersState";
 import { useCrimeCasesForMap } from "@/hooks/crime-case/useCrimeCasesForMap";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
 import {
+  useCurrentUserProfile,
+  isBarangayAdmin,
+} from "@/hooks/user/useCurrentUserProfile";
+import {
   useRiskAssessment,
   type RiskAssessmentFilters,
 } from "@/hooks/map/useRiskAssessment";
@@ -29,6 +33,13 @@ const initialFilters: MapFiltersState = {
 };
 
 export default function MapContainer() {
+  const { data: userProfile } = useCurrentUserProfile();
+
+  // Determine barangay filter based on user role
+  const userBarangayId = isBarangayAdmin(userProfile?.role ?? null)
+    ? userProfile?.barangay ?? undefined
+    : undefined;
+
   const [selectedLocation, setSelectedLocation] =
     useState<SelectedLocation | null>(null);
   const [filters, setFilters] = useState<MapFiltersState>(initialFilters);
@@ -77,10 +88,13 @@ export default function MapContainer() {
   const routeAssessmentMutation = useRouteAssessment({ filters: riskFilters });
 
   const crimeCasesQuery = useCrimeCasesForMap({
-    statusFilters: filters.statusFilters,
-    crimeTypeIds: filters.typeFilters,
-    barangayFilters: filters.barangayFilters,
-    dateRange: filters.dateRange,
+    filters: {
+      statusFilters: filters.statusFilters,
+      crimeTypeIds: filters.typeFilters,
+      barangayFilters: filters.barangayFilters,
+      dateRange: filters.dateRange,
+    },
+    userBarangayId,
   });
   const crimeCases = crimeCasesQuery.data ?? [];
 
