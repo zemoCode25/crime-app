@@ -21,6 +21,10 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import useSupabaseBrowser from "@/server/supabase/client";
+import {
+  useCurrentUserProfile,
+  isBarangayAdmin,
+} from "@/hooks/user/useCurrentUserProfile";
 
 // Navigation data
 const sidebarData = {
@@ -89,6 +93,7 @@ const sidebarData = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const supabase = useSupabaseBrowser();
+  const { data: userProfile } = useCurrentUserProfile();
   const [userData, setUserData] = React.useState({
     name: "John Doe",
     email: "john.doe@example.com",
@@ -109,13 +114,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     fetchUser();
   }, [supabase]);
 
+  // Filter out "Manage Accounts" for barangay_admin users
+  const filteredNavMain = React.useMemo(() => {
+    if (isBarangayAdmin(userProfile?.role ?? null)) {
+      return sidebarData.navMain.filter(
+        (item) => item.url !== "/manage-accounts",
+      );
+    }
+    return sidebarData.navMain;
+  }, [userProfile?.role]);
+
   return (
     <Sidebar collapsible="icon" {...props} className="z-50">
       <SidebarHeader className="!z-50">
         <TeamSwitcher teams={sidebarData.teams} />
       </SidebarHeader>
       <SidebarContent className="!z-50">
-        <NavMain items={sidebarData.navMain} />
+        <NavMain items={filteredNavMain} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userData} />
