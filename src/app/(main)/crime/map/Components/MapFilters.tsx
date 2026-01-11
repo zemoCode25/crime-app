@@ -45,12 +45,14 @@ interface MapFiltersProps {
   filters: MapFiltersState;
   onFiltersChange: (filters: MapFiltersState) => void;
   selectedCase: CrimeCaseMapRecord | null;
+  onToggleRouteMode: () => void;
 }
 
 export default function MapFilters({
   onLocationChange,
   filters,
   onFiltersChange,
+  onToggleRouteMode,
 }: MapFiltersProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [barangayOpen, setBarangayOpen] = useState(false);
@@ -180,6 +182,7 @@ export default function MapFilters({
       barangayFilters: [],
       dateRange: undefined,
       selectedTimeFrame: "last_7d",
+      showFacilities: filters.showFacilities,
     });
   };
 
@@ -213,7 +216,10 @@ export default function MapFilters({
               className="bg-white pr-10 pl-10"
             />
           </div>
-          <Button className="cursor-pointer rounded-md bg-orange-600 px-3 py-2.5 text-white hover:bg-orange-700">
+          <Button
+            onClick={onToggleRouteMode}
+            className="cursor-pointer rounded-md bg-orange-600 px-3 py-2.5 text-white hover:bg-orange-700"
+          >
             <CircleArrowOutUpRight className="h-4 w-4 text-white" />
           </Button>
         </div>
@@ -513,7 +519,7 @@ export default function MapFilters({
                 {label}
                 <button
                   type="button"
-                  onClick={() => value}
+                  onClick={() => handleStatusFilterToggle(value)}
                   className="ml-1 text-xs text-gray-500 hover:text-gray-700"
                 >
                   <X className="h-3 w-3 text-white" />

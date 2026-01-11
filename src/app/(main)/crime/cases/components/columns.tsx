@@ -17,10 +17,6 @@ export type CrimeTableRow = {
   report_datetime: string | null;
 };
 
-type ActionsCellProps = {
-  crime: CrimeTableRow;
-};
-
 // ✅ Function that creates columns with dependencies injected
 export const createColumns = (
   crimeTypeConverter: (id: number) => string | null,
