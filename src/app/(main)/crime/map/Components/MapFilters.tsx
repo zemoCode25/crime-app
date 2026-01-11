@@ -6,6 +6,7 @@ import {
   X,
   CircleArrowOutUpRight,
   ChevronsUpDownIcon,
+  Building2,
   FunnelX,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -73,6 +74,13 @@ export default function MapFilters({
     dateRange,
     selectedTimeFrame,
   } = filters;
+
+  const handleToggleFacilities = () => {
+    onFiltersChange({
+      ...filters,
+      showFacilities: !filters.showFacilities,
+    });
+  };
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
@@ -499,6 +507,19 @@ export default function MapFilters({
             })
           }
         />
+
+        {/* Facilities Toggle */}
+        <Button
+          variant={filters.showFacilities ? "default" : "outline"}
+          size="sm"
+          onClick={handleToggleFacilities}
+          className={
+            filters.showFacilities ? "bg-blue-600 hover:bg-blue-700" : ""
+          }
+        >
+          <Building2 className="mr-1.5 h-4 w-4" />
+          Facilities
+        </Button>
       </div>
 
       {/* Active filter badges */}
