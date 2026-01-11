@@ -47,12 +47,29 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/user-profile") &&
     !request.nextUrl.pathname.startsWith("/error") &&
     !request.nextUrl.pathname.startsWith("/change-password") &&
-    !request.nextUrl.pathname.startsWith("/request-change")
+    !request.nextUrl.pathname.startsWith("/request-change") &&
+    !request.nextUrl.pathname.startsWith("/api/bigquery/heatmap") && 
+    !request.nextUrl.pathname.startsWith("/api/bigquery/geojson")
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
+  }
+
+  // Block barangay_admin users from accessing /manage-accounts
+  if (user && request.nextUrl.pathname.startsWith("/manage-accounts")) {
+    const { data: userProfile } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (userProfile?.role === "barangay_admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

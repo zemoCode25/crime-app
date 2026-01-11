@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, ChevronsUpDown, TrendingUp } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Check, ChevronsUpDown, Sparkles } from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -28,43 +29,122 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { BARANGAY_OPTIONS_WITH_ALL } from "@/constants/crime-case";
-import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { BARANGAY_OPTIONS_WITH_ALL, STATUSES } from "@/constants/crime-case";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
+import type { AnalyticsParams } from "@/server/queries/analytics";
 import { getCrimeTypes } from "@/server/queries/crime-type";
 import useSupabaseBrowser from "@/server/supabase/client";
+import { useDailyCrimeCounts } from "@/hooks/analytics/useCrimeAnalyticsData";
+import { useDateRange } from "@/context/DateRangeProvider";
+import { useAnalyticsAI } from "@/hooks/analytics/useAnalyticsAI";
+import type { CrimeInsight } from "@/lib/gemini/analytics-schema";
 
-export const description = "An area chart with gradient fill";
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-];
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "var(--chart-4)",
-  },
-  mobile: {
-    label: "Mobile",
+  count: {
+    label: "Crime Reports",
     color: "var(--chart-4)",
   },
 } satisfies ChartConfig;
 
-export default function CrimeChart() {
+interface CrimeChartProps {
+  userBarangayId?: number; // For barangay_admin - locks barangay filter
+}
+
+export default function CrimeChart({ userBarangayId }: CrimeChartProps) {
+  const { dateRange } = useDateRange();
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
-  const [crimeTypeValue, setCrimeTypeValue] = useState(1);
+  const [crimeTypeValue, setCrimeTypeValue] = useState(0); // 0 = All crime types
   const [barangayOpen, setBarangayOpen] = useState(false);
-  const [barangayValue, setBarangayValue] = useState(1);
+  const [barangayValue, setBarangayValue] = useState(userBarangayId ?? 0); // Use userBarangayId if provided
+  const [statusOpen, setStatusOpen] = useState(false);
+  const [statusValue, setStatusValue] =
+    useState<AnalyticsParams["status"]>("all");
+
+  // For barangay_admin, always use their barangay
+  const effectiveBarangayId = userBarangayId ?? barangayValue;
+  const isBarangayLocked = userBarangayId !== undefined;
 
   const supabase = useSupabaseBrowser();
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
 
+  // Get selected crime type label
+  const selectedCrimeTypeLabel = useMemo(() => {
+    if (crimeTypeValue === 0) return "All crime types";
+    if (!crimeTypes) return "";
+    const crimeType = crimeTypes.find((ct) => ct.id === crimeTypeValue);
+    return crimeType?.label || "";
+  }, [crimeTypes, crimeTypeValue]);
+
+  // Get selected barangay label for display
+  const selectedBarangayLabel = useMemo(() => {
+    const barangay = BARANGAY_OPTIONS_WITH_ALL.find(
+      (b) => b.id === effectiveBarangayId,
+    );
+    return barangay?.value || "All barangays";
+  }, [effectiveBarangayId]);
+
+  // Get selected status label for display
+  const selectedStatusLabel = useMemo(() => {
+    if (statusValue === "all") return "All statuses";
+    const status = STATUSES.find((s) => s.value === statusValue);
+    return status?.label || "All statuses";
+  }, [statusValue]);
+
+  // Fetch daily crime counts
+  const { data: dailyCounts, isLoading: isLoadingCounts } = useDailyCrimeCounts(
+    {
+      dateRange,
+      crimeType: crimeTypeValue,
+      barangayId: effectiveBarangayId,
+      status: statusValue,
+    },
+  );
+
+  // Fetch AI insights based on the crime data
+  const {
+    data: aiInsights,
+    isLoading: isLoadingAI,
+    error: aiError,
+  } = useAnalyticsAI({
+    dailyCounts: dailyCounts || [],
+    crimeType: selectedCrimeTypeLabel,
+    barangay: selectedBarangayLabel,
+    status: selectedStatusLabel,
+    dateRange: {
+      from: dateRange?.from?.toISOString() || "",
+      to: dateRange?.to?.toISOString() || "",
+    },
+    enabled: !isLoadingCounts && (dailyCounts?.length ?? 0) > 0,
+  });
+
+  // Format chart data
+  const chartData = useMemo(() => {
+    if (!dailyCounts) return [];
+    return dailyCounts.map((point) => ({
+      date: point.label,
+      count: point.count,
+    }));
+  }, [dailyCounts]);
+
+  // Format date range for display
+  const dateRangeLabel = useMemo(() => {
+    if (!dateRange?.from || !dateRange?.to) return "";
+    const from = dateRange.from.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    const to = dateRange.to.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    return `${from} - ${to}`;
+  }, [dateRange]);
+
   return (
-    <div className="mt-4 flex w-full flex-col gap-4 rounded-md border border-neutral-300 p-4">
+    <div className="mt-4 flex w-full flex-col gap-4 rounded-md border border-neutral-300 bg-white p-4">
       <div className="flex gap-2">
         <Popover open={crimeTypeOpen} onOpenChange={setCrimeTypeOpen}>
           <PopoverTrigger asChild>
@@ -73,9 +153,7 @@ export default function CrimeChart() {
               role="combobox"
               className={"w-[200px] justify-between"}
             >
-              {crimeTypeValue
-                ? crimeTypes?.find((type) => crimeTypeValue === type.id)?.label
-                : "Select crime type..."}
+              {selectedCrimeTypeLabel || "Select crime type..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -85,6 +163,18 @@ export default function CrimeChart() {
               <CommandList>
                 <CommandEmpty>No crime type found.</CommandEmpty>
                 <CommandGroup>
+                  <CommandItem
+                    value="0"
+                    onSelect={() => {
+                      setCrimeTypeValue(0);
+                      setCrimeTypeOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={`${crimeTypeValue === 0 ? "opacity-100" : "opacity-0"}`}
+                    />
+                    All crime types
+                  </CommandItem>
                   {crimeTypes?.map((type) => (
                     <CommandItem
                       value={String(type.id)}
@@ -105,16 +195,17 @@ export default function CrimeChart() {
             </Command>
           </PopoverContent>
         </Popover>
-        <Popover open={barangayOpen} onOpenChange={setBarangayOpen}>
+        <Popover open={barangayOpen} onOpenChange={isBarangayLocked ? undefined : setBarangayOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               role="combobox"
-              className={"w-[200px] justify-between"}
+              disabled={isBarangayLocked}
+              className={`w-[200px] justify-between ${isBarangayLocked ? "cursor-not-allowed opacity-60" : ""}`}
             >
-              {barangayValue
+              {effectiveBarangayId
                 ? BARANGAY_OPTIONS_WITH_ALL.find(
-                    (barangay) => barangayValue === barangay.id,
+                    (barangay) => effectiveBarangayId === barangay.id,
                   )?.value
                 : "Select barangay..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -146,78 +237,184 @@ export default function CrimeChart() {
             </Command>
           </PopoverContent>
         </Popover>
-      </div>
-      <div className="mb-2 flex w-full items-center justify-between">
-        <ChartContainer config={chartConfig} className="h-[10rem] w-full">
-          <ResponsiveContainer>
-            <AreaChart
-              accessibilityLayer
-              data={chartData}
-              margin={{
-                left: 12,
-                right: 12,
-              }}
-              className="h-[1rem] w-full"
+        <Popover open={statusOpen} onOpenChange={setStatusOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              className={"w-[200px] justify-between"}
             >
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tickFormatter={(value) => value.slice(0, 3)}
-              />
-              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-              <defs>
-                <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="var(--color-desktop)"
-                    stopOpacity={0.8}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="var(--color-desktop)"
-                    stopOpacity={0.1}
-                  />
-                </linearGradient>
-                <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="var(--color-mobile)"
-                    stopOpacity={0.8}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="var(--color-mobile)"
-                    stopOpacity={0.1}
-                  />
-                </linearGradient>
-              </defs>
-              <Area
-                dataKey="desktop"
-                type="linear"
-                fill="url(#fillDesktop)"
-                fillOpacity={0.4}
-                stroke="var(--color-desktop)"
-                stackId="a"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </ChartContainer>
+              {selectedStatusLabel}
+              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder="Search status..." />
+              <CommandList>
+                <CommandEmpty>No status found.</CommandEmpty>
+                <CommandGroup>
+                  <CommandItem
+                    value="all"
+                    onSelect={() => {
+                      setStatusValue("all");
+                      setStatusOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={`${statusValue === "all" ? "opacity-100" : "opacity-0"}`}
+                    />
+                    All statuses
+                  </CommandItem>
+                  {STATUSES.map((status) => (
+                    <CommandItem
+                      value={status.value}
+                      key={status.value}
+                      onSelect={() => {
+                        setStatusValue(status.value);
+                        setStatusOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={`${statusValue === status.value ? "opacity-100" : "opacity-0"}`}
+                      />
+                      {status.label}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
-      <div>
-        <div className="flex w-full items-start gap-2 text-sm">
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2 leading-none font-medium">
-              Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-            </div>
-            <div className="text-muted-foreground flex items-center gap-2 leading-none">
-              January - June 2025
-            </div>
+
+      {/* Chart description */}
+      {isLoadingCounts ? (
+        <Skeleton className="mx-auto h-4 w-64 rounded" />
+      ) : (
+        dateRangeLabel && (
+          <p className="text-center text-sm text-neutral-700 italic">
+            {selectedCrimeTypeLabel} cases from {dateRangeLabel}
+            {effectiveBarangayId !== 0 && ` in ${selectedBarangayLabel}`}
+            {statusValue !== "all" && ` (${selectedStatusLabel})`}
+          </p>
+        )
+      )}
+
+      {/* Chart area */}
+      <div className="mb-2 flex w-full items-center justify-between">
+        {isLoadingCounts ? (
+          <div className="flex h-[10rem] w-full items-center justify-center">
+            <Skeleton className="h-[10rem] w-full rounded-md" />
+          </div>
+        ) : chartData.length > 0 ? (
+          <ChartContainer config={chartConfig} className="h-[10rem] w-full">
+            <ResponsiveContainer>
+              <AreaChart
+                accessibilityLayer
+                data={chartData}
+                margin={{
+                  left: 12,
+                  right: 12,
+                }}
+                className="h-[1rem] w-full"
+              >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={(value) =>
+                    value.length > 6 ? value.slice(0, 6) : value
+                  }
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent />}
+                />
+                <defs>
+                  <linearGradient id="fillCount" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-count)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-count)"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                </defs>
+                <Area
+                  dataKey="count"
+                  type="linear"
+                  fill="url(#fillCount)"
+                  fillOpacity={0.4}
+                  stroke="var(--color-count)"
+                  stackId="a"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        ) : (
+          <div className="text-muted-foreground flex h-[10rem] w-full items-center justify-center">
+            No data available for the selected filters
+          </div>
+        )}
+      </div>
+      {/* AI Insights */}
+      {isLoadingCounts || isLoadingAI ? (
+        <div className="mt-4 rounded-sm border border-purple-200 bg-purple-50 p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 animate-pulse text-purple-500" />
+            <Skeleton className="h-4 w-24 rounded" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Skeleton className="h-4 w-full rounded" />
+            <Skeleton className="h-4 w-full rounded" />
+            <Skeleton className="h-4 w-3/4 rounded" />
+            <Skeleton className="h-4 w-5/6 rounded" />
           </div>
         </div>
-      </div>
+      ) : aiError ? (
+        <div className="mt-4 rounded-sm border border-orange-200 bg-orange-50 p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-orange-600" />
+            <span className="text-sm font-semibold text-orange-800">
+              AI Insights Unavailable
+            </span>
+          </div>
+          <p className="text-sm text-orange-700">
+            {aiError.message || "Unable to generate insights for this dataset"}
+          </p>
+        </div>
+      ) : aiInsights ? (
+        <div className="mt-4 rounded-sm border border-purple-300 bg-gradient-to-br from-purple-50 to-indigo-50 p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-purple-600" />
+              <span className="text-sm font-semibold text-purple-900">
+                AI Insights
+              </span>
+            </div>
+            <span className="w-1/2 text-xs text-purple-600 italic">
+              {aiInsights.summary}
+            </span>
+          </div>
+          <ul className="ml-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-purple-900">
+            {aiInsights.insights.map((insight, idx) => (
+              <li
+                key={idx}
+                className="rounded border border-purple-300 bg-purple-100 p-2"
+              >
+                {insight.insight}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }

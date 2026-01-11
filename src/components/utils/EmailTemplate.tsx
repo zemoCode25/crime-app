@@ -1,4 +1,16 @@
 import * as React from "react";
+import {
+  Html,
+  Head,
+  Body,
+  Container,
+  Heading,
+  Text,
+  Button,
+  Section,
+  Link,
+  Preview,
+} from "@react-email/components";
 
 interface EmailTemplateProps {
   firstName: string;
@@ -17,74 +29,147 @@ export function EmailTemplate({
 }: EmailTemplateProps) {
   const isBarangayAdmin = role === "barangay_admin";
   const fullName = `${firstName} ${lastName}`;
+  const roleText = isBarangayAdmin
+    ? "Barangay Administrator"
+    : "System Administrator";
 
   return (
-    <div
-      style={{
-        fontFamily: "Arial, sans-serif",
-        color: "#111827",
-        lineHeight: "1.6",
-      }}
-    >
-      <h2 style={{ color: "#1d4ed8" }}>Muntinlupa Crime Mapping System</h2>
+    <Html lang="en">
+      <Head />
+      <Preview>
+        You have been invited to join as {roleText} - Muntinlupa Crime Mapping
+        System
+      </Preview>
+      <Body style={styles.body}>
+        <Container style={styles.container}>
+          <Heading as="h2" style={styles.heading}>
+            Muntinlupa Crime Mapping System
+          </Heading>
 
-      <p>Hi {fullName},</p>
+          <Text style={styles.mainText}>
+            <strong>{fullName}</strong>, you have been invited to join as{" "}
+            {roleText}.
+          </Text>
 
-      {isBarangayAdmin ? (
-        <p>
-          You’ve been invited to join as a <strong>Barangay Admin</strong> for{" "}
-          <strong>{barangay}</strong>. As a Barangay Admin, you’ll have access
-          to manage local reports, monitor incidents, and assist in coordinating
-          safety responses within your assigned barangay.
-        </p>
-      ) : (
-        <p>
-          You’ve been invited to join as a <strong>System Administrator</strong>
-          . As a System Admin, you’ll be responsible for managing user accounts,
-          maintaining system integrity, and overseeing all reports within the
-          system.
-        </p>
-      )}
+          <Section style={styles.contentSection}>
+            <Text style={styles.text}>
+              Hey <strong>{firstName}</strong>!
+            </Text>
 
-      <p>
-        To get started, click the button below to set up your admin account and
-        activate your access:
-      </p>
+            {isBarangayAdmin ? (
+              <Text style={styles.text}>
+                You have been invited to join as a Barangay Administrator for{" "}
+                <strong>{barangay}</strong>. As a Barangay Admin, you will have
+                access to manage local reports, monitor incidents, and assist in
+                coordinating safety responses within your assigned barangay.
+              </Text>
+            ) : (
+              <Text style={styles.text}>
+                You have been invited to join as a System Administrator. As a
+                System Admin, you will be responsible for managing user
+                accounts, maintaining system integrity, and overseeing all
+                reports within the system.
+              </Text>
+            )}
 
-      <p>
-        <a
-          href={inviteLink}
-          style={{
-            display: "inline-block",
-            backgroundColor: "#2563eb",
-            color: "#ffffff",
-            padding: "10px 18px",
-            borderRadius: "6px",
-            textDecoration: "none",
-            fontWeight: "bold",
-          }}
-        >
-          Accept Invitation
-        </a>
-      </p>
+            <Section style={styles.buttonContainer}>
+              <Button href={inviteLink} style={styles.button}>
+                Accept Invitation
+              </Button>
+            </Section>
+          </Section>
 
-      <p style={{ fontSize: "14px", color: "#6b7280" }}>
-        If you did not expect this invitation, you can safely ignore this email.
-      </p>
+          <Text style={styles.centerText}>
+            <Link href={inviteLink} style={styles.link}>
+              View invitation link
+            </Link>
+          </Text>
 
-      <hr
-        style={{
-          margin: "2rem 0",
-          border: "none",
-          borderTop: "1px solid #e5e7eb",
-        }}
-      />
+          <Text style={styles.disclaimer}>
+            If you did not expect this invitation, please disregard this email.
+          </Text>
 
-      <p style={{ fontSize: "12px", color: "#9ca3af" }}>
-        © {new Date().getFullYear()} Crime Monitoring & Response System
-        <br />
-        Powered by the PLMUN IT Department
-      </p>
-    </div>
+          <Text style={styles.footer}>
+            Crime Monitoring & Response System · Powered by PLMUN IT Department
+          </Text>
+        </Container>
+      </Body>
+    </Html>
   );
 }
+
+const styles = {
+  body: {
+    margin: 0,
+    padding: 0,
+    fontFamily: "Arial, sans-serif",
+    backgroundColor: "#ffffff",
+  },
+  container: {
+    fontFamily: "Arial, sans-serif",
+    color: "#24292e",
+    maxWidth: "480px",
+    margin: "0 auto",
+    paddingTop: "20px",
+    paddingBottom: "48px",
+  },
+  heading: {
+    color: "#1d4ed8",
+    fontSize: "20px",
+    fontWeight: "600" as const,
+    margin: "0 0 16px 0",
+  },
+  mainText: {
+    fontSize: "24px",
+    lineHeight: "1.25",
+    margin: "0 0 24px 0",
+  },
+  contentSection: {
+    padding: "24px",
+    border: "1px solid #dedede",
+    borderRadius: "5px",
+    marginBottom: "16px",
+  },
+  text: {
+    margin: "10px 0",
+    textAlign: "left" as const,
+  },
+  buttonContainer: {
+    textAlign: "center" as const,
+    marginTop: "16px",
+  },
+  button: {
+    backgroundColor: "#2563eb",
+    color: "#ffffff",
+    fontSize: "14px",
+    lineHeight: "normal",
+    borderRadius: "8px",
+    padding: "12px 24px",
+    textDecoration: "none",
+    display: "inline-block",
+  },
+  centerText: {
+    textAlign: "center" as const,
+    margin: "16px 0",
+  },
+  link: {
+    color: "#2563eb",
+    fontSize: "12px",
+    textDecoration: "none",
+  },
+  disclaimer: {
+    fontSize: "12px",
+    color: "#6a737d",
+    lineHeight: "24px",
+    textAlign: "center" as const,
+    marginTop: "60px",
+    marginBottom: "16px",
+  },
+  footer: {
+    fontSize: "12px",
+    color: "#6a737d",
+    lineHeight: "24px",
+    textAlign: "center" as const,
+    margin: "0",
+  },
+};

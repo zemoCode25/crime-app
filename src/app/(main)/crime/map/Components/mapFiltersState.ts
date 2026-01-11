@@ -6,5 +6,6 @@ export interface MapFiltersState {
   barangayFilters: string[];
   dateRange?: DateRangeValue;
   selectedTimeFrame: string;
+  showFacilities: boolean;
 }
 

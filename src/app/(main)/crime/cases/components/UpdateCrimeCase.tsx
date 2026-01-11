@@ -89,7 +89,9 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
         lat: crimeData.location?.lat || 0,
         long: crimeData.location?.long || 0,
 
-        persons: crimeData.case_person?.map(mapCasePersonToFormPerson) || [
+        persons: (crimeData.case_person as unknown as CasePersonRecord[])?.map(
+          mapCasePersonToFormPerson,
+        ) || [
           {
             first_name: "",
             last_name: "",
@@ -135,7 +137,8 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
     try {
       // ✅ Prepare data for mutation
       const crimeCase = {
-        case_number: `CASE-${Date.now()}`,
+        // Preserve existing case_number from original data
+        case_number: crimeData?.case_number,
         crime_type: values.crime_type,
         case_status: values.case_status,
         description: values.description,

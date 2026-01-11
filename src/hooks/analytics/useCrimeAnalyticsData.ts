@@ -1,0 +1,179 @@
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+import { DateRange } from "react-day-picker";
+import useSupabaseBrowser from "@/server/supabase/client";
+import {
+  getDailyCrimeCounts,
+  getBarangayCrimeCounts,
+  getStatusCrimeCounts,
+  getCrimeTypeCounts,
+  type DailyCrimeCount,
+  type BarangayCrimeCount,
+  type StatusCrimeCount,
+  type CrimeTypeCount,
+  type AnalyticsParams,
+} from "@/server/queries/analytics";
+
+interface UseDailyCrimeCountsArgs {
+  dateRange?: DateRange;
+  crimeType?: number; // 0 = all crime types
+  barangayId?: number; // 0 = all barangays
+  status?: AnalyticsParams["status"]; // "all" = all statuses
+}
+
+/**
+ * Hook to fetch daily crime counts for the analytics chart.
+ * Returns one data point per day within the selected date range.
+ */
+export function useDailyCrimeCounts({
+  dateRange,
+  crimeType,
+  barangayId,
+  status,
+}: UseDailyCrimeCountsArgs) {
+  const supabase = useSupabaseBrowser();
+
+  return useQuery<DailyCrimeCount[]>({
+    queryKey: [
+      "daily-crime-counts",
+      {
+        from: dateRange?.from?.toISOString() ?? null,
+        to: dateRange?.to?.toISOString() ?? null,
+        crimeType: crimeType ?? null,
+        barangayId: barangayId ?? null,
+        status: status ?? null,
+      },
+    ],
+    queryFn: async () => {
+      if (!supabase) {
+        throw new Error("Supabase client not available");
+      }
+
+      return getDailyCrimeCounts(supabase, {
+        startDate: dateRange?.from,
+        endDate: dateRange?.to,
+        crimeType,
+        barangayId,
+        status,
+      });
+    },
+    enabled: !!supabase && !!dateRange?.from && !!dateRange?.to,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+}
+
+interface UseBarangayCrimeCountsArgs {
+  dateRange?: DateRange;
+  barangayId?: number; // Filter by barangay (for barangay_admin users)
+}
+
+/**
+ * Hook to fetch crime counts by barangay for the pie chart.
+ * Returns the count of crimes for each barangay within the date range.
+ */
+export function useBarangayCrimeCounts({ dateRange, barangayId }: UseBarangayCrimeCountsArgs) {
+  const supabase = useSupabaseBrowser();
+
+  return useQuery<BarangayCrimeCount[]>({
+    queryKey: [
+      "barangay-crime-counts",
+      {
+        from: dateRange?.from?.toISOString() ?? null,
+        to: dateRange?.to?.toISOString() ?? null,
+        barangayId: barangayId ?? null,
+      },
+    ],
+    queryFn: async () => {
+      if (!supabase) {
+        throw new Error("Supabase client not available");
+      }
+
+      return getBarangayCrimeCounts(supabase, {
+        startDate: dateRange?.from,
+        endDate: dateRange?.to,
+        barangayId,
+      });
+    },
+    enabled: !!supabase && !!dateRange?.from && !!dateRange?.to,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+}
+
+interface UseStatusCrimeCountsArgs {
+  dateRange?: DateRange;
+  barangayId?: number; // Filter by barangay (for barangay_admin users)
+}
+
+/**
+ * Hook to fetch crime counts by status for the pie chart.
+ * Returns the count of crimes for each status within the date range.
+ */
+export function useStatusCrimeCounts({ dateRange, barangayId }: UseStatusCrimeCountsArgs) {
+  const supabase = useSupabaseBrowser();
+
+  return useQuery<StatusCrimeCount[]>({
+    queryKey: [
+      "status-crime-counts",
+      {
+        from: dateRange?.from?.toISOString() ?? null,
+        to: dateRange?.to?.toISOString() ?? null,
+        barangayId: barangayId ?? null,
+      },
+    ],
+    queryFn: async () => {
+      if (!supabase) {
+        throw new Error("Supabase client not available");
+      }
+
+      return getStatusCrimeCounts(supabase, {
+        startDate: dateRange?.from,
+        endDate: dateRange?.to,
+        barangayId,
+      });
+    },
+    enabled: !!supabase && !!dateRange?.from && !!dateRange?.to,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+}
+
+interface UseCrimeTypeCountsArgs {
+  dateRange?: DateRange;
+  barangayId?: number; // Filter by barangay (for barangay_admin users)
+}
+
+/**
+ * Hook to fetch crime counts by crime type for the bar chart.
+ * Returns the count of crimes for each crime type within the date range.
+ */
+export function useCrimeTypeCounts({ dateRange, barangayId }: UseCrimeTypeCountsArgs) {
+  const supabase = useSupabaseBrowser();
+
+  return useQuery<CrimeTypeCount[]>({
+    queryKey: [
+      "crime-type-counts",
+      {
+        from: dateRange?.from?.toISOString() ?? null,
+        to: dateRange?.to?.toISOString() ?? null,
+        barangayId: barangayId ?? null,
+      },
+    ],
+    queryFn: async () => {
+      if (!supabase) {
+        throw new Error("Supabase client not available");
+      }
+
+      return getCrimeTypeCounts(supabase, {
+        startDate: dateRange?.from,
+        endDate: dateRange?.to,
+        barangayId,
+      });
+    },
+    enabled: !!supabase && !!dateRange?.from && !!dateRange?.to,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+}

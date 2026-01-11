@@ -29,9 +29,14 @@ export default function DeleteModal({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className="flex w-full cursor-pointer items-center gap-2 rounded-sm border-red-200 bg-red-50 text-red-600">
-        <Trash className="text-red-600" />
-        Delete
+      <DialogTrigger asChild>
+        <Button
+          variant="destructive"
+          className="cursor-pointer border border-red-600 bg-red-100 text-red-600 hover:bg-red-200"
+        >
+          <Trash className="h-4 w-4" />
+          Delete
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -39,14 +44,13 @@ export default function DeleteModal({
             Are you absolutely sure?
           </DialogTitle>
           <DialogDescription className="text-sm">
-            This action cannot be undone. This will permanently delete your
-            account and remove your data from our servers.
+            This action cannot be undone. This will permanently delete the case
+            and remove all data associated with it.
           </DialogDescription>
         </DialogHeader>
         <div className="flex w-full justify-between gap-2">
           <Button
-            className="w-1/2 cursor-pointer"
-            variant="destructive"
+            className="w-1/2 cursor-pointer border border-red-600 bg-red-100 text-red-600 hover:bg-red-200"
             onClick={handleDeleteClick}
           >
             {deleteMutation.isPending ? "Deleting..." : "Delete case"}

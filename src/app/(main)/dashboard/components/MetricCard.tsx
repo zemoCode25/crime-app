@@ -6,9 +6,11 @@ interface MetricCardProps {
   title: string;
   value: string | number;
   trend?: {
-    value: string | number;
-    percentage: string | number;
+    value: number;
+    percentage: number;
     isPositive?: boolean;
+    periodLabel?: string;
+    isSignificant?: boolean;
   };
   className?: string;
   icon?: LucideIcon;
@@ -72,12 +74,25 @@ export default function MetricCard({
       </p>
 
       {trend && (
-        <div className="mt-2 flex items-center gap-1">
-          <TrendIcon className={cn("h-4 w-4", getTrendColor())} />
-          <span className="text-muted-foreground text-xs dark:text-orange-200/70">
-            {trend.isPositive ? "+" : ""}
-            {trend.value} ({trend.percentage}%)
-          </span>
+        <div className="mt-2 flex flex-col gap-1">
+          <div className="flex items-center gap-1">
+            <TrendIcon className={cn("h-4 w-4", getTrendColor())} />
+            <span className="text-muted-foreground text-xs dark:text-orange-200/70">
+              {trend.isSignificant ? (
+                <>
+                  {trend.value > 0 ? "+" : ""}
+                  {Math.abs(trend.value)} ({Math.abs(trend.percentage)}%)
+                </>
+              ) : (
+                <span className="italic">Insufficient data</span>
+              )}
+            </span>
+          </div>
+          {trend.isSignificant && (
+            <span className="text-muted-foreground/70 text-[10px] dark:text-orange-200/50">
+              {trend.periodLabel}
+            </span>
+          )}
         </div>
       )}
     </div>

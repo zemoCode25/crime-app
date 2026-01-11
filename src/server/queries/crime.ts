@@ -1,31 +1,89 @@
 import { TypedSupabaseClient } from "@/types/supabase-client";
 import { CrimeCaseData, LocationData, PersonData } from "@/types/crime-case";
 
-export async function getTableCrimeCases(client: TypedSupabaseClient) {
-  return client
-    .from("crime_case")
-    .select(
-      `
+export async function getTableCrimeCases(
+  client: TypedSupabaseClient,
+  barangayId?: number
+) {
+  console.log('Fetching crime cases with barangayId:', barangayId);
+  
+  // Use different select based on whether we need to filter by barangay
+  // When filtering by barangay, we use !inner to perform an inner join
+  // which ensures only crime cases with matching location.barangay are returned
+  const selectQuery = barangayId !== undefined
+    ? `
       id,
+      case_number,
       crime_type,
       case_status,
+      incident_datetime,
+      report_datetime,
+      location:location_id!inner (
+        barangay
+      ),
       case_person (
         case_role,
-        person_profile ( 
-          first_name, 
-          last_name 
+        person_profile (
+          first_name,
+          last_name
         )
       )
       `
-    )
-    .order("id", { ascending: false });
+    : `
+      id,
+      case_number,
+      crime_type,
+      case_status,
+      incident_datetime,
+      report_datetime,
+      location:location_id (
+        barangay
+      ),
+      case_person (
+        case_role,
+        person_profile (
+          first_name,
+          last_name
+        )
+      )
+      `;
+
+  let query = client
+    .from("crime_case")
+    .select(selectQuery);
+
+  // Filter by barangay if provided (for barangay_admin users)
+  if (barangayId !== undefined) {
+    query = query.eq("location.barangay", barangayId);
+  }
+
+  return query.order("id", { ascending: false });
 }
 
-export async function getCrimeCasesForMap(client: TypedSupabaseClient) {
-  return client
-    .from("crime_case")
-    .select(
+export async function getCrimeCasesForMap(
+  client: TypedSupabaseClient,
+  barangayId?: number
+) {
+  // Use different select based on whether we need to filter by barangay
+  // When filtering by barangay, we use !inner to perform an inner join
+  const selectQuery = barangayId !== undefined
+    ? `
+      id,
+      case_number,
+      case_status,
+      crime_type,
+      description,
+      incident_datetime,
+      report_datetime,
+      location:location_id!inner (
+        lat,
+        long,
+        crime_location,
+        landmark,
+        barangay
+      )
       `
+    : `
       id,
       case_number,
       case_status,
@@ -37,11 +95,21 @@ export async function getCrimeCasesForMap(client: TypedSupabaseClient) {
         lat,
         long,
         crime_location,
-        landmark
+        landmark,
+        barangay
       )
-      `,
-    )
-    .order("id", { ascending: false });
+      `;
+
+  let query = client
+    .from("crime_case")
+    .select(selectQuery);
+
+  // Filter by barangay if provided (for barangay_admin users)
+  if (barangayId !== undefined) {
+    query = query.eq("location.barangay", barangayId);
+  }
+
+  return query.order("id", { ascending: false });
 }
 
 export async function getCrimeCaseById(client: TypedSupabaseClient, caseId: number) {
@@ -52,7 +120,10 @@ export async function getCrimeCaseById(client: TypedSupabaseClient, caseId: numb
       location (*),
       case_person (
         *,
-        person_profile (*)
+        person_profile (*),
+        suspect!suspect_id_fkey (*),
+        complainant!complainant_id_fkey (*),
+        witness!witness_id_fkey (*)
       )
     `)
     .eq("id", caseId)

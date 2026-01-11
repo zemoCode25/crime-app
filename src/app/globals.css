@@ -122,3 +122,31 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Mapbox Popup Customization */
+.crime-popup .mapboxgl-popup-content {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  border: none;
+}
+
+.crime-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip {
+  border-top-color: #f8fafc; /* slate-50 (footer) */
+}
+
+.crime-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip {
+  border-bottom-color: #0f172a; /* slate-900 (header) */
+}
+
+.crime-popup.mapboxgl-popup-anchor-left .mapboxgl-popup-tip {
+  border-right-color: #0f172a; /* slate-900 (header) - approximation */
+}
+
+.crime-popup.mapboxgl-popup-anchor-right .mapboxgl-popup-tip {
+  border-left-color: #0f172a; /* slate-900 (header) - approximation */
+}
+
+.crime-popup .mapboxgl-popup-close-button {
+  display: none;
+}

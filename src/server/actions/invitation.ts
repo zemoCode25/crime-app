@@ -1,15 +1,17 @@
 "use server";
 
 import { z } from "zod";
-import { Resend } from "resend";
+import { render } from "@react-email/components";
 import { EmailTemplate } from "@/components/utils/EmailTemplate";
 import { createInvitation, checkInvitationToken } from "../queries/invitation";
 import { createClient } from "../supabase/server";
 import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 import { getUser } from "./getUser";
 import type { Database } from "@/server/supabase/database.types";
+import sgMail from '@sendgrid/mail';
 
-const resend = new Resend(process.env.RESEND_API_KEY!); // use secret, not NEXT_PUBLIC
+// Initialize SendGrid
+sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
 const InvitePayload = z.object({
   email: z.string().email("Enter a valid email"),
@@ -71,15 +73,29 @@ export async function sendInvitation(input: InvitePayload) {
   const barangayName = BARANGAY_OPTIONS.find(b => b.id === barangay)?.value;
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: "crime-app <onboarding@resend.dev>",
-      to: [email],
-      subject: `Invitation as an Administrator - Muntinlupa Crime Mapping System`,
-      react: EmailTemplate({ firstName: input?.first_name, lastName: input?.last_name, role, barangay: barangayName, inviteLink }),
+    // Render React email template to HTML
+    const emailHtml = await render(
+      EmailTemplate({
+        firstName: input?.first_name,
+        lastName: input?.last_name,
+        role,
+        barangay: barangayName,
+        inviteLink
+      })
+    );
+
+    // Send email using SendGrid
+    await sgMail.send({
+      from: "Muntinlupa Crime Mapping <support@munti-crime-map.it.com>",
+      to: email,
+      subject: "Your Muntinlupa System Access Invitation",
+      html: emailHtml,
+      headers: {
+        'X-Entity-Ref-ID': `invite-${invitation.id}`,
+      },
     });
 
-    if (error) return { ok: false, error: error.message } as const;
-    return { ok: true, data } as const;
+    return { ok: true, data: { invitationId: invitation.id } } as const;
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Failed to send invitation";

@@ -22,7 +22,7 @@ export function NavUser({
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <Link href="/profile">
+        <Link href="/settings/profile">
           <SidebarMenuButton
             size="lg"
             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
@@ -35,7 +35,6 @@ export function NavUser({
               <span className="truncate font-medium">{user.name}</span>
               <span className="truncate text-xs">{user.email}</span>
             </div>
-            <ChevronsUpDown className="ml-auto size-4" />
           </SidebarMenuButton>
         </Link>
       </SidebarMenuItem>

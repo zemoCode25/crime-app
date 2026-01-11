@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal } from "lucide-react";
+import { format } from "date-fns";
 import { CaseStatus } from "@/types/form-schema";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,57 +19,17 @@ import { Eye } from "lucide-react";
 
 export type CrimeTableRow = {
   id: number;
+  case_number: string | null;
   crime_type: number | null;
   case_status: CaseStatus | null;
   suspect: string;
   complainant: string;
+  incident_datetime: string | null;
+  report_datetime: string | null;
 };
 
 type ActionsCellProps = {
   crime: CrimeTableRow;
-};
-
-const ActionsCell = ({ crime }: ActionsCellProps) => {
-  const [openDropdown, setOpenDropdown] = useState(false);
-
-  function closeDropdown() {
-    setOpenDropdown(false);
-  }
-
-  return (
-    <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="border px-20">
-          <span className="sr-only">Open menu</span>
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            window.location.href = `/crime/cases/${crime.id}`;
-          }}
-          className="flex w-full cursor-pointer items-center gap-2"
-        >
-          <Eye />
-          View Details``
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="bg-red-50"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          <DeleteModal caseId={crime.id} closeDropdown={closeDropdown} />
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
 };
 
 // ✅ Function that creates columns with dependencies injected
@@ -76,10 +37,15 @@ export const createColumns = (
   crimeTypeConverter: (id: number) => string | null,
 ): ColumnDef<CrimeTableRow>[] => [
   {
-    accessorKey: "id",
-    header: "Case ID",
+    accessorKey: "case_number",
+    header: "Case Number",
     cell: ({ row }) => {
-      return <div className="font-medium">{`CASE-${row.getValue("id")}`}</div>;
+      const caseNumber = row.getValue("case_number") as string | null;
+      return (
+        <div className="font-medium">
+          {caseNumber || `ID-${row.original.id}`}
+        </div>
+      );
     },
   },
   {
@@ -161,8 +127,52 @@ export const createColumns = (
     enableGlobalFilter: true,
   },
   {
-    id: "actions",
-    cell: ({ row }) => <ActionsCell crime={row.original} />,
+    accessorKey: "incident_datetime",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="!p-0 text-left font-bold"
+      >
+        Incident Date
+        {column.getIsSorted() === "desc" ? (
+          <ArrowDown className="ml-2 h-4 w-4" />
+        ) : column.getIsSorted() === "asc" ? (
+          <ArrowUp className="ml-2 h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        )}
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const dateValue = row.getValue("incident_datetime") as string | null;
+      if (!dateValue) return <div className="text-neutral-400">-</div>;
+      return <div>{format(new Date(dateValue), "MMM d, yyyy")}</div>;
+    },
+  },
+  {
+    accessorKey: "report_datetime",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="!p-0 text-left font-bold"
+      >
+        Date Reported
+        {column.getIsSorted() === "desc" ? (
+          <ArrowDown className="ml-2 h-4 w-4" />
+        ) : column.getIsSorted() === "asc" ? (
+          <ArrowUp className="ml-2 h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        )}
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const dateValue = row.getValue("report_datetime") as string | null;
+      if (!dateValue) return <div className="text-neutral-400">-</div>;
+      return <div>{format(new Date(dateValue), "MMM d, yyyy")}</div>;
+    },
   },
 ];
 

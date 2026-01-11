@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Calendar, Check, ChevronsUpDown } from "lucide-react";
+import { Calendar, Check, ChevronsUpDown, Info } from "lucide-react";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { DateRange } from "react-day-picker";
 
@@ -211,7 +217,20 @@ export default function DateRangeSelector({
   return (
     <div className="flex flex-col gap-4">
       {/* Date Range Header */}
-      <div className="flex items-center justify-between">
+      <div className="ml-auto flex items-center justify-end gap-2">
+        {/* Info tooltip */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="text-muted-foreground h-3.5 w-3.5 cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-xs">
+                Filtering by <strong>report date</strong>, not incident date
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         {/* Date Range Selector */}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
@@ -220,7 +239,7 @@ export default function DateRangeSelector({
               role="combobox"
               aria-expanded={open}
               className={cn(
-                "ml-auto w-fit justify-between text-base",
+                "w-fit justify-between text-base",
                 !selectedTimeFrame && "text-muted-foreground",
               )}
             >

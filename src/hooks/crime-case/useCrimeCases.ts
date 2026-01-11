@@ -34,30 +34,44 @@ function transformCrimeCaseData(
 
     return {
       id: item.id,
+      case_number: item.case_number,
       crime_type: item.crime_type,
       case_status: item.case_status,
       suspect: suspectName || "Unknown",
       complainant: complainantName || "Unknown",
+      incident_datetime: item.incident_datetime,
+      report_datetime: item.report_datetime,
     };
   });
 }
 
-export function useCrimeCases() {
+export interface UseCrimeCasesOptions {
+  barangayId?: number; // Filter by barangay (for barangay_admin users)
+}
+
+export function useCrimeCases(options?: UseCrimeCasesOptions) {
   const supabase = useSupabaseBrowser();
-  
+  const { barangayId } = options || {};
+
+  console.log(options);
+  console.log("Fetching crime cases with barangayId(useCrimeCases):", barangayId);
+
   return useQuery({
-    queryKey: ['crime-cases'],
+    queryKey: ["crime-cases", barangayId],
     queryFn: async () => {
       if (!supabase) {
-        throw new Error('Supabase client not available');
+        throw new Error("Supabase client not available");
       }
 
-      const { data: result, error } = await getTableCrimeCases(supabase);
-      
+      const { data: result, error } = await getTableCrimeCases(
+        supabase,
+        barangayId
+      );
+
       if (error) {
         throw new Error(`Failed to fetch crime cases: ${error.message}`);
       }
-      
+
       // ✅ Transform data here
       return transformCrimeCaseData(result);
     },

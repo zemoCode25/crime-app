@@ -178,6 +178,73 @@ export type Database = {
         }
         Relationships: []
       }
+      emergency: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: number
+          schedule: string | null
+          subject: string | null
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: number
+          schedule?: string | null
+          subject?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: number
+          schedule?: string | null
+          subject?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hotline: {
+        Row: {
+          created_at: string
+          id: number
+          label: string | null
+          number: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          label?: string | null
+          number?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          label?: string | null
+          number?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hotlines_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitation: {
         Row: {
           barangay: number | null
@@ -391,7 +458,15 @@ export type Database = {
           id?: number
           testimony?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "witness_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "case_person"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -440,7 +515,7 @@ export type Database = {
         | "divorced"
         | "legally separated"
         | "annulled"
-      roles: "main_admin" | "system_admin" | "barangay_admin"
+      roles: "main_admin" | "system_admin" | "barangay_admin" | "mobile_user"
       sex: "male" | "female"
       status_enum:
         | "open"
@@ -598,7 +673,7 @@ export const Constants = {
         "legally separated",
         "annulled",
       ],
-      roles: ["main_admin", "system_admin", "barangay_admin"],
+      roles: ["main_admin", "system_admin", "barangay_admin", "mobile_user"],
       sex: ["male", "female"],
       status_enum: [
         "open",
