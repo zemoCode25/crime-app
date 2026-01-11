@@ -117,7 +117,7 @@ export default function StatusPie() {
     const total = statusData.reduce((sum, item) => sum + item.count, 0);
 
     return statusData.map((item) => ({
-      status: item.statusLabel,
+      status: item.label,
       count: item.count,
       percentage: (item.count / total) * 100,
     }));

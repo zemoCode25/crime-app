@@ -530,10 +530,13 @@ export async function getRecentCrimeCases(
         .limit(1)
         .single();
 
-      const getFullName = (data: any) => {
-        if (!data?.person_profile) return "Unknown";
-        const { first_name, middle_name, last_name } = data.person_profile;
-        return [first_name, middle_name, last_name]
+      const getFullName = (data: Record<string, unknown> | null) => {
+        const profile = data?.person_profile as Record<string, unknown> | null | undefined;
+        if (!profile) return "Unknown";
+        const firstName = profile.first_name as string | null | undefined;
+        const middleName = profile.middle_name as string | null | undefined;
+        const lastName = profile.last_name as string | null | undefined;
+        return [firstName, middleName, lastName]
           .filter(Boolean)
           .join(" ")
           .trim() || "Unknown";

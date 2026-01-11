@@ -1,3 +1,5 @@
+"use client";
+
 import { WifiOff, RefreshCw } from "lucide-react";
 
 export default function OfflinePage() {
@@ -11,7 +13,7 @@ export default function OfflinePage() {
         </div>
 
         <h1 className="text-foreground mb-2 text-2xl font-bold">
-          You're Offline
+          You&apos;re Offline
         </h1>
 
         <p className="text-muted-foreground mb-8">

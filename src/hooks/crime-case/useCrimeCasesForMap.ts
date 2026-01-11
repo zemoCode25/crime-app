@@ -51,7 +51,7 @@ export function useCrimeCasesForMap(filters?: CrimeCasesMapFilters) {
       if (filters?.barangayFilters && filters.barangayFilters.length > 0) {
         const barangayIds = filters.barangayFilters
           .map((name) => BARANGAY_OPTIONS.find((b) => b.value === name)?.id)
-          .filter((id): id is number => id !== undefined);
+          .filter((id) => id !== undefined) as number[];
 
         if (barangayIds.length > 0) {
           const set = new Set(barangayIds);

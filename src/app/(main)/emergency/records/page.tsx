@@ -1,3 +1,5 @@
+"use client";
+
 import RecordsPage from "./_components/records-page";
 
 export default function Page() {

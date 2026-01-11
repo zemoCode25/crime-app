@@ -1,3 +1,5 @@
+"use client";
+
 import EmergencyPage from "./components/EmergencyPage";
 
 export default function Page() {

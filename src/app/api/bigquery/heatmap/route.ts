@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { bigquery } from '@/lib/bigquery';
 
+interface HeatmapPredictionRow {
+  latitude: number;
+  longitude: number;
+  predicted_is_high_risk: boolean;
+  risk_probability: number;
+  historical_crime_count: number;
+}
+
 // Muntinlupa City bounds
 const MUNTINLUPA_BOUNDS = {
   latMin: 14.370,
@@ -89,8 +97,8 @@ export async function GET(request: NextRequest) {
     console.log(`✅ Retrieved ${rows.length} high-risk predictions`);
 
     // Calculate statistics
-    const highRiskCount = rows.filter((r: any) => r.predicted_is_high_risk).length;
-    const avgRiskProbability = rows.reduce((sum: number, r: any) => sum + (r.risk_probability || 0), 0) / rows.length;
+    const highRiskCount = (rows as HeatmapPredictionRow[]).filter((r) => r.predicted_is_high_risk).length;
+    const avgRiskProbability = (rows as HeatmapPredictionRow[]).reduce((sum, r) => sum + (r.risk_probability || 0), 0) / rows.length;
 
     return NextResponse.json({
       success: true,

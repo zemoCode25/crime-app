@@ -9,7 +9,7 @@ import {
   XAxis,
   ResponsiveContainer,
 } from "recharts";
-import { CardContent, CardFooter } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
