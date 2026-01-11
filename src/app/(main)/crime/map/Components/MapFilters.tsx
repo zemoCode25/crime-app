@@ -7,7 +7,6 @@ import {
   CircleArrowOutUpRight,
   ChevronsUpDownIcon,
   FunnelX,
-  Building2,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { BARANGAY_OPTIONS, STATUSES } from "@/constants/crime-case";
+import { BARANGAY_OPTIONS_WITH_ALL, STATUSES } from "@/constants/crime-case";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
@@ -36,10 +35,9 @@ import {
 } from "@/components/ui/popover";
 import DateRangeSelector from "@/components/DateRangeSelector";
 import type { MapFiltersState } from "./mapFiltersState";
-import RouteInputBar from "./RouteInputBar";
-import type { RoutePoint, TransportMode } from "@/types/route-assessment";
-
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
+
+// sample comments
 
 interface MapFiltersProps {
   selectedLocation: SelectedLocation | null;
@@ -47,40 +45,12 @@ interface MapFiltersProps {
   filters: MapFiltersState;
   onFiltersChange: (filters: MapFiltersState) => void;
   selectedCase: CrimeCaseMapRecord | null;
-  // Route mode props
-  isRouteMode?: boolean;
-  onToggleRouteMode?: () => void;
-  routePointA?: RoutePoint | null;
-  routePointB?: RoutePoint | null;
-  transportMode?: TransportMode;
-  onTransportModeChange?: (mode: TransportMode) => void;
-  onPointAChange?: (point: RoutePoint | null) => void;
-  onPointBChange?: (point: RoutePoint | null) => void;
-  onCalculateRoute?: () => void;
-  onCancelRouteMode?: () => void;
-  isCalculatingRoute?: boolean;
-  activePointSelection?: "A" | "B" | null;
-  onSetActivePointSelection?: (point: "A" | "B" | null) => void;
 }
 
 export default function MapFilters({
   onLocationChange,
   filters,
   onFiltersChange,
-  // Route mode props
-  isRouteMode = false,
-  onToggleRouteMode,
-  routePointA,
-  routePointB,
-  transportMode = "walking",
-  onTransportModeChange,
-  onPointAChange,
-  onPointBChange,
-  onCalculateRoute,
-  onCancelRouteMode,
-  isCalculatingRoute = false,
-  activePointSelection,
-  onSetActivePointSelection,
 }: MapFiltersProps) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [barangayOpen, setBarangayOpen] = useState(false);
@@ -210,14 +180,6 @@ export default function MapFilters({
       barangayFilters: [],
       dateRange: undefined,
       selectedTimeFrame: "last_7d",
-      showFacilities: filters.showFacilities, // Preserve facility toggle
-    });
-  };
-
-  const handleToggleFacilities = () => {
-    onFiltersChange({
-      ...filters,
-      showFacilities: !filters.showFacilities,
     });
   };
 
@@ -237,166 +199,144 @@ export default function MapFilters({
 
   return (
     <div>
-      {isRouteMode ? (
-        // Route mode input bar
-        <RouteInputBar
-          pointA={routePointA ?? null}
-          pointB={routePointB ?? null}
-          transportMode={transportMode}
-          onTransportModeChange={onTransportModeChange ?? (() => {})}
-          onPointAChange={onPointAChange ?? (() => {})}
-          onPointBChange={onPointBChange ?? (() => {})}
-          onCalculateRoute={onCalculateRoute ?? (() => {})}
-          onCancel={onCancelRouteMode ?? (() => {})}
-          isCalculating={isCalculatingRoute}
-          activePointSelection={activePointSelection ?? null}
-          onSetActivePointSelection={onSetActivePointSelection ?? (() => {})}
-        />
-      ) : (
-        // Normal search bar
-        <div className="relative w-fit">
-          <div className="flex items-center gap-2">
-            <div>
-              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input
-                id="location-search"
-                type="text"
-                placeholder="Search in Muntinlupa City..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="bg-white pr-10 pl-10"
-              />
-            </div>
-            <Button
-              onClick={onToggleRouteMode}
-              className="cursor-pointer rounded-md bg-orange-600 px-3 py-2.5 text-white hover:bg-orange-700"
-              title="Route Safety Assessment"
-            >
-              <CircleArrowOutUpRight className="h-4 w-4 text-white" />
-            </Button>
+      <div className="relative w-fit">
+        <div className="flex items-center gap-2">
+          <div>
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              id="location-search"
+              type="text"
+              placeholder="Search in Muntinlupa City..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="bg-white pr-10 pl-10"
+            />
           </div>
-          {searchQuery && (
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setSearchOpen(false);
-                setHighlightedIndex(-1);
-              }}
-              className="absolute top-1/2 right-15 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-          {/* Suggestions Dropdown */}
-          {searchOpen && (
-            <div className="absolute top-full right-0 left-0 z-50 mt-1 rounded-md border border-gray-200 bg-white shadow-lg">
-              <div className="max-h-60 overflow-y-auto">
-                {loading ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleUseCurrentLocation}
-                      className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
-                        highlightedIndex === 0 ? "bg-gray-100" : ""
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {isLocating ? (
-                          <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600" />
-                        ) : (
-                          <MapPinIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-                        )}
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium">
-                            {isLocating
-                              ? "Locating your current position..."
-                              : "Use my current location"}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {isLocating
-                              ? "Waiting for browser permission"
-                              : "Center map on where you are now"}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                    <div className="p-4 text-center text-sm text-gray-500">
-                      Searching...
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleUseCurrentLocation}
-                      className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
-                        highlightedIndex === 0 ? "bg-gray-100" : ""
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {isLocating ? (
-                          <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600" />
-                        ) : (
-                          <MapPinIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-                        )}
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium">
-                            {isLocating
-                              ? "Locating your current position..."
-                              : "Use my current location"}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            {isLocating
-                              ? "Waiting for browser permission"
-                              : "Center map on where you are now"}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                    {suggestions.length > 0
-                      ? suggestions.map(
-                          (suggestion: SearchSuggestion, index: number) => (
-                            <button
-                              key={suggestion.mapbox_id}
-                              onClick={() =>
-                                handleSelectLocation(
-                                  suggestion.mapbox_id,
-                                  suggestion.name,
-                                )
-                              }
-                              className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-gray-50 ${
-                                index + 1 === highlightedIndex
-                                  ? "bg-gray-100"
-                                  : ""
-                              }`}
-                            >
-                              <div className="flex items-start gap-2">
-                                <MapPinIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600" />
-                                <div className="min-w-0 flex-1">
-                                  <p className="truncate text-sm font-medium text-gray-900">
-                                    {suggestion.name}
-                                  </p>
-                                  <p className="truncate text-xs text-gray-500">
-                                    {suggestion.place_formatted}
-                                  </p>
-                                </div>
-                              </div>
-                            </button>
-                          ),
-                        )
-                      : searchQuery.length > 2 && (
-                          <div className="p-4 text-center text-sm text-gray-500">
-                            No locations found
-                          </div>
-                        )}
-                  </>
-                )}
-              </div>
-            </div>
-          )}
+          <Button className="cursor-pointer rounded-md bg-orange-600 px-3 py-2.5 text-white hover:bg-orange-700">
+            <CircleArrowOutUpRight className="h-4 w-4 text-white" />
+          </Button>
         </div>
-      )}
+        {searchQuery && (
+          <button
+            onClick={() => {
+              setSearchQuery("");
+              setSearchOpen(false);
+              setHighlightedIndex(-1);
+            }}
+            className="absolute top-1/2 right-15 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+        {/* Suggestions Dropdown */}
+        {searchOpen && (
+          <div className="absolute top-full right-0 left-0 z-50 mt-1 rounded-md border border-gray-200 bg-white shadow-lg">
+            <div className="max-h-60 overflow-y-auto">
+              {loading ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleUseCurrentLocation}
+                    className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
+                      highlightedIndex === 0 ? "bg-gray-100" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {isLocating ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600" />
+                      ) : (
+                        <MapPinIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {isLocating
+                            ? "Locating your current position..."
+                            : "Use my current location"}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {isLocating
+                            ? "Waiting for browser permission"
+                            : "Center map on where you are now"}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                  <div className="p-4 text-center text-sm text-gray-500">
+                    Searching...
+                  </div>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleUseCurrentLocation}
+                    className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
+                      highlightedIndex === 0 ? "bg-gray-100" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {isLocating ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600" />
+                      ) : (
+                        <MapPinIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">
+                          {isLocating
+                            ? "Locating your current position..."
+                            : "Use my current location"}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {isLocating
+                            ? "Waiting for browser permission"
+                            : "Center map on where you are now"}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                  {suggestions.length > 0
+                    ? suggestions.map(
+                        (suggestion: SearchSuggestion, index: number) => (
+                          <button
+                            key={suggestion.mapbox_id}
+                            onClick={() =>
+                              handleSelectLocation(
+                                suggestion.mapbox_id,
+                                suggestion.name,
+                              )
+                            }
+                            className={`w-full border-b border-gray-100 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-gray-50 ${
+                              index + 1 === highlightedIndex
+                                ? "bg-gray-100"
+                                : ""
+                            }`}
+                          >
+                            <div className="flex items-start gap-2">
+                              <MapPinIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-600" />
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-medium text-gray-900">
+                                  {suggestion.name}
+                                </p>
+                                <p className="truncate text-xs text-gray-500">
+                                  {suggestion.place_formatted}
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        ),
+                      )
+                    : searchQuery.length > 2 && (
+                        <div className="p-4 text-center text-sm text-gray-500">
+                          No locations found
+                        </div>
+                      )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Filters Section */}
       <div className="my-2 flex flex-wrap items-center gap-2">
@@ -510,7 +450,7 @@ export default function MapFilters({
               <CommandList>
                 <CommandEmpty>No barangay found.</CommandEmpty>
                 <CommandGroup className="max-h-36 overflow-auto">
-                  {BARANGAY_OPTIONS.map((barangay) => (
+                  {BARANGAY_OPTIONS_WITH_ALL.map((barangay) => (
                     <CommandItem
                       key={barangay.value}
                       value={barangay.value}
@@ -546,19 +486,6 @@ export default function MapFilters({
             onFiltersChange({ ...filters, selectedTimeFrame: next })
           }
         />
-
-        {/* Facilities Toggle */}
-        <Button
-          variant={filters.showFacilities ? "default" : "outline"}
-          size="sm"
-          onClick={handleToggleFacilities}
-          className={
-            filters.showFacilities ? "bg-blue-600 hover:bg-blue-700" : ""
-          }
-        >
-          <Building2 className="mr-1.5 h-4 w-4" />
-          Facilities
-        </Button>
       </div>
 
       {/* Active filter badges */}
@@ -579,7 +506,7 @@ export default function MapFilters({
                 {label}
                 <button
                   type="button"
-                  onClick={() => handleStatusFilterToggle(value)}
+                  onClick={() => value}
                   className="ml-1 text-xs text-gray-500 hover:text-gray-700"
                 >
                   <X className="h-3 w-3 text-white" />
