@@ -50,10 +50,15 @@ function AIInsightsSkeleton() {
   );
 }
 
-export function CrimeBar() {
+interface CrimeBarProps {
+  userBarangayId?: number;
+}
+
+export function CrimeBar({ userBarangayId }: CrimeBarProps) {
   const { dateRange } = useDateRange();
   const { data: crimeTypeData, isLoading } = useCrimeTypeCounts({
     dateRange,
+    barangayId: userBarangayId,
   });
 
   // Calculate total crimes

@@ -58,10 +58,15 @@ function AIInsightsSkeleton() {
   );
 }
 
-export default function BarangayDistributionPie() {
+interface BarangayDistributionPieProps {
+  userBarangayId?: number;
+}
+
+export default function BarangayDistributionPie({ userBarangayId }: BarangayDistributionPieProps) {
   const { dateRange } = useDateRange();
   const { data: barangayData, isLoading } = useBarangayCrimeCounts({
     dateRange,
+    barangayId: userBarangayId,
   });
 
   // Build chart config from barangay colors

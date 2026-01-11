@@ -45,7 +45,13 @@ type Barangay = {
     | "Tunasan";
 };
 
-export default function LocationInformation() {
+interface LocationInformationProps {
+  lockedBarangayId?: number; // For barangay_admin - locks barangay selection
+}
+
+export default function LocationInformation({
+  lockedBarangayId,
+}: LocationInformationProps) {
   const form = useFormContext<FormSchemaType>();
   const lat = form.watch("lat");
   const long = form.watch("long");
@@ -129,9 +135,11 @@ export default function LocationInformation() {
                   <Button
                     variant="outline"
                     role="combobox"
+                    disabled={lockedBarangayId !== undefined}
                     className={cn(
                       "w-[200px] justify-between",
                       !field.value && "text-muted-foreground",
+                      lockedBarangayId !== undefined && "cursor-not-allowed opacity-60",
                     )}
                   >
                     {field.value

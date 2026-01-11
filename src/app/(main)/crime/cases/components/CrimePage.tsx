@@ -1,12 +1,42 @@
 "use client";
 
 import { useCrimeCases } from "@/hooks/crime-case/useCrimeCases";
+import {
+  useCurrentUserProfile,
+  isBarangayAdmin,
+} from "@/hooks/user/useCurrentUserProfile";
 import { DataTable } from "./DataTable";
+import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 
 export default function CrimePage() {
-  const { data, isLoading, error } = useCrimeCases();
+  const { data: userProfile, isLoading: isLoadingUser } =
+    useCurrentUserProfile();
 
-  if (isLoading) {
+  // Determine barangay filter based on user role
+  const barangayId = isBarangayAdmin(userProfile?.role ?? null)
+    ? (userProfile?.barangay ?? undefined)
+    : undefined;
+
+  const { data, isLoading, error } = useCrimeCases({ barangayId });
+
+  // Get barangay name for display
+  const barangayName =
+    barangayId !== undefined
+      ? BARANGAY_OPTIONS.find((b) => b.id === barangayId)?.value
+      : null;
+
+  console.log("User Profile:", userProfile);
+
+  console.log("Rendering CrimePage with barangayId:", barangayId);
+
+  console.log(
+    "Crime cases data:",
+    isBarangayAdmin(userProfile?.role ?? null)
+      ? (userProfile?.barangay ?? undefined)
+      : undefined,
+  );
+
+  if (isLoading || isLoadingUser) {
     return (
       <main className="px-1 py-4">
         <h1 className="mb-4 text-2xl font-bold">Crime Cases</h1>
@@ -109,8 +139,15 @@ export default function CrimePage() {
 
   return (
     <main className="px-1 py-4">
-      <h1 className="mb-4 text-2xl font-bold">Crime Cases</h1>
-      <DataTable data={data || []} />
+      <h1 className="mb-4 text-2xl font-bold">
+        Crime Cases
+        {barangayName && (
+          <span className="ml-2 text-lg font-normal text-gray-500">
+            ({barangayName})
+          </span>
+        )}
+      </h1>
+      <DataTable data={data || []} userBarangayId={barangayId} />
     </main>
   );
 }

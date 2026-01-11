@@ -56,10 +56,15 @@ function AIInsightsSkeleton() {
   );
 }
 
-export default function StatusPie() {
+interface StatusPieProps {
+  userBarangayId?: number;
+}
+
+export default function StatusPie({ userBarangayId }: StatusPieProps) {
   const { dateRange } = useDateRange();
   const { data: statusData, isLoading } = useStatusCrimeCounts({
     dateRange,
+    barangayId: userBarangayId,
   });
 
   // Build chart config from status colors
@@ -117,7 +122,7 @@ export default function StatusPie() {
     const total = statusData.reduce((sum, item) => sum + item.count, 0);
 
     return statusData.map((item) => ({
-      status: item.statusLabel,
+      status: item.label,
       count: item.count,
       percentage: (item.count / total) * 100,
     }));

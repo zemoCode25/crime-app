@@ -32,49 +32,6 @@ type ActionsCellProps = {
   crime: CrimeTableRow;
 };
 
-const ActionsCell = ({ crime }: ActionsCellProps) => {
-  const [openDropdown, setOpenDropdown] = useState(false);
-
-  function closeDropdown() {
-    setOpenDropdown(false);
-  }
-
-  return (
-    <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="border px-20">
-          <span className="sr-only">Open menu</span>
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            window.location.href = `/crime/cases/${crime.id}`;
-          }}
-          className="flex w-full cursor-pointer items-center gap-2"
-        >
-          <Eye />
-          View Details``
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="bg-red-50"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          <DeleteModal caseId={crime.id} closeDropdown={closeDropdown} />
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
-
 // ✅ Function that creates columns with dependencies injected
 export const createColumns = (
   crimeTypeConverter: (id: number) => string | null,
