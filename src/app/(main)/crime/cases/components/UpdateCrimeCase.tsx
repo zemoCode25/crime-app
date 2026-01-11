@@ -138,7 +138,7 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
       // ✅ Prepare data for mutation
       const crimeCase = {
         // Preserve existing case_number from original data
-        case_number: crimeData?.case_number,
+        case_number: crimeData?.case_number || undefined,
         crime_type: values.crime_type,
         case_status: values.case_status,
         description: values.description,

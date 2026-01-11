@@ -1,21 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, ArrowUp, ArrowDown, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { format } from "date-fns";
 import { CaseStatus } from "@/types/form-schema";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import DeleteModal from "@/components/utils/delete-modal";
-import { Eye } from "lucide-react";
 
 export type CrimeTableRow = {
   id: number;

@@ -203,7 +203,6 @@ export default function DataTable() {
   });
 
   const records = data?.data ?? [];
-  const totalCount = data?.totalCount ?? 0;
   const totalPages = data?.totalPages ?? 0;
 
   const toggleSortOrder = () => {

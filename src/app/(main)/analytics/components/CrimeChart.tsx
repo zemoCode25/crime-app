@@ -38,7 +38,6 @@ import useSupabaseBrowser from "@/server/supabase/client";
 import { useDailyCrimeCounts } from "@/hooks/analytics/useCrimeAnalyticsData";
 import { useDateRange } from "@/context/DateRangeProvider";
 import { useAnalyticsAI } from "@/hooks/analytics/useAnalyticsAI";
-import type { CrimeInsight } from "@/lib/gemini/analytics-schema";
 
 const chartConfig = {
   count: {

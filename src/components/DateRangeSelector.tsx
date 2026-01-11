@@ -88,6 +88,7 @@ interface DateRangeSelectorProps {
   setDateRange: (range: DateRangeValue) => void;
   selectedTimeFrame: string;
   setSelectedTimeFrame: (timeFrame: string) => void;
+  onTimeFrameChange?: (timeFrame: string, range: DateRangeValue) => void;
 }
 
 export default function DateRangeSelector({
@@ -95,19 +96,28 @@ export default function DateRangeSelector({
   setDateRange,
   selectedTimeFrame,
   setSelectedTimeFrame,
+  onTimeFrameChange,
 }: DateRangeSelectorProps) {
   const [open, setOpen] = useState(false);
   const [showCustomCalendar, setShowCustomCalendar] = useState(false);
   const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>();
 
   const handleTimeFrameSelect = (timeFrame: TimeFrameOption) => {
-    setSelectedTimeFrame(timeFrame.value);
     setShowCustomCalendar(false);
     setOpen(false);
 
     if (timeFrame.getDates) {
       const { start, end } = timeFrame.getDates();
-      setDateRange({ from: start, to: end });
+      const newRange = { from: start, to: end };
+
+      if (onTimeFrameChange) {
+        onTimeFrameChange(timeFrame.value, newRange);
+      } else {
+        setSelectedTimeFrame(timeFrame.value);
+        setDateRange(newRange);
+      }
+    } else {
+      setSelectedTimeFrame(timeFrame.value);
     }
   };
 
@@ -142,11 +152,19 @@ export default function DateRangeSelector({
 
     // Reset to last 7 days if no custom range was set
     if (!dateRange?.from || !dateRange?.to) {
-      setSelectedTimeFrame("last_7d");
       const defaultTimeFrame = predefinedTimeFrames[0];
       if (defaultTimeFrame.getDates) {
         const { start, end } = defaultTimeFrame.getDates();
-        setDateRange({ from: start, to: end });
+        const newRange = { from: start, to: end };
+
+        if (onTimeFrameChange) {
+          onTimeFrameChange("last_7d", newRange);
+        } else {
+          setSelectedTimeFrame("last_7d");
+          setDateRange(newRange);
+        }
+      } else {
+        setSelectedTimeFrame("last_7d");
       }
     }
   };

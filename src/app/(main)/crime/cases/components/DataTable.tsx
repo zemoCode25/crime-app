@@ -32,7 +32,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+
 import {
   Popover,
   PopoverContent,
@@ -47,7 +47,7 @@ import useSupabaseBrowser from "@/server/supabase/client";
 import { getCrimeTypes } from "@/server/queries/crime-type";
 import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { Toaster } from "react-hot-toast";
-import UpdateCrimeCase from "./UpdateCrimeCase";
+
 import { CrimeTableRow } from "@/app/(main)/crime/cases/components/columns";
 import { createColumns } from "./columns";
 import { useCrimeType } from "@/context/CrimeTypeProvider";

@@ -13,13 +13,16 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates, SelectedLocation } from "@/types/map";
 import { reverseGeocodeMapbox } from "@/hooks/map/useMapboxSearch";
 import { crimeCasesToGeoJSON } from "@/lib/map/crimeCasesToGeoJSON";
-import { facilitiesToGeoJSON, type FacilityFeatureProperties } from "@/lib/map/facilitiesToGeoJSON";
+import { facilitiesToGeoJSON } from "@/lib/map/facilitiesToGeoJSON";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
 import type { Facility, FacilityType } from "@/types/facilities";
 import { CrimePopup } from "./CrimePopup";
-import { FacilityPopup } from "./FacilityPopup";
+
 import { useCrimeType } from "@/context/CrimeTypeProvider";
-import type { RouteAssessmentResult, RoutePoint } from "@/types/route-assessment";
+import type {
+  RouteAssessmentResult,
+  RoutePoint,
+} from "@/types/route-assessment";
 import { ROUTE_RISK_COLORS } from "@/types/route-assessment";
 
 type CrimeCaseFeatureProperties = {
@@ -84,9 +87,13 @@ export default function Map({
   const onCaseSelectRef = useRef<MapProps["onCaseSelect"] | null>(null);
   const crimeTypeConverterRef = useRef(crimeTypeConverter);
   const onClearRouteRef = useRef<MapProps["onClearRoute"] | null>(null);
-  const onRoutePointSelectedRef = useRef<MapProps["onRoutePointSelected"] | null>(null);
+  const onRoutePointSelectedRef = useRef<
+    MapProps["onRoutePointSelected"] | null
+  >(null);
   const activePointSelectionRef = useRef<"A" | "B" | null>(null);
-  const onFacilityRouteSelectRef = useRef<MapProps["onFacilityRouteSelect"] | null>(null);
+  const onFacilityRouteSelectRef = useRef<
+    MapProps["onFacilityRouteSelect"] | null
+  >(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -360,7 +367,10 @@ export default function Map({
               if (err) return;
 
               map.easeTo({
-                center: (features[0].geometry as GeoJSON.Point).coordinates as [number, number],
+                center: (features[0].geometry as GeoJSON.Point).coordinates as [
+                  number,
+                  number,
+                ],
                 zoom: zoom!,
               });
             });
@@ -573,20 +583,18 @@ export default function Map({
 
     const visibility = showFacilities ? "visible" : "none";
 
-    ["facility-clusters", "facility-cluster-count"].forEach(
-      (layerId) => {
-        if (mapRef.current?.getLayer(layerId)) {
-          mapRef.current.setLayoutProperty(layerId, "visibility", visibility);
-        }
+    ["facility-clusters", "facility-cluster-count"].forEach((layerId) => {
+      if (mapRef.current?.getLayer(layerId)) {
+        mapRef.current.setLayoutProperty(layerId, "visibility", visibility);
       }
-    );
+    });
   }, [showFacilities, isLoaded]);
 
   // Create HTML markers for individual facilities
   useEffect(() => {
     if (!mapRef.current || !facilities || !isLoaded || !showFacilities) {
       // Clear existing markers if facilities are hidden
-      facilityMarkersRef.current.forEach(marker => marker.remove());
+      facilityMarkersRef.current.forEach((marker) => marker.remove());
       facilityMarkersRef.current = [];
       return;
     }
@@ -596,27 +604,31 @@ export default function Map({
     // Import mapbox-gl for marker creation
     import("mapbox-gl").then((mapboxgl) => {
       // Clear existing facility markers
-      facilityMarkersRef.current.forEach(marker => marker.remove());
+      facilityMarkersRef.current.forEach((marker) => marker.remove());
       facilityMarkersRef.current = [];
 
       // Define facility type icons and colors
-      const FACILITY_STYLES: Record<FacilityType, { icon: string; color: string }> = {
-        hospital: { icon: '🏥', color: '#ef4444' },
-        police: { icon: '👮', color: '#3b82f6' },
-        fire_station: { icon: '🚒', color: '#f97316' },
-        clinic: { icon: '⚕️', color: '#10b981' },
-        government: { icon: '🏛️', color: '#8b5cf6' },
+      const FACILITY_STYLES: Record<
+        FacilityType,
+        { icon: string; color: string }
+      > = {
+        hospital: { icon: "🏥", color: "#ef4444" },
+        police: { icon: "👮", color: "#3b82f6" },
+        fire_station: { icon: "🚒", color: "#f97316" },
+        clinic: { icon: "⚕️", color: "#10b981" },
+        government: { icon: "🏛️", color: "#8b5cf6" },
       };
 
       // Create a marker for each facility
       facilities.forEach((facility) => {
         if (facility.lat == null || facility.lng == null) return;
 
-        const style = FACILITY_STYLES[facility.type] || FACILITY_STYLES.government;
+        const style =
+          FACILITY_STYLES[facility.type] || FACILITY_STYLES.government;
 
         // Create marker element
-        const el = document.createElement('div');
-        el.className = 'facility-marker';
+        const el = document.createElement("div");
+        el.className = "facility-marker";
         el.innerHTML = `
           <div style="
             width: 36px;
@@ -635,23 +647,30 @@ export default function Map({
         `;
 
         // Add hover effect
-        el.addEventListener('mouseenter', () => {
-          const inner = el.querySelector('.facility-marker-inner') as HTMLElement;
-          if (inner) inner.style.transform = 'scale(1.2)';
+        el.addEventListener("mouseenter", () => {
+          const inner = el.querySelector(
+            ".facility-marker-inner",
+          ) as HTMLElement;
+          if (inner) inner.style.transform = "scale(1.2)";
         });
-        el.addEventListener('mouseleave', () => {
-          const inner = el.querySelector('.facility-marker-inner') as HTMLElement;
-          if (inner) inner.style.transform = 'scale(1)';
+        el.addEventListener("mouseleave", () => {
+          const inner = el.querySelector(
+            ".facility-marker-inner",
+          ) as HTMLElement;
+          if (inner) inner.style.transform = "scale(1)";
         });
 
         // Add click handler for route mode
-        el.addEventListener('click', (e) => {
+        el.addEventListener("click", (e) => {
           e.stopPropagation();
           if (onFacilityRouteSelectRef.current) {
             onFacilityRouteSelectRef.current({
               lat: facility.lat,
               lng: facility.lng,
-              address: facility.name || facility.address || `${facility.lat.toFixed(6)}, ${facility.lng.toFixed(6)}`,
+              address:
+                facility.name ||
+                facility.address ||
+                `${facility.lat.toFixed(6)}, ${facility.lng.toFixed(6)}`,
             });
           }
         });
@@ -667,7 +686,7 @@ export default function Map({
 
     // Cleanup on unmount
     return () => {
-      facilityMarkersRef.current.forEach(marker => marker.remove());
+      facilityMarkersRef.current.forEach((marker) => marker.remove());
       facilityMarkersRef.current = [];
     };
   }, [facilities, isLoaded, showFacilities]);
@@ -680,7 +699,10 @@ export default function Map({
 
     const handleMapClick = async (e: mapboxgl.MapMouseEvent) => {
       // Only handle if in route mode and a point is being selected
-      if (!activePointSelectionRef.current || !onRoutePointSelectedRef.current) {
+      if (
+        !activePointSelectionRef.current ||
+        !onRoutePointSelectedRef.current
+      ) {
         return;
       }
 
@@ -714,7 +736,10 @@ export default function Map({
       // Update Point A marker
       if (routePointA && !routeAssessment) {
         if (routePointAMarkerRef.current) {
-          routePointAMarkerRef.current.setLngLat([routePointA.lng, routePointA.lat]);
+          routePointAMarkerRef.current.setLngLat([
+            routePointA.lng,
+            routePointA.lat,
+          ]);
         } else {
           const el = document.createElement("div");
           el.innerHTML = `
@@ -745,11 +770,16 @@ export default function Map({
           routePointAMarkerRef.current.on("dragend", async () => {
             const lngLat = routePointAMarkerRef.current?.getLngLat();
             if (lngLat && onRoutePointSelectedRef.current) {
-              const address = await reverseGeocodeMapbox(lngLat.lat, lngLat.lng);
+              const address = await reverseGeocodeMapbox(
+                lngLat.lat,
+                lngLat.lng,
+              );
               onRoutePointSelectedRef.current("A", {
                 lat: Number(lngLat.lat.toFixed(6)),
                 lng: Number(lngLat.lng.toFixed(6)),
-                address: address || `${lngLat.lat.toFixed(6)}, ${lngLat.lng.toFixed(6)}`,
+                address:
+                  address ||
+                  `${lngLat.lat.toFixed(6)}, ${lngLat.lng.toFixed(6)}`,
               });
             }
           });
@@ -762,7 +792,10 @@ export default function Map({
       // Update Point B marker
       if (routePointB && !routeAssessment) {
         if (routePointBMarkerRef.current) {
-          routePointBMarkerRef.current.setLngLat([routePointB.lng, routePointB.lat]);
+          routePointBMarkerRef.current.setLngLat([
+            routePointB.lng,
+            routePointB.lat,
+          ]);
         } else {
           const el = document.createElement("div");
           el.innerHTML = `
@@ -793,11 +826,16 @@ export default function Map({
           routePointBMarkerRef.current.on("dragend", async () => {
             const lngLat = routePointBMarkerRef.current?.getLngLat();
             if (lngLat && onRoutePointSelectedRef.current) {
-              const address = await reverseGeocodeMapbox(lngLat.lat, lngLat.lng);
+              const address = await reverseGeocodeMapbox(
+                lngLat.lat,
+                lngLat.lng,
+              );
               onRoutePointSelectedRef.current("B", {
                 lat: Number(lngLat.lat.toFixed(6)),
                 lng: Number(lngLat.lng.toFixed(6)),
-                address: address || `${lngLat.lat.toFixed(6)}, ${lngLat.lng.toFixed(6)}`,
+                address:
+                  address ||
+                  `${lngLat.lat.toFixed(6)}, ${lngLat.lng.toFixed(6)}`,
               });
             }
           });
@@ -869,19 +907,21 @@ export default function Map({
     removeRouteElements();
 
     // Create GeoJSON FeatureCollection for route segments
-    const segmentFeatures = routeAssessment.route.segments.map((segment, idx) => ({
-      type: "Feature" as const,
-      properties: {
-        riskLevel: segment.riskLevel,
-        crimeCount: segment.crimeCount,
-        segmentIndex: idx,
-        color: ROUTE_RISK_COLORS[segment.riskLevel],
-      },
-      geometry: {
-        type: "LineString" as const,
-        coordinates: segment.coordinates,
-      },
-    }));
+    const segmentFeatures = routeAssessment.route.segments.map(
+      (segment, idx) => ({
+        type: "Feature" as const,
+        properties: {
+          riskLevel: segment.riskLevel,
+          crimeCount: segment.crimeCount,
+          segmentIndex: idx,
+          color: ROUTE_RISK_COLORS[segment.riskLevel],
+        },
+        geometry: {
+          type: "LineString" as const,
+          coordinates: segment.coordinates,
+        },
+      }),
+    );
 
     // Add route segments source
     map.addSource("route-segments", {
@@ -936,7 +976,9 @@ export default function Map({
           ">A</div>
         `;
 
-        routeStartMarkerRef.current = new mapboxgl.default.Marker({ element: startEl })
+        routeStartMarkerRef.current = new mapboxgl.default.Marker({
+          element: startEl,
+        })
           .setLngLat(startCoord)
           .addTo(map);
 
@@ -960,7 +1002,9 @@ export default function Map({
           ">B</div>
         `;
 
-        routeEndMarkerRef.current = new mapboxgl.default.Marker({ element: endEl })
+        routeEndMarkerRef.current = new mapboxgl.default.Marker({
+          element: endEl,
+        })
           .setLngLat(endCoord)
           .addTo(map);
 
