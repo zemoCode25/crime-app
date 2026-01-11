@@ -46,15 +46,23 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export default function CrimeChart() {
+interface CrimeChartProps {
+  userBarangayId?: number; // For barangay_admin - locks barangay filter
+}
+
+export default function CrimeChart({ userBarangayId }: CrimeChartProps) {
   const { dateRange } = useDateRange();
   const [crimeTypeOpen, setCrimeTypeOpen] = useState(false);
   const [crimeTypeValue, setCrimeTypeValue] = useState(0); // 0 = All crime types
   const [barangayOpen, setBarangayOpen] = useState(false);
-  const [barangayValue, setBarangayValue] = useState(0); // 0 = All barangays
+  const [barangayValue, setBarangayValue] = useState(userBarangayId ?? 0); // Use userBarangayId if provided
   const [statusOpen, setStatusOpen] = useState(false);
   const [statusValue, setStatusValue] =
     useState<AnalyticsParams["status"]>("all");
+
+  // For barangay_admin, always use their barangay
+  const effectiveBarangayId = userBarangayId ?? barangayValue;
+  const isBarangayLocked = userBarangayId !== undefined;
 
   const supabase = useSupabaseBrowser();
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
@@ -70,10 +78,10 @@ export default function CrimeChart() {
   // Get selected barangay label for display
   const selectedBarangayLabel = useMemo(() => {
     const barangay = BARANGAY_OPTIONS_WITH_ALL.find(
-      (b) => b.id === barangayValue,
+      (b) => b.id === effectiveBarangayId,
     );
     return barangay?.value || "All barangays";
-  }, [barangayValue]);
+  }, [effectiveBarangayId]);
 
   // Get selected status label for display
   const selectedStatusLabel = useMemo(() => {
@@ -87,7 +95,7 @@ export default function CrimeChart() {
     {
       dateRange,
       crimeType: crimeTypeValue,
-      barangayId: barangayValue,
+      barangayId: effectiveBarangayId,
       status: statusValue,
     },
   );
@@ -186,16 +194,17 @@ export default function CrimeChart() {
             </Command>
           </PopoverContent>
         </Popover>
-        <Popover open={barangayOpen} onOpenChange={setBarangayOpen}>
+        <Popover open={barangayOpen} onOpenChange={isBarangayLocked ? undefined : setBarangayOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               role="combobox"
-              className={"w-[200px] justify-between"}
+              disabled={isBarangayLocked}
+              className={`w-[200px] justify-between ${isBarangayLocked ? "cursor-not-allowed opacity-60" : ""}`}
             >
-              {barangayValue
+              {effectiveBarangayId
                 ? BARANGAY_OPTIONS_WITH_ALL.find(
-                    (barangay) => barangayValue === barangay.id,
+                    (barangay) => effectiveBarangayId === barangay.id,
                   )?.value
                 : "Select barangay..."}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -285,7 +294,7 @@ export default function CrimeChart() {
         dateRangeLabel && (
           <p className="text-center text-sm text-neutral-700 italic">
             {selectedCrimeTypeLabel} cases from {dateRangeLabel}
-            {barangayValue !== 0 && ` in ${selectedBarangayLabel}`}
+            {effectiveBarangayId !== 0 && ` in ${selectedBarangayLabel}`}
             {statusValue !== "all" && ` (${selectedStatusLabel})`}
           </p>
         )

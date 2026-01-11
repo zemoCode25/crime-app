@@ -14,17 +14,24 @@ export interface CrimeCasesMapFilters {
   dateRange?: DateRangeValue;
 }
 
-export function useCrimeCasesForMap(filters?: CrimeCasesMapFilters) {
+export interface UseCrimeCasesForMapOptions {
+  filters?: CrimeCasesMapFilters;
+  userBarangayId?: number; // Server-side filter for barangay_admin users
+}
+
+export function useCrimeCasesForMap(options?: UseCrimeCasesForMapOptions) {
   const supabase = useSupabaseBrowser();
+  const { filters, userBarangayId } = options || {};
 
   return useQuery<CrimeCaseMapRecord[]>({
-    queryKey: ["crime-cases", "map", filters ?? {}],
+    queryKey: ["crime-cases", "map", userBarangayId, filters ?? {}],
     queryFn: async () => {
       if (!supabase) {
         throw new Error("Supabase client not available");
       }
 
-      const { data, error } = await getCrimeCasesForMap(supabase);
+      // Pass userBarangayId to query for server-side filtering
+      const { data, error } = await getCrimeCasesForMap(supabase, userBarangayId);
 
       if (error) {
         throw new Error(
@@ -49,17 +56,21 @@ export function useCrimeCasesForMap(filters?: CrimeCasesMapFilters) {
       }
 
       if (filters?.barangayFilters && filters.barangayFilters.length > 0) {
-        const barangayIds = filters.barangayFilters
-          .map((name) => BARANGAY_OPTIONS.find((b) => b.value === name)?.id)
-          .filter((id) => id !== undefined) as number[];
+        // Get valid barangay IDs from filter names
+        const validBarangayIds: number[] = [];
+        for (const name of filters.barangayFilters) {
+          const found = BARANGAY_OPTIONS.find((b) => b.value === name);
+          if (found) {
+            validBarangayIds.push(found.id);
+          }
+        }
 
-        if (barangayIds.length > 0) {
-          const set = new Set(barangayIds);
-          records = records.filter((record) =>
-            record.location?.barangay != null
-              ? set.has(record.location.barangay)
-              : false,
-          );
+        if (validBarangayIds.length > 0) {
+          const barangayIdSet = new Set(validBarangayIds);
+          records = records.filter((record) => {
+            const barangay = record.location?.barangay;
+            return barangay != null && barangayIdSet.has(barangay);
+          });
         }
       }
 

@@ -54,8 +54,13 @@ import { useCrimeType } from "@/context/CrimeTypeProvider";
 
 import { useRouter } from "next/navigation";
 
+interface DataTableProps {
+  data: CrimeTableRow[];
+  userBarangayId?: number; // For barangay_admin users - locks barangay selection
+}
+
 // ✅ Use specific type instead of generic
-export function DataTable({ data }: { data: CrimeTableRow[] }) {
+export function DataTable({ data, userBarangayId }: DataTableProps) {
   const router = useRouter();
   // ✅ Hook called at component level (correct!)
   const { crimeTypeConverter } = useCrimeType();
@@ -295,7 +300,7 @@ export function DataTable({ data }: { data: CrimeTableRow[] }) {
             )}
           </div>
         </div>
-        <AddCrimeCase />
+        <AddCrimeCase userBarangayId={userBarangayId} />
       </div>
 
       {/* ✅ Filter Badges */}

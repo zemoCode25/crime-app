@@ -56,10 +56,15 @@ function AIInsightsSkeleton() {
   );
 }
 
-export default function StatusPie() {
+interface StatusPieProps {
+  userBarangayId?: number;
+}
+
+export default function StatusPie({ userBarangayId }: StatusPieProps) {
   const { dateRange } = useDateRange();
   const { data: statusData, isLoading } = useStatusCrimeCounts({
     dateRange,
+    barangayId: userBarangayId,
   });
 
   // Build chart config from status colors

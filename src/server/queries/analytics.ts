@@ -129,12 +129,13 @@ export interface BarangayCrimeCount {
 /**
  * Get crime counts by barangay for a date range.
  * Returns the count of crimes for each barangay.
+ * If barangayId is provided, only returns data for that barangay (for barangay_admin users).
  */
 export async function getBarangayCrimeCounts(
   client: TypedSupabaseClient,
-  params: Pick<AnalyticsParams, "startDate" | "endDate">,
+  params: Pick<AnalyticsParams, "startDate" | "endDate" | "barangayId">,
 ): Promise<BarangayCrimeCount[]> {
-  const { startDate, endDate } = params;
+  const { startDate, endDate, barangayId } = params;
 
   // Import barangay colors
   const { BARANGAY_COLORS } = await import("@/constants/barangay");
@@ -164,13 +165,21 @@ export async function getBarangayCrimeCounts(
   data?.forEach((record) => {
     const location = record.location as { barangay: number | null } | null;
     if (location?.barangay) {
-      const barangayId = location.barangay;
-      countsByBarangay.set(barangayId, (countsByBarangay.get(barangayId) || 0) + 1);
+      const recordBarangayId = location.barangay;
+      // Filter by barangay if specified (for barangay_admin users)
+      if (barangayId && barangayId !== 0 && recordBarangayId !== barangayId) {
+        return;
+      }
+      countsByBarangay.set(recordBarangayId, (countsByBarangay.get(recordBarangayId) || 0) + 1);
     }
   });
 
-  // Build result with all barangays
-  return BARANGAY_COLORS.map((barangay) => ({
+  // Build result - filter to single barangay if specified
+  const barangaysToInclude = barangayId && barangayId !== 0
+    ? BARANGAY_COLORS.filter((b) => b.id === barangayId)
+    : BARANGAY_COLORS;
+
+  return barangaysToInclude.map((barangay) => ({
     barangayId: barangay.id,
     barangayName: barangay.name,
     barangayKey: barangay.key,
@@ -192,18 +201,19 @@ export interface StatusCrimeCount {
 /**
  * Get crime counts by status for a date range.
  * Returns the count of crimes for each status using colors from STATUSES.
+ * If barangayId is provided, only counts cases from that barangay (for barangay_admin users).
  */
 export async function getStatusCrimeCounts(
   client: TypedSupabaseClient,
-  params: Pick<AnalyticsParams, "startDate" | "endDate">,
+  params: Pick<AnalyticsParams, "startDate" | "endDate" | "barangayId">,
 ): Promise<StatusCrimeCount[]> {
-  const { startDate, endDate } = params;
+  const { startDate, endDate, barangayId } = params;
 
   // Import status colors
   const { STATUSES } = await import("@/constants/crime-case");
 
-  // Build query
-  let query = client.from("crime_case").select("case_status");
+  // Build query - include location data for barangay filtering
+  let query = client.from("crime_case").select("case_status, location:location_id(barangay)");
 
   if (startDate) {
     query = query.gte("report_datetime", startDate.toISOString());
@@ -224,6 +234,13 @@ export async function getStatusCrimeCounts(
 
   data?.forEach((record) => {
     if (record.case_status !== null) {
+      // Filter by barangay if specified (for barangay_admin users)
+      if (barangayId && barangayId !== 0) {
+        const location = record.location as { barangay: number | null } | null;
+        if (location?.barangay !== barangayId) {
+          return;
+        }
+      }
       const current = countsByStatus.get(record.case_status) || 0;
       countsByStatus.set(record.case_status, current + 1);
     }
@@ -251,18 +268,19 @@ export interface CrimeTypeCount {
 /**
  * Get crime counts by crime type for a date range.
  * Returns the count of crimes for each crime type, sorted by count descending.
+ * If barangayId is provided, only counts cases from that barangay (for barangay_admin users).
  */
 export async function getCrimeTypeCounts(
   client: TypedSupabaseClient,
-  params: Pick<AnalyticsParams, "startDate" | "endDate">,
+  params: Pick<AnalyticsParams, "startDate" | "endDate" | "barangayId">,
 ): Promise<CrimeTypeCount[]> {
-  const { startDate, endDate } = params;
+  const { startDate, endDate, barangayId } = params;
 
   // Import crime type colors
   const { getCrimeTypeColor } = await import("@/constants/crime-case");
 
-  // Build query for crime cases
-  let query = client.from("crime_case").select("crime_type");
+  // Build query for crime cases - include location data for barangay filtering
+  let query = client.from("crime_case").select("crime_type, location:location_id(barangay)");
 
   if (startDate) {
     query = query.gte("report_datetime", startDate.toISOString());
@@ -283,6 +301,13 @@ export async function getCrimeTypeCounts(
 
   data?.forEach((record) => {
     if (record.crime_type !== null) {
+      // Filter by barangay if specified (for barangay_admin users)
+      if (barangayId && barangayId !== 0) {
+        const location = record.location as { barangay: number | null } | null;
+        if (location?.barangay !== barangayId) {
+          return;
+        }
+      }
       const current = countsByCrimeType.get(record.crime_type) || 0;
       countsByCrimeType.set(record.crime_type, current + 1);
     }
