@@ -1,11 +1,4 @@
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-  Font,
-} from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import type { CasePersonRecord } from "@/types/crime-case";
 import type { CrimeCaseByIdResult } from "@/server/queries/crime";
 
@@ -266,7 +259,7 @@ export function CrimeReportPDF({
                 <Text
                   style={[styles.text, { marginTop: 4, fontStyle: "italic" }]}
                 >
-                  "{crimeCase.investigator_notes}"
+                  {`"${crimeCase.investigator_notes}"`}
                 </Text>
               )}
             </View>
@@ -387,14 +380,14 @@ export function CrimeReportPDF({
                         <Text
                           style={[styles.personDetail, { fontStyle: "italic" }]}
                         >
-                          "{person.complainant.narrative}"
+                          {`"${person.complainant.narrative}"`}
                         </Text>
                       )}
                       {person.witness?.testimony && (
                         <Text
                           style={[styles.personDetail, { fontStyle: "italic" }]}
                         >
-                          "{person.witness.testimony}"
+                          {`"${person.witness.testimony}"`}
                         </Text>
                       )}
                     </View>

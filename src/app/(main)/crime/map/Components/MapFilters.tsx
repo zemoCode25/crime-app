@@ -485,6 +485,13 @@ export default function MapFilters({
           setSelectedTimeFrame={(next) =>
             onFiltersChange({ ...filters, selectedTimeFrame: next })
           }
+          onTimeFrameChange={(timeFrame, range) =>
+            onFiltersChange({
+              ...filters,
+              selectedTimeFrame: timeFrame,
+              dateRange: range,
+            })
+          }
         />
       </div>
 
