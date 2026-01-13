@@ -7,7 +7,7 @@ export type DashboardMetricKey =
   | "underInvestigation"
   | "settledCase"
   | "emergencyReports"
-  | "detectedHeatZones";
+  | "openCases";
 
 export interface DashboardTrend {
   value: number;
@@ -66,6 +66,38 @@ async function countCases(
   return count ?? 0;
 }
 
+interface CountEmergenciesParams {
+  startDate?: Date;
+  endDate?: Date;
+}
+
+async function countEmergencies(
+  client: TypedSupabaseClient,
+  params: CountEmergenciesParams,
+): Promise<number> {
+  const { startDate, endDate } = params;
+
+  let query = client
+    .from("emergency")
+    .select("id", { count: "exact", head: true });
+
+  if (startDate) {
+    query = query.gte("created_at", startDate.toISOString());
+  }
+
+  if (endDate) {
+    query = query.lte("created_at", endDate.toISOString());
+  }
+
+  const { error, count } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  return count ?? 0;
+}
+
 function calculateTrend(
   current: number,
   previous: number,
@@ -108,10 +140,12 @@ export async function getDashboardMetrics(
   const { startDate, endDate } = params;
 
   if (!startDate || !endDate) {
-    const [total, underInvestigation, settled] = await Promise.all([
+    const [total, underInvestigation, settled, openCases, emergencyCount] = await Promise.all([
       countCases(client, {}),
       countCases(client, { status: "under investigation" }),
       countCases(client, { status: "case settled" }),
+      countCases(client, { status: "open" }),
+      countEmergencies(client, {}),
     ]);
 
     return {
@@ -132,11 +166,11 @@ export async function getDashboardMetrics(
         trend: null,
       },
       emergencyReports: {
-        value: 0,
+        value: emergencyCount,
         trend: null,
       },
-      detectedHeatZones: {
-        value: 0,
+      openCases: {
+        value: openCases,
         trend: null,
       },
     };
@@ -155,6 +189,10 @@ export async function getDashboardMetrics(
     previousUnderInvestigation,
     currentSettled,
     previousSettled,
+    currentOpenCases,
+    previousOpenCases,
+    currentEmergencies,
+    previousEmergencies,
   ] = await Promise.all([
     countCases(client, { startDate, endDate }),
     countCases(client, { startDate: previousStart, endDate: previousEnd }),
@@ -178,6 +216,18 @@ export async function getDashboardMetrics(
       endDate: previousEnd,
       status: "case settled",
     }),
+    countCases(client, {
+      startDate,
+      endDate,
+      status: "open",
+    }),
+    countCases(client, {
+      startDate: previousStart,
+      endDate: previousEnd,
+      status: "open",
+    }),
+    countEmergencies(client, { startDate, endDate }),
+    countEmergencies(client, { startDate: previousStart, endDate: previousEnd }),
   ]);
 
   const daysInPeriod = Math.max(
@@ -196,6 +246,18 @@ export async function getDashboardMetrics(
     currentSettled,
     previousSettled,
     "up",
+    daysInPeriod,
+  );
+  const openCasesTrend = calculateTrend(
+    currentOpenCases,
+    previousOpenCases,
+    "down",
+    daysInPeriod,
+  );
+  const emergenciesTrend = calculateTrend(
+    currentEmergencies,
+    previousEmergencies,
+    "down",
     daysInPeriod,
   );
 
@@ -226,12 +288,12 @@ export async function getDashboardMetrics(
       trend: settledTrend,
     },
     emergencyReports: {
-      value: 0,
-      trend: null,
+      value: currentEmergencies,
+      trend: emergenciesTrend,
     },
-    detectedHeatZones: {
-      value: 0,
-      trend: null,
+    openCases: {
+      value: currentOpenCases,
+      trend: openCasesTrend,
     },
   };
 }

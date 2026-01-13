@@ -7,6 +7,7 @@ import {
   CirclePercent,
   AlertTriangle,
   ScanSearch,
+  PackageOpen,
 } from "lucide-react";
 import { type LucideIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
@@ -46,16 +47,16 @@ const defaultMetrics: MetricCardDefaults[] = [
     bgColor: "bg-gray-500",
   },
   {
+    key: "openCases",
+    title: "Open Cases",
+    icon: PackageOpen,
+    bgColor: "bg-orange-500",
+  },
+  {
     key: "emergencyReports",
     title: "Emergency Reports",
     icon: AlertTriangle,
     bgColor: "bg-red-500",
-  },
-  {
-    key: "detectedHeatZones",
-    title: "Detected Heat Zones",
-    icon: AlertTriangle,
-    bgColor: "bg-orange-500",
   },
 ];
 
