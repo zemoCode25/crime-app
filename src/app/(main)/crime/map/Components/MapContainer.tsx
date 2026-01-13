@@ -4,6 +4,7 @@ import Map from "./MainMap";
 import MapSetting from "./MapSetting";
 import { SelectedLocation } from "@/types/map";
 import MapFilters from "./MapFilters";
+import RouteInputBar from "./RouteInputBar";
 import type { MapFiltersState } from "./mapFiltersState";
 import { useCrimeCasesForMap } from "@/hooks/crime-case/useCrimeCasesForMap";
 import type { CrimeCaseMapRecord } from "@/types/crime-case";
@@ -37,7 +38,7 @@ export default function MapContainer() {
 
   // Determine barangay filter based on user role
   const userBarangayId = isBarangayAdmin(userProfile?.role ?? null)
-    ? userProfile?.barangay ?? undefined
+    ? (userProfile?.barangay ?? undefined)
     : undefined;
 
   const [selectedLocation, setSelectedLocation] =
@@ -194,27 +195,30 @@ export default function MapContainer() {
   return (
     <div className="relative mt-10 flex gap-4">
       <div className="flex w-full flex-col gap-2">
-        <MapFilters
-          selectedLocation={selectedLocation}
-          onLocationChange={handleLocationChange}
-          filters={filters}
-          onFiltersChange={setFilters}
-          selectedCase={selectedCase}
-          // Route mode props
-          isRouteMode={isRouteMode}
-          onToggleRouteMode={handleToggleRouteMode}
-          routePointA={routePointA}
-          routePointB={routePointB}
-          transportMode={transportMode}
-          onTransportModeChange={setTransportMode}
-          onPointAChange={setRoutePointA}
-          onPointBChange={setRoutePointB}
-          onCalculateRoute={handleCalculateRoute}
-          onCancelRouteMode={handleCancelRouteMode}
-          isCalculatingRoute={routeAssessmentMutation.isPending}
-          activePointSelection={activePointSelection}
-          onSetActivePointSelection={setActivePointSelection}
-        />
+        {isRouteMode ? (
+          <RouteInputBar
+            pointA={routePointA}
+            pointB={routePointB}
+            transportMode={transportMode}
+            onTransportModeChange={setTransportMode}
+            onPointAChange={setRoutePointA}
+            onPointBChange={setRoutePointB}
+            onCalculateRoute={handleCalculateRoute}
+            onCancel={handleCancelRouteMode}
+            isCalculating={routeAssessmentMutation.isPending}
+            activePointSelection={activePointSelection}
+            onSetActivePointSelection={setActivePointSelection}
+          />
+        ) : (
+          <MapFilters
+            selectedLocation={selectedLocation}
+            onLocationChange={handleLocationChange}
+            filters={filters}
+            onFiltersChange={setFilters}
+            selectedCase={selectedCase}
+            onToggleRouteMode={handleToggleRouteMode}
+          />
+        )}
         <Map
           selectedLocation={selectedLocation}
           onLocationChange={handleLocationChange}

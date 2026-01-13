@@ -2,12 +2,14 @@
 
 import { createRoot } from "react-dom/client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type {
   Map as MapboxMap,
   Marker as MapboxMarker,
   GeoJSONSource,
   MapLayerMouseEvent,
+  ExpressionSpecification,
+  DataDrivenPropertyValueSpecification,
 } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Coordinates, SelectedLocation } from "@/types/map";
@@ -19,6 +21,8 @@ import type { Facility, FacilityType } from "@/types/facilities";
 import { CrimePopup } from "./CrimePopup";
 
 import { useCrimeType } from "@/context/CrimeTypeProvider";
+import { useCrimeTypes } from "@/hooks/crime-case/useCrimeTypes";
+import { getCrimeTypeColor } from "@/constants/crime-case";
 import type {
   RouteAssessmentResult,
   RoutePoint,
@@ -29,7 +33,7 @@ type CrimeCaseFeatureProperties = {
   id?: number;
   case_number?: string;
   case_status?: string;
-  crime_type?: string;
+  crime_type?: number | string | null;
   crime_location?: string | null;
   landmark?: string | null;
   incident_datetime?: string | null;
@@ -37,6 +41,7 @@ type CrimeCaseFeatureProperties = {
 
 const INITIAL_ZOOM = 15;
 const INITIAL_COORDINATES: Coordinates = { lat: 14.389263, long: 121.04491 };
+const DEFAULT_CRIME_MARKER_COLOR = "#94a3b8";
 
 interface MapProps {
   selectedLocation?: SelectedLocation | null;
@@ -74,6 +79,7 @@ export default function Map({
   onFacilityRouteSelect,
 }: MapProps) {
   const { crimeTypeConverter } = useCrimeType();
+  const { data: crimeTypes } = useCrimeTypes();
   const mapRef = useRef<MapboxMap | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const markerRef = useRef<MapboxMarker | null>(null);
@@ -97,8 +103,25 @@ export default function Map({
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCrimeLegend, setShowCrimeLegend] = useState(true);
 
   const initialCenterRef = useRef<[number, number] | null>(null);
+  const crimeTypeColorExpression =
+    useMemo<ExpressionSpecification | null>(() => {
+      if (!crimeTypes || crimeTypes.length === 0) return null;
+
+      const expression: ExpressionSpecification = [
+        "match",
+        ["to-number", ["get", "crime_type"]],
+      ];
+
+      crimeTypes.forEach((crimeType, index) => {
+        expression.push(crimeType.id, getCrimeTypeColor(index));
+      });
+
+      expression.push(DEFAULT_CRIME_MARKER_COLOR);
+      return expression;
+    }, [crimeTypes]);
 
   if (!initialCenterRef.current) {
     initialCenterRef.current = [
@@ -288,7 +311,7 @@ export default function Map({
             source: "crime-cases",
             paint: {
               "circle-radius": 10,
-              "circle-color": "#ef4444",
+              "circle-color": DEFAULT_CRIME_MARKER_COLOR,
               "circle-stroke-width": 1,
               "circle-stroke-color": "#ffffff",
             },
@@ -550,6 +573,20 @@ export default function Map({
       }
     };
   }, []);
+
+  // Update crime marker colors once crime types are available
+  useEffect(() => {
+    if (!mapRef.current || !isLoaded) return;
+    if (!mapRef.current.getLayer("crime-cases-points")) return;
+
+    const color: DataDrivenPropertyValueSpecification<string> =
+      crimeTypeColorExpression ?? DEFAULT_CRIME_MARKER_COLOR;
+    mapRef.current.setPaintProperty(
+      "crime-cases-points",
+      "circle-color",
+      color,
+    );
+  }, [crimeTypeColorExpression, isLoaded]);
 
   // Sync crime cases data into the GeoJSON source
   useEffect(() => {
@@ -1038,6 +1075,52 @@ export default function Map({
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
             <p className="mt-2 text-gray-600">Loading map...</p>
           </div>
+        </div>
+      )}
+
+      {crimeTypes && crimeTypes.length > 0 && (
+        <div className="absolute bottom-4 left-4 z-40">
+          {showCrimeLegend ? (
+            <div className="w-64 rounded-xl border border-gray-200/80 bg-white/90 shadow-xl ring-1 ring-black/5 backdrop-blur">
+              <div className="flex items-center justify-between border-b border-gray-200/70 px-3 py-2">
+                <p className="text-sm font-semibold text-gray-900">
+                  Crime Types
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowCrimeLegend(false)}
+                  className="rounded-md px-2 py-1 text-xs font-medium text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+                  aria-label="Hide crime type legend"
+                >
+                  Hide
+                </button>
+              </div>
+              <div className="max-h-56 overflow-y-auto px-3 py-2 text-xs">
+                <div className="space-y-1.5">
+                  {crimeTypes.map((crimeType, index) => (
+                    <div key={crimeType.id} className="flex items-center gap-2">
+                      <span
+                        className="h-3 w-3 flex-shrink-0 rounded-full"
+                        style={{ backgroundColor: getCrimeTypeColor(index) }}
+                      />
+                      <span className="truncate text-gray-700">
+                        {crimeType.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowCrimeLegend(true)}
+              className="rounded-full border border-gray-200/80 bg-white/90 px-3 py-2 text-xs font-semibold text-gray-700 shadow-lg ring-1 ring-black/5 backdrop-blur transition hover:bg-white"
+              aria-label="Show crime type legend"
+            >
+              Show legend
+            </button>
+          )}
         </div>
       )}
 
