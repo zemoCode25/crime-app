@@ -15,7 +15,6 @@ interface EmergencyCardProps {
 export default function EmergencyCard({
   title,
   phoneNumber,
-  icon: Icon = Phone,
   className,
 }: EmergencyCardProps) {
   const handleCall = () => {
