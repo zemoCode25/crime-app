@@ -9,6 +9,7 @@ import {
   UserLock,
   BellElectric,
   Settings,
+  ClipboardPlus,
 } from "lucide-react";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -61,6 +62,11 @@ const sidebarData = {
       title: "Analytics",
       url: "/analytics",
       icon: ChartColumnIncreasing,
+    },
+    {
+      title: "Reports",
+      url: "/reports",
+      icon: ClipboardPlus,
     },
     {
       title: "Manage Accounts",
