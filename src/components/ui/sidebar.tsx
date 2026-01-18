@@ -716,6 +716,7 @@ function SidebarMenuSubButton({
   );
 }
 
+// Export sidebar components
 export {
   Sidebar,
   SidebarContent,

@@ -135,7 +135,7 @@ export default function CrimeForm() {
         name="visibility"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Incident Date</FormLabel>
+            <FormLabel>Visibility</FormLabel>
             <FormControl>
               <RadioGroup
                 value={field.value}
