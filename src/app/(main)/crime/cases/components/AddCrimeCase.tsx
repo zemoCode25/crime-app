@@ -36,7 +36,7 @@ export default function AddCrimeCase({ userBarangayId }: AddCrimeCaseProps) {
       ...defaultValues,
       barangay: userBarangayId ?? defaultValues.barangay,
     }),
-    [userBarangayId]
+    [userBarangayId],
   );
 
   const form = useForm<FormSchemaType>({

@@ -266,7 +266,7 @@ export default function CrimeReport({ id }: CrimeReportProps) {
   const location = crimeCase.location;
 
   return (
-    <ScrollArea className="mt-14 h-[calc(100vh-4rem)] w-full bg-slate-50/50 dark:bg-slate-950/50">
+    <ScrollArea className="h-[calc(100vh-4rem)] w-full bg-slate-50/50 dark:bg-slate-950/50">
       <div className="mx-auto max-w-7xl space-y-6 p-6">
         {/* Header Section */}
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">

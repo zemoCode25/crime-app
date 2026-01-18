@@ -39,8 +39,6 @@ export default function CrimePage() {
   if (isLoading || isLoadingUser) {
     return (
       <main className="px-1 py-4">
-        <h1 className="mb-4 text-2xl font-bold">Crime Cases</h1>
-
         {/* Skeleton for DataTable */}
         <div className="overflow-hidden rounded-sm border p-4 shadow-sm dark:border-orange-900 dark:bg-[var(--dark-card)] dark:shadow-none">
           {/* Skeleton for search bar and filters */}
@@ -131,22 +129,13 @@ export default function CrimePage() {
   if (error) {
     return (
       <main className="px-1 py-4">
-        <h1 className="mb-4 text-2xl font-bold">Crime Cases</h1>
         <div className="text-red-500">Error: {error.message}</div>
       </main>
     );
   }
 
   return (
-    <main className="px-1 py-4">
-      <h1 className="mb-4 text-2xl font-bold">
-        Crime Cases
-        {barangayName && (
-          <span className="ml-2 text-lg font-normal text-gray-500">
-            ({barangayName})
-          </span>
-        )}
-      </h1>
+    <main className="px-1 py-2">
       <DataTable data={data || []} userBarangayId={barangayId} />
     </main>
   );
