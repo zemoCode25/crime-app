@@ -54,7 +54,10 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/error") &&
     !request.nextUrl.pathname.startsWith("/change-password") &&
     !request.nextUrl.pathname.startsWith("/request-change") &&
-    !isApiRoute // API routes handle their own auth
+    !request.nextUrl.pathname.startsWith("/api/bigquery/heatmap") && 
+    !request.nextUrl.pathname.startsWith("/api/bigquery/geojson") &&
+    !request.nextUrl.pathname.startsWith("/api/bigquery/risk-assessment") &&
+    !request.nextUrl.pathname.startsWith("/api/bigquery/route-assessment")
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();

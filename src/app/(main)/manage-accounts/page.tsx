@@ -9,7 +9,6 @@ export default async function page() {
   console.log("Current User:", user?.id);
   return (
     <div className="px-1 py-4">
-      <h1 className="mb-4 text-2xl font-bold">Manage Accounts</h1>
       <ManageAccountsPage />
     </div>
   );

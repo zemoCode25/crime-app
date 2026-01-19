@@ -36,7 +36,7 @@ export default function AddCrimeCase({ userBarangayId }: AddCrimeCaseProps) {
       ...defaultValues,
       barangay: userBarangayId ?? defaultValues.barangay,
     }),
-    [userBarangayId]
+    [userBarangayId],
   );
 
   const form = useForm<FormSchemaType>({
@@ -92,11 +92,14 @@ export default function AddCrimeCase({ userBarangayId }: AddCrimeCaseProps) {
       testimony: person.testimony?.trim() || null,
     }));
 
+    const imageFiles = values.image_files ?? [];
+
     try {
       await crimeCaseMutation.mutateAsync({
         crimeCase,
         location,
         persons,
+        imageFiles,
       });
 
       form.reset();

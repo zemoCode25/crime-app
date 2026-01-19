@@ -153,7 +153,7 @@ export default function Calendar24({
           onChange={handleTimeChange}
           onBlur={onBlur}
           name={name}
-          className="bg-background w-32"
+          className="bg-background w-fit min-w-[9.5rem]"
           disabled={!selectedDate}
         />
       </div>

@@ -24,6 +24,7 @@ import {
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 // constants
 import { STATUSES } from "@/constants/crime-case";
 // tanstack
@@ -31,10 +32,10 @@ import { useQuery } from "@supabase-cache-helpers/postgrest-react-query";
 import { getCrimeTypes } from "@/server/queries/crime-type";
 import useSupabaseBrowser from "@/server/supabase/client";
 import Calendar24 from "@/components/calendar-24";
-import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useFormContext } from "react-hook-form";
+import { type FormSchemaType } from "@/types/form-schema";
 
 interface CaseStatus {
   value: string;
@@ -44,7 +45,8 @@ interface CaseStatus {
 export default function CrimeForm() {
   const supabase = useSupabaseBrowser();
   const { data: crimeTypes } = useQuery(getCrimeTypes(supabase));
-  const form = useFormContext();
+  const form = useFormContext<FormSchemaType>();
+  const existingImageKeys = form.watch("image_keys") ?? [];
 
   return (
     <div className="flex w-full flex-col gap-5">
@@ -67,6 +69,46 @@ export default function CrimeForm() {
             <FormMessage />
           </FormItem>
         )}
+      />
+      <FormField
+        control={form.control}
+        name="image_files"
+        render={({ field }) => {
+          const selectedFiles = Array.isArray(field.value) ? field.value : [];
+
+          return (
+            <FormItem>
+              <FormLabel>Case images</FormLabel>
+              <FormControl>
+                <Input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onBlur={field.onBlur}
+                  onChange={(event) => {
+                    const files = Array.from(event.target.files ?? []);
+                    field.onChange(files);
+                  }}
+                  ref={field.ref}
+                />
+              </FormControl>
+              <FormDescription className="text-xs">
+                Upload up to 5 images (JPG, PNG, WebP). Max 5MB each.
+              </FormDescription>
+              {existingImageKeys.length > 0 && (
+                <FormDescription className="text-xs">
+                  Existing images: {existingImageKeys.length}
+                </FormDescription>
+              )}
+              {selectedFiles.length > 0 && (
+                <FormDescription className="text-xs">
+                  Selected: {selectedFiles.map((file) => file.name).join(", ")}
+                </FormDescription>
+              )}
+              <FormMessage />
+            </FormItem>
+          );
+        }}
       />
       <FormField
         control={form.control}
@@ -135,7 +177,7 @@ export default function CrimeForm() {
         name="visibility"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Incident Date</FormLabel>
+            <FormLabel>Visibility</FormLabel>
             <FormControl>
               <RadioGroup
                 value={field.value}

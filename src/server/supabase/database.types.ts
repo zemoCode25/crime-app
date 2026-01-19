@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       case_person: {
@@ -91,6 +116,7 @@ export type Database = {
           description: string | null
           follow_up: string | null
           id: number
+          image_keys: string[]
           incident_datetime: string | null
           investigator: string | null
           investigator_notes: string | null
@@ -109,6 +135,7 @@ export type Database = {
           description?: string | null
           follow_up?: string | null
           id?: number
+          image_keys?: string[]
           incident_datetime?: string | null
           investigator?: string | null
           investigator_notes?: string | null
@@ -127,6 +154,7 @@ export type Database = {
           description?: string | null
           follow_up?: string | null
           id?: number
+          image_keys?: string[]
           incident_datetime?: string | null
           investigator?: string | null
           investigator_notes?: string | null
@@ -651,6 +679,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       barangay: [

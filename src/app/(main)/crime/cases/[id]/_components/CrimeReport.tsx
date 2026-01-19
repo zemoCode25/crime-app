@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useCrimeCase } from "@/hooks/crime-case/useCrimeCase";
 import { useCrimeType } from "@/context/CrimeTypeProvider";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pdf } from "@react-pdf/renderer";
 import { CrimeReportPDF } from "./CrimeReportPDF";
+import useSupabaseBrowser from "@/server/supabase/client";
 import {
   CardHeader,
   CardTitle,
@@ -34,6 +36,7 @@ import {
   Eye,
   Download,
   Edit,
+  Image as ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -46,6 +49,9 @@ import { Toaster } from "react-hot-toast";
 type CrimeReportProps = {
   id: number;
 };
+
+const CRIME_CASE_IMAGE_BUCKET = "crime-case-images";
+const SIGNED_URL_TTL_SECONDS = 60 * 60;
 
 function formatDateTime(value: string | null | undefined) {
   if (!value) return "Unknown";
@@ -95,9 +101,68 @@ function getRoleColor(role: string | null | undefined) {
 }
 
 export default function CrimeReport({ id }: CrimeReportProps) {
+  const supabase = useSupabaseBrowser();
   const { data: crimeCase, isLoading, error } = useCrimeCase(id);
   const { crimeTypeConverter } = useCrimeType();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [imageUrls, setImageUrls] = useState<{ key: string; url: string }[]>(
+    [],
+  );
+  const [isLoadingImages, setIsLoadingImages] = useState(false);
+  const [imagesError, setImagesError] = useState<string | null>(null);
+
+  const imageKeys = crimeCase?.image_keys ?? [];
+  const imageKeySignature = imageKeys.join("|");
+
+  useEffect(() => {
+    let isActive = true;
+    const keys = crimeCase?.image_keys ?? [];
+
+    const loadImages = async () => {
+      if (!supabase || keys.length === 0) {
+        if (isActive) {
+          setImageUrls([]);
+          setImagesError(null);
+          setIsLoadingImages(false);
+        }
+        return;
+      }
+
+      setIsLoadingImages(true);
+      setImagesError(null);
+
+      const { data, error } = await supabase.storage
+        .from(CRIME_CASE_IMAGE_BUCKET)
+        .createSignedUrls(keys, SIGNED_URL_TTL_SECONDS);
+
+      if (!isActive) return;
+
+      if (error) {
+        console.error("Failed to load crime case images:", error);
+        setImageUrls([]);
+        setImagesError("Images are unavailable right now.");
+        setIsLoadingImages(false);
+        return;
+      }
+
+      const urls =
+        data
+          ?.map((item, index) => ({
+            key: keys[index],
+            url: item.signedUrl ?? "",
+          }))
+          .filter((item) => item.url.length > 0) ?? [];
+
+      setImageUrls(urls);
+      setIsLoadingImages(false);
+    };
+
+    void loadImages();
+
+    return () => {
+      isActive = false;
+    };
+  }, [supabase, imageKeySignature, crimeCase?.image_keys]);
 
   const handleDownloadPDF = async () => {
     if (!crimeCase) return;
@@ -266,7 +331,7 @@ export default function CrimeReport({ id }: CrimeReportProps) {
   const location = crimeCase.location;
 
   return (
-    <ScrollArea className="mt-14 h-[calc(100vh-4rem)] w-full bg-slate-50/50 dark:bg-slate-950/50">
+    <ScrollArea className="h-[calc(100vh-4rem)] w-full bg-slate-50/50 dark:bg-slate-950/50">
       <div className="mx-auto max-w-7xl space-y-6 p-6">
         {/* Header Section */}
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
@@ -351,6 +416,66 @@ export default function CrimeReport({ id }: CrimeReportProps) {
                 </p>
               </CardContent>
             </Card>
+
+            {imageKeys.length > 0 && (
+              <Card className="py-4">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <ImageIcon className="text-primary h-5 w-5" />
+                    Case Images
+                  </CardTitle>
+                  <CardDescription className="text-sm">
+                    {imageKeys.length} image
+                    {imageKeys.length === 1 ? "" : "s"} attached
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingImages && (
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {imageKeys.map((key) => (
+                        <Skeleton
+                          key={key}
+                          className="h-40 w-full rounded-md"
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {!isLoadingImages && imagesError && (
+                    <p className="text-muted-foreground text-sm">
+                      {imagesError}
+                    </p>
+                  )}
+                  {!isLoadingImages &&
+                    !imagesError &&
+                    (imageUrls.length > 0 ? (
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {imageUrls.map((image) => (
+                          <a
+                            key={image.key}
+                            href={image.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="group border-border/50 bg-muted/30 overflow-hidden rounded-md border"
+                          >
+                            <Image
+                              src={image.url}
+                              alt="Crime case image"
+                              width={320}
+                              height={160}
+                              className="h-40 w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                              unoptimized
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground text-sm">
+                        Images are unavailable right now.
+                      </p>
+                    ))}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Location */}
             <Card className="py-4">
