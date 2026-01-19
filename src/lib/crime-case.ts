@@ -13,6 +13,8 @@ export const defaultValues: FormSchemaType = {
       responder: "",
       barangay: 1,
       visibility: "private",
+      image_keys: [],
+      image_files: [],
       crime_location: "",
       landmark: "",
       pin: undefined,

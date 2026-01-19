@@ -79,6 +79,8 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
         remarks: crimeData.remarks || "",
         investigator: crimeData.investigator || "",
         responder: crimeData.responder || "",
+        image_keys: crimeData.image_keys ?? [],
+        image_files: [],
 
         barangay: crimeData.location?.barangay || 1,
         visibility: crimeData.visibility || "private",
@@ -178,6 +180,9 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
         testimony: person.testimony?.trim() || null,
       }));
 
+      const imageFiles = values.image_files ?? [];
+      const existingImageKeys = values.image_keys ?? [];
+
       console.log("Submitting form with data:", {
         crimeCase,
         location,
@@ -190,6 +195,8 @@ export default function UpdateCrimeCase({ caseId }: { caseId: number }) {
         crimeCase,
         location,
         persons,
+        imageFiles,
+        existingImageKeys,
       });
 
       if (crimeCaseMutation.isError) {

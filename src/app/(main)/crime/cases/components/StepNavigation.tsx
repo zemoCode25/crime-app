@@ -25,12 +25,16 @@ export default function StepNavigation({ step, setStep }: StepNavigationProps) {
     switch (step) {
       case 0: {
         // Crime Information
+        const imageFiles = form.getValues("image_files");
         const crimeFields = await form.trigger([
           "description",
           "crime_type",
           "case_status",
           "report_datetime",
           "incident_datetime",
+          ...(Array.isArray(imageFiles) && imageFiles.length > 0
+            ? ["image_files"]
+            : []),
         ]);
 
         if (!crimeFields) {

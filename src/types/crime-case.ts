@@ -18,6 +18,7 @@ export interface CrimeCaseData {
   remarks: string | null; // ✅ Nullable instead of optional
   follow_up: string | null; // ✅ Nullable instead of optional
   visibility: Visibility; // ✅ Required field, remove optional
+  image_keys?: string[];
 }
 
 export interface LocationData {
