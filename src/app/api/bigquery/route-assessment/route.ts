@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRouteAssessment, RiskLevel, RoutePointAssessment } from '@/server/queries/bigquery';
 import type { RouteSegment, RouteOverallAssessment } from '@/types/route-assessment';
+import { verifyAuth } from '@/lib/api-auth';
 
 // Safety recommendations based on route characteristics
 function generateRouteRecommendations(
@@ -104,6 +105,12 @@ function getOverallRiskLevel(safetyScore: number): RiskLevel {
 }
 
 export async function POST(request: NextRequest) {
+  // Verify authentication (supports both cookie-based web and Bearer token mobile)
+  const authResult = await verifyAuth(request);
+  if (!authResult.success) {
+    return authResult.response;
+  }
+
   try {
     const body = await request.json();
 
