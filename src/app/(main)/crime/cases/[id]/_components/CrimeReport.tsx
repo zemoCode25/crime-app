@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useCrimeCase } from "@/hooks/crime-case/useCrimeCase";
 import { useCrimeType } from "@/context/CrimeTypeProvider";
 import { Badge } from "@/components/ui/badge";
@@ -104,9 +105,9 @@ export default function CrimeReport({ id }: CrimeReportProps) {
   const { data: crimeCase, isLoading, error } = useCrimeCase(id);
   const { crimeTypeConverter } = useCrimeType();
   const [isDownloading, setIsDownloading] = useState(false);
-  const [imageUrls, setImageUrls] = useState<
-    { key: string; url: string }[]
-  >([]);
+  const [imageUrls, setImageUrls] = useState<{ key: string; url: string }[]>(
+    [],
+  );
   const [isLoadingImages, setIsLoadingImages] = useState(false);
   const [imagesError, setImagesError] = useState<string | null>(null);
 
@@ -115,9 +116,10 @@ export default function CrimeReport({ id }: CrimeReportProps) {
 
   useEffect(() => {
     let isActive = true;
+    const keys = crimeCase?.image_keys ?? [];
 
     const loadImages = async () => {
-      if (!supabase || imageKeys.length === 0) {
+      if (!supabase || keys.length === 0) {
         if (isActive) {
           setImageUrls([]);
           setImagesError(null);
@@ -131,7 +133,7 @@ export default function CrimeReport({ id }: CrimeReportProps) {
 
       const { data, error } = await supabase.storage
         .from(CRIME_CASE_IMAGE_BUCKET)
-        .createSignedUrls(imageKeys, SIGNED_URL_TTL_SECONDS);
+        .createSignedUrls(keys, SIGNED_URL_TTL_SECONDS);
 
       if (!isActive) return;
 
@@ -146,7 +148,7 @@ export default function CrimeReport({ id }: CrimeReportProps) {
       const urls =
         data
           ?.map((item, index) => ({
-            key: imageKeys[index],
+            key: keys[index],
             url: item.signedUrl ?? "",
           }))
           .filter((item) => item.url.length > 0) ?? [];
@@ -160,7 +162,7 @@ export default function CrimeReport({ id }: CrimeReportProps) {
     return () => {
       isActive = false;
     };
-  }, [supabase, imageKeySignature]);
+  }, [supabase, imageKeySignature, crimeCase?.image_keys]);
 
   const handleDownloadPDF = async () => {
     if (!crimeCase) return;
@@ -453,13 +455,15 @@ export default function CrimeReport({ id }: CrimeReportProps) {
                             href={image.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="group overflow-hidden rounded-md border border-border/50 bg-muted/30"
+                            className="group border-border/50 bg-muted/30 overflow-hidden rounded-md border"
                           >
-                            <img
+                            <Image
                               src={image.url}
                               alt="Crime case image"
+                              width={320}
+                              height={160}
                               className="h-40 w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                              loading="lazy"
+                              unoptimized
                             />
                           </a>
                         ))}
