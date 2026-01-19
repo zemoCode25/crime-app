@@ -38,6 +38,40 @@ export const VisibilityEnum = z.enum(["public", "private"], {
   error: () => "Visibility field is required",
 });
 
+const MAX_IMAGE_COUNT = 5;
+const MAX_IMAGE_SIZE_MB = 5;
+const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+const imageFileSchema = z
+  .custom<File>(
+    (file) => typeof File !== "undefined" && file instanceof File,
+    { message: "Please upload a valid image file" },
+  )
+  .refine(
+    (file) =>
+      typeof File !== "undefined" &&
+      file instanceof File &&
+      file.size <= MAX_IMAGE_SIZE_BYTES,
+    {
+      message: `Each image must be ${MAX_IMAGE_SIZE_MB}MB or less`,
+    },
+  )
+  .refine(
+    (file) =>
+      typeof File !== "undefined" &&
+      file instanceof File &&
+      ACCEPTED_IMAGE_TYPES.includes(file.type),
+    {
+      message: "Only JPG, PNG, or WebP images are allowed",
+    },
+  );
+
+const imageFilesSchema = z
+  .array(imageFileSchema)
+  .max(MAX_IMAGE_COUNT, `Up to ${MAX_IMAGE_COUNT} images are allowed`)
+  .optional();
+
 // ===== SCHEMAS =====
 
 // Crime Case Schema
@@ -53,6 +87,7 @@ export const caseDataSchema = z.object({
   follow_up: z.string().optional(),
   remarks: z.string().optional(),
   visibility: VisibilityEnum,
+  image_keys: z.array(z.string().min(1)).optional(),
 });
 
 // Location Schema
@@ -100,6 +135,7 @@ export const formSchema = z.object({
   ...caseDataSchema.shape,
   ...locationDataSchema.shape,
   persons: z.array(personDataSchema),
+  image_files: imageFilesSchema,
 });
 
 export type CaseData = z.infer<typeof caseDataSchema>;

@@ -20,18 +20,27 @@ export default function StepNavigation({ step, setStep }: StepNavigationProps) {
 
   const form = useFormContext<FormSchemaType>();
 
-  // �o. Function to validate current step
+  // Function to validate current step
   async function validateCurrentStep(): Promise<boolean> {
     switch (step) {
       case 0: {
-        // Crime Information
-        const crimeFields = await form.trigger([
+        // Crime Information - validate base fields first
+        const baseFieldsValid = await form.trigger([
           "description",
           "crime_type",
           "case_status",
           "report_datetime",
           "incident_datetime",
         ]);
+
+        // Validate image_files separately if present
+        const imageFiles = form.getValues("image_files");
+        let imageFieldsValid = true;
+        if (Array.isArray(imageFiles) && imageFiles.length > 0) {
+          imageFieldsValid = await form.trigger("image_files");
+        }
+
+        const crimeFields = baseFieldsValid && imageFieldsValid;
 
         if (!crimeFields) {
           toast.error("Please fix the errors in Crime Information");
@@ -85,7 +94,7 @@ export default function StepNavigation({ step, setStep }: StepNavigationProps) {
     }
   }
 
-  // �o. Handle next with validation
+  // Handle next with validation
   async function handleNext() {
     if (step < 3) {
       const isValid = await validateCurrentStep();
@@ -108,7 +117,7 @@ export default function StepNavigation({ step, setStep }: StepNavigationProps) {
         className="cursor-pointer border"
         variant="outline"
         onClick={handlePrev}
-        disabled={step === 0} // �o. Disable on first step
+        disabled={step === 0}
       >
         <ArrowLeft className="text-black dark:text-white" />
       </Button>
@@ -121,7 +130,7 @@ export default function StepNavigation({ step, setStep }: StepNavigationProps) {
         className="cursor-pointer border"
         variant="outline"
         onClick={handleNext}
-        disabled={step === 3} // �o. Disable on last step
+        disabled={step === 3}
       >
         <ArrowRight className="text-black dark:text-white" />
       </Button>
