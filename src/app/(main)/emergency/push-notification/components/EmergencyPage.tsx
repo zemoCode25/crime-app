@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAddEmergencyNotification } from "@/hooks/emergency/useAddEmergencyNotification";
+import type { AddEmergencyNotificationResult } from "@/server/queries/emergency";
 import toast from "react-hot-toast";
 
 const MAX_IMAGE_SIZE_MB = 5;
@@ -166,6 +167,64 @@ export default function EmergencyPage() {
     setValue("imageFile", file ?? undefined, { shouldValidate: true });
   };
 
+  const dispatchEmergencyPush = async (emergencyId: number) => {
+    const response = await fetch("/api/push/dispatch", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ emergencyId }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Failed to dispatch push notification");
+    }
+
+    return data as {
+      status: "queued" | "sent" | "failed";
+      sentCount: number;
+      failedCount: number;
+    };
+  };
+
+  const handleDispatchSuccess = (result: AddEmergencyNotificationResult) => {
+    dispatchEmergencyPush(result.id)
+      .then((dispatchResult) => {
+        toast.dismiss("add-emergency");
+        if (dispatchResult.status === "queued") {
+          toast.success("Notification scheduled successfully!");
+        } else if (dispatchResult.status === "sent") {
+          toast.success(
+            `Notification sent (${dispatchResult.sentCount} delivered)`,
+          );
+        } else {
+          toast.error("Notification send failed");
+        }
+
+        reset({
+          subject: "",
+          message: "",
+          isScheduled: false,
+          scheduledDate: undefined,
+          channels: ["push", "email"],
+          imageFile: undefined,
+        });
+        setDate(undefined);
+        setIsScheduled(false);
+        setImagePreview(null);
+      })
+      .catch((error) => {
+        toast.dismiss("add-emergency");
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to dispatch push notification",
+        );
+      });
+  };
+
   // Form submission handler
   const onSubmit = (data: PushNotificationFormData) => {
     // Note: The backend currently doesn't support 'channels' distinctively in the DB schema,
@@ -180,26 +239,8 @@ export default function EmergencyPage() {
         imageFile: data.imageFile ?? null,
       },
       {
-        onSuccess: () => {
-          toast.dismiss("add-emergency");
-          if (data.scheduledDate) {
-            toast.success("Notification scheduled successfully!");
-          } else {
-            toast.success("Notification sent successfully!");
-          }
-
-          // Reset form on success
-          reset({
-            subject: "",
-            message: "",
-            isScheduled: false,
-            scheduledDate: undefined,
-            channels: ["push", "email"],
-            imageFile: undefined,
-          });
-          setDate(undefined);
-          setIsScheduled(false);
-          setImagePreview(null);
+        onSuccess: (result) => {
+          handleDispatchSuccess(result);
         },
         onError: (error) => {
           toast.dismiss("add-emergency");
