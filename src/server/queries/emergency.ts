@@ -8,6 +8,7 @@ export interface EmergencyRecord {
   created_at: string;
   user_id: string | null;
   sender_name: string | null;
+  image_key: string | null;
 }
 
 export interface EmergencyRecordsParams {
@@ -69,6 +70,7 @@ export async function getEmergencyRecords(
       schedule,
       created_at,
       user_id,
+      image_key,
       users:user_id (
         first_name,
         last_name
@@ -103,6 +105,7 @@ export async function getEmergencyRecords(
       created_at: record.created_at,
       user_id: record.user_id,
       sender_name: senderName,
+      image_key: record.image_key,
     };
   });
 
@@ -121,6 +124,7 @@ export interface AddEmergencyNotificationParams {
   subject: string;
   body: string;
   schedule?: string | null;
+  image_key?: string | null;
 }
 
 export interface AddEmergencyNotificationResult {
@@ -130,6 +134,7 @@ export interface AddEmergencyNotificationResult {
   schedule: string | null;
   created_at: string;
   user_id: string | null;
+  image_key: string | null;
 }
 
 /**
@@ -140,7 +145,7 @@ export async function addEmergencyNotification(
   client: TypedSupabaseClient,
   params: AddEmergencyNotificationParams,
 ): Promise<AddEmergencyNotificationResult> {
-  const { subject, body, schedule } = params;
+  const { subject, body, schedule, image_key } = params;
 
   // Get current user
   const {
@@ -159,6 +164,7 @@ export async function addEmergencyNotification(
       body,
       schedule: schedule ?? null,
       user_id: user.id,
+      image_key: image_key ?? null,
     })
     .select()
     .single();

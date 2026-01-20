@@ -1,13 +1,13 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
 import useSupabaseBrowser from "@/server/supabase/client";
 import {
   addEmergencyNotification,
   type AddEmergencyNotificationParams,
   type AddEmergencyNotificationResult,
 } from "@/server/queries/emergency";
+import type { TypedSupabaseClient } from "@/types/supabase-client";
 
 /**
  * Hook to add a new emergency notification.
@@ -17,56 +17,73 @@ export function useAddEmergencyNotification() {
   const supabase = useSupabaseBrowser();
   const queryClient = useQueryClient();
 
+  const sanitizeFileName = (name: string) =>
+    name.replace(/[^a-zA-Z0-9._-]/g, "_");
+
+  const buildImagePath = (file: File) => {
+    const safeName = sanitizeFileName(file.name);
+    const uniqueId =
+      globalThis.crypto?.randomUUID?.() ??
+      `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    return `emergency-notifications/${uniqueId}-${safeName}`;
+  };
+
+  const uploadEmergencyImage = async (
+    client: TypedSupabaseClient,
+    file?: File | null,
+  ) => {
+    if (!file) {
+      return null;
+    }
+
+    const bucket = client.storage.from("emergency-notification-images");
+    const path = buildImagePath(file);
+    const { error } = await bucket.upload(path, file, {
+      contentType: file.type || undefined,
+      upsert: false,
+    });
+
+    if (error) {
+      throw new Error(error.message || "Failed to upload emergency image");
+    }
+
+    return path;
+  };
+
+  type AddEmergencyNotificationInput = AddEmergencyNotificationParams & {
+    imageFile?: File | null;
+  };
+
   return useMutation<
     AddEmergencyNotificationResult,
     Error,
-    AddEmergencyNotificationParams
+    AddEmergencyNotificationInput
   >({
     mutationFn: async (params) => {
       if (!supabase) {
         throw new Error("Database connection error. Please try again.");
       }
 
-      return addEmergencyNotification(supabase, params);
-    },
-    onMutate: () => {
-      toast.loading("Sending notification...", { id: "add-emergency" });
-    },
-    onSuccess: (data) => {
-      toast.dismiss("add-emergency");
+      const { imageFile, ...payload } = params;
+      const imageKey = await uploadEmergencyImage(supabase, imageFile);
 
-      const isScheduled = data.schedule !== null;
-      if (isScheduled) {
-        toast.success("Notification scheduled successfully!");
-      } else {
-        toast.success("Notification sent successfully!");
+      try {
+        return await addEmergencyNotification(supabase, {
+          ...payload,
+          image_key: imageKey,
+        });
+      } catch (error) {
+        if (imageKey) {
+          await supabase.storage
+            .from("emergency-notification-images")
+            .remove([imageKey]);
+        }
+        throw error;
       }
-
+    },
+    onSuccess: () => {
       // Invalidate the emergency records query to refetch the list
       queryClient.invalidateQueries({ queryKey: ["emergency-records"] });
-    },
-    onError: (error) => {
-      toast.dismiss("add-emergency");
-
-      if (error instanceof Error) {
-        const msg = error.message.toLowerCase();
-
-        if (msg.includes("not authenticated") || msg.includes("auth")) {
-          toast.error("You must be logged in to send notifications.");
-        } else if (msg.includes("permission")) {
-          toast.error("You don't have permission to send notifications.");
-        } else if (msg.includes("network")) {
-          toast.error(
-            "Network error. Please check your connection and try again.",
-          );
-        } else {
-          toast.error(error.message || "Failed to send notification");
-        }
-      } else {
-        toast.error("An unexpected error occurred. Please try again.");
-      }
-
-      console.error("Emergency notification error:", error);
     },
     retry: (failureCount, error) => {
       if (error instanceof Error && error.message.includes("network")) {

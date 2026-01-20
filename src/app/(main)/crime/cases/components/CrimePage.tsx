@@ -6,7 +6,6 @@ import {
   isBarangayAdmin,
 } from "@/hooks/user/useCurrentUserProfile";
 import { DataTable } from "./DataTable";
-import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 
 export default function CrimePage() {
   const { data: userProfile, isLoading: isLoadingUser } =
@@ -18,13 +17,6 @@ export default function CrimePage() {
     : undefined;
 
   const { data, isLoading, error } = useCrimeCases({ barangayId });
-
-  // Get barangay name for display
-  const barangayName =
-    barangayId !== undefined
-      ? BARANGAY_OPTIONS.find((b) => b.id === barangayId)?.value
-      : null;
-
   console.log("User Profile:", userProfile);
 
   console.log("Rendering CrimePage with barangayId:", barangayId);

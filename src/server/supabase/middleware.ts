@@ -39,12 +39,6 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Check if request has Bearer token (mobile API calls)
-  const hasBearerToken = request.headers.get("Authorization")?.startsWith("Bearer ");
-  
-  // API routes - let them handle their own auth (Bearer token or specific logic)
-  const isApiRoute = request.nextUrl.pathname.startsWith("/api/");
-
   if (
     !user &&
     !request.nextUrl.pathname.startsWith("/login") &&
