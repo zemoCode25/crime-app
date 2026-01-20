@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     console.log(`🛤️ Route assessment for ${coordinates.length} points`);
 
     // Get risk assessment for all points
-    const assessments = await getRouteAssessment({
+    const { assessments, routeCrimeCount } = await getRouteAssessment({
       coordinates,
       filters,
     });
@@ -156,6 +156,7 @@ export async function POST(request: NextRequest) {
     const overallAssessment: RouteOverallAssessment = {
       riskLevel: overallRiskLevel,
       totalCrimeCount,
+      routeCrimeCount,
       highRiskSegments,
       mediumRiskSegments,
       lowRiskSegments,

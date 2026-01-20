@@ -4,7 +4,6 @@ import type {
   SafetyAnalysisInput,
   AISafetyAnalysis,
 } from "@/lib/gemini/gemini-schema";
-import { verifyAuth } from "@/lib/api-auth";
 
 // Response type for the API
 interface AnalyzeResponse {
@@ -36,12 +35,6 @@ function getCacheKey(input: SafetyAnalysisInput): string {
 export async function POST(
   request: NextRequest
 ): Promise<NextResponse<AnalyzeResponse>> {
-  // Verify authentication (supports both cookie-based web and Bearer token mobile)
-  const authResult = await verifyAuth(request);
-  if (!authResult.success) {
-    return authResult.response as NextResponse<AnalyzeResponse>;
-  }
-
   try {
     const body = await request.json();
     const input = body as SafetyAnalysisInput;

@@ -252,17 +252,22 @@ export interface RouteAssessmentInput {
   filters?: RiskAssessmentFilters;
 }
 
+export interface RouteAssessmentResultSet {
+  assessments: RoutePointAssessment[];
+  routeCrimeCount: number; // Unique cases near sampled route points (approx).
+}
+
 /**
  * Assess risk levels for multiple points along a route
  * Uses batch query for efficiency
  */
 export async function getRouteAssessment(
   input: RouteAssessmentInput
-): Promise<RoutePointAssessment[]> {
+): Promise<RouteAssessmentResultSet> {
   const { coordinates, filters } = input;
 
   if (coordinates.length === 0) {
-    return [];
+    return { assessments: [], routeCrimeCount: 0 };
   }
 
   // Build filter conditions
@@ -317,25 +322,40 @@ export async function getRouteAssessment(
         CAST(JSON_VALUE(p, '$.lng') AS FLOAT64) AS point_lng
       FROM UNNEST(JSON_EXTRACT_ARRAY(@points)) AS p
     ),
-    point_crimes AS (
+    matched_crimes AS (
       SELECT
         pts.point_idx,
         pts.point_lat,
         pts.point_lng,
-        COUNT(*) as crime_count
+        c.id as crime_id
       FROM points pts
       LEFT JOIN \`${process.env.GOOGLE_CLOUD_PROJECT_ID}.crime_analytics.crime_cases\` c
         ON ABS(c.latitude - pts.point_lat) <= 0.0027
         AND ABS(c.longitude - pts.point_lng) <= 0.0027
         AND ${conditions.join('\n        AND ')}
-      GROUP BY pts.point_idx, pts.point_lat, pts.point_lng
+    ),
+    point_crimes AS (
+      SELECT
+        point_idx,
+        point_lat,
+        point_lng,
+        COUNT(crime_id) as crime_count
+      FROM matched_crimes
+      GROUP BY point_idx, point_lat, point_lng
+    ),
+    route_crimes AS (
+      SELECT
+        COUNT(DISTINCT crime_id) as route_crime_count
+      FROM matched_crimes
     )
     SELECT
       point_idx,
       point_lat,
       point_lng,
-      COALESCE(crime_count, 0) as crime_count
+      COALESCE(crime_count, 0) as crime_count,
+      route_crimes.route_crime_count as route_crime_count
     FROM point_crimes
+    CROSS JOIN route_crimes
     ORDER BY point_idx
   `;
 
@@ -344,12 +364,26 @@ export async function getRouteAssessment(
     params,
   });
 
+  const routeCrimeCount =
+    rows.length > 0
+      ? (rows[0] as { route_crime_count?: number }).route_crime_count ?? 0
+      : 0;
+
   // Map results to RoutePointAssessment with risk levels
-  return rows.map((row: { point_idx: number; point_lat: number; point_lng: number; crime_count: number }) => ({
-    index: row.point_idx,
-    lat: row.point_lat,
-    lng: row.point_lng,
-    crimeCount: row.crime_count,
-    riskLevel: getRiskLevelFromCrimeCount(row.crime_count),
-  }));
+  const assessments = rows.map(
+    (row: {
+      point_idx: number;
+      point_lat: number;
+      point_lng: number;
+      crime_count: number;
+    }) => ({
+      index: row.point_idx,
+      lat: row.point_lat,
+      lng: row.point_lng,
+      crimeCount: row.crime_count,
+      riskLevel: getRiskLevelFromCrimeCount(row.crime_count),
+    })
+  );
+
+  return { assessments, routeCrimeCount };
 }

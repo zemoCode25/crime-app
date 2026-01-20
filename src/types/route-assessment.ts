@@ -29,6 +29,7 @@ export interface RouteSegment {
 export interface RouteOverallAssessment {
   riskLevel: RiskLevel;
   totalCrimeCount: number;
+  routeCrimeCount: number; // Unique cases near sampled route points (approx).
   highRiskSegments: number;
   mediumRiskSegments: number;
   lowRiskSegments: number;
