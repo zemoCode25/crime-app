@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRiskAssessment, RiskLevel, RiskAssessmentFilters } from '@/server/queries/bigquery';
-import { verifyAuth } from '@/lib/api-auth';
 
 // Safety tips based on crime types
 const SAFETY_TIPS: Record<string, string> = {
@@ -44,12 +43,6 @@ function generateSafetyTips(
 }
 
 export async function GET(request: NextRequest) {
-  // Verify authentication (supports both cookie-based web and Bearer token mobile)
-  const authResult = await verifyAuth(request);
-  if (!authResult.success) {
-    return authResult.response;
-  }
-
   try {
     const { searchParams } = new URL(request.url);
 
