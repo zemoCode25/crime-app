@@ -6,7 +6,6 @@ import {
   isBarangayAdmin,
 } from "@/hooks/user/useCurrentUserProfile";
 import { DataTable } from "./DataTable";
-import { BARANGAY_OPTIONS } from "@/constants/crime-case";
 
 export default function CrimePage() {
   const { data: userProfile, isLoading: isLoadingUser } =

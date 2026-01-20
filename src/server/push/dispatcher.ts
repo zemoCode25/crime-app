@@ -172,13 +172,28 @@ export async function sendEmergencyPushNow(
   }
 
   if (tickets.length > 0) {
+    const getTicketError = (ticket: (typeof tickets)[number]) => {
+      if (ticket.status !== "error") {
+        return null;
+      }
+
+      if ("details" in ticket && ticket.details) {
+        const details = ticket.details as { error?: string };
+        return details.error ?? null;
+      }
+
+      return "message" in ticket && ticket.message
+        ? String(ticket.message)
+        : null;
+    };
+
     const logs = tickets.map((ticket, index) => ({
       push_job_id: jobId,
       emergency_id: emergency.id,
       expo_push_token: validTokens[index],
       ticket_id: "id" in ticket ? ticket.id ?? null : null,
       status: ticket.status ?? null,
-      error: ticket.details?.error ?? null,
+      error: getTicketError(ticket),
     }));
 
     await supabase.from("push_delivery_logs").insert(logs);

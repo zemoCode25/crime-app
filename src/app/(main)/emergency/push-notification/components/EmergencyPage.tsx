@@ -20,10 +20,9 @@ const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const imageFileSchema = z
-  .custom<File>(
-    (file) => typeof File !== "undefined" && file instanceof File,
-    { message: "Please upload a valid image file" },
-  )
+  .custom<File>((file) => typeof File !== "undefined" && file instanceof File, {
+    message: "Please upload a valid image file",
+  })
   .refine(
     (file) =>
       typeof File !== "undefined" &&
@@ -327,6 +326,7 @@ export default function EmergencyPage() {
               >
                 {imagePreview ? (
                   <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={imagePreview}
                       alt="Notification preview"

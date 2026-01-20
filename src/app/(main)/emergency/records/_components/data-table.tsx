@@ -114,9 +114,10 @@ function EmailDetailDialog({
   open,
   onOpenChange,
 }: EmailDetailDialogProps) {
+  const supabase = useSupabaseBrowser();
+
   if (!record) return null;
 
-  const supabase = useSupabaseBrowser();
   const imageUrl = record.image_key
     ? supabase.storage
         .from("emergency-notification-images")
@@ -174,6 +175,7 @@ function EmailDetailDialog({
 
           {imageUrl && (
             <div className="overflow-hidden rounded-md border border-neutral-200 bg-neutral-50">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={imageUrl}
                 alt="Emergency notification"
