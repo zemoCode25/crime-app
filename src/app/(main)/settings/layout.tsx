@@ -10,7 +10,7 @@ export default function SettingsLayout({
 }) {
   const pathname = usePathname();
   return (
-    <div className="mx-auto mt-20 flex w-full max-w-[40rem] flex-col">
+    <div className="mx-auto mt-10 flex w-full max-w-[40rem] flex-col">
       <header className="flex w-full justify-between">
         <Link
           href={"/settings/profile"}
@@ -31,16 +31,6 @@ export default function SettingsLayout({
           }
         >
           Configuration
-        </Link>
-        <Link
-          href={"/settings/landmark"}
-          className={
-            pathname === "/settings/landmark"
-              ? "font-medium text-orange-600 underline"
-              : ""
-          }
-        >
-          Landmark
         </Link>
         <Link
           href={"/settings/account"}

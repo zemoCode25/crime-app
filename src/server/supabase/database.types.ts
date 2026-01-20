@@ -244,6 +244,44 @@ export type Database = {
           },
         ]
       }
+      email_jobs: {
+        Row: {
+          created_at: string
+          emergency_id: number
+          error: string | null
+          id: number
+          scheduled_at: string | null
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          emergency_id: number
+          error?: string | null
+          id?: number
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          emergency_id?: number
+          error?: string | null
+          id?: number
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_jobs_emergency_id_fkey"
+            columns: ["emergency_id"]
+            isOneToOne: false
+            referencedRelation: "emergency"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       push_delivery_logs: {
         Row: {
           created_at: string

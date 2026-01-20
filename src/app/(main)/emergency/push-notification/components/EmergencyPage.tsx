@@ -188,38 +188,123 @@ export default function EmergencyPage() {
     };
   };
 
-  const handleDispatchSuccess = (result: AddEmergencyNotificationResult) => {
-    dispatchEmergencyPush(result.id)
-      .then((dispatchResult) => {
-        toast.dismiss("add-emergency");
-        if (dispatchResult.status === "queued") {
-          toast.success("Notification scheduled successfully!");
-        } else if (dispatchResult.status === "sent") {
-          toast.success(
-            `Notification sent (${dispatchResult.sentCount} delivered)`,
-          );
-        } else {
-          toast.error("Notification send failed");
-        }
+  const dispatchEmergencyEmail = async (emergencyId: number) => {
+    const response = await fetch("/api/email/dispatch", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ emergencyId }),
+    });
 
-        reset({
-          subject: "",
-          message: "",
-          isScheduled: false,
-          scheduledDate: undefined,
-          channels: ["push", "email"],
-          imageFile: undefined,
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "Failed to dispatch email notification");
+    }
+
+    return data as {
+      status: "queued" | "sent" | "failed";
+      sentCount: number;
+      failedCount: number;
+    };
+  };
+
+  const handleDispatchSuccess = (
+    result: AddEmergencyNotificationResult,
+    channels: string[],
+  ) => {
+    const resetForm = () => {
+      reset({
+        subject: "",
+        message: "",
+        isScheduled: false,
+        scheduledDate: undefined,
+        channels: ["push", "email"],
+        imageFile: undefined,
+      });
+      setDate(undefined);
+      setIsScheduled(false);
+      setImagePreview(null);
+    };
+
+    const tasks: Promise<
+      | { channel: "push"; result: Awaited<ReturnType<typeof dispatchEmergencyPush>> }
+      | { channel: "email"; result: Awaited<ReturnType<typeof dispatchEmergencyEmail>> }
+    >[] = [];
+
+    if (!channels.length) {
+      toast.dismiss("add-emergency");
+      toast.error("Please select at least one delivery option.");
+      return;
+    }
+
+    // Reset the form as soon as the notification is created.
+    resetForm();
+    toast.success("Notification created. Dispatching...", { id: "add-emergency" });
+
+    if (channels.includes("push")) {
+      tasks.push(
+        dispatchEmergencyPush(result.id).then((dispatchResult) => ({
+          channel: "push",
+          result: dispatchResult,
+        })),
+      );
+    }
+
+    if (channels.includes("email")) {
+      tasks.push(
+        dispatchEmergencyEmail(result.id).then((dispatchResult) => ({
+          channel: "email",
+          result: dispatchResult,
+        })),
+      );
+    }
+
+    Promise.allSettled(tasks)
+      .then((settledResults) => {
+        toast.dismiss("add-emergency");
+
+        let hadFailure = false;
+
+        settledResults.forEach((entry) => {
+          if (entry.status === "rejected") {
+            hadFailure = true;
+            toast.error(
+              entry.reason instanceof Error
+                ? entry.reason.message
+                : "Failed to dispatch notification",
+            );
+            return;
+          }
+
+          const { channel, result: dispatchResult } = entry.value;
+          const label = channel === "push" ? "Push" : "Email";
+
+          if (dispatchResult.status === "queued") {
+            toast.success(`${label} notification scheduled successfully!`);
+          } else if (dispatchResult.status === "sent") {
+            const countLabel =
+              channel === "push"
+                ? `${dispatchResult.sentCount} delivered`
+                : `${dispatchResult.sentCount} recipients`;
+            toast.success(`${label} sent (${countLabel})`);
+          } else {
+            hadFailure = true;
+            toast.error(`${label} notification failed`);
+          }
         });
-        setDate(undefined);
-        setIsScheduled(false);
-        setImagePreview(null);
+
+        if (hadFailure) {
+          toast.error("Some notifications failed to send.");
+        }
       })
       .catch((error) => {
         toast.dismiss("add-emergency");
         toast.error(
           error instanceof Error
             ? error.message
-            : "Failed to dispatch push notification",
+            : "Failed to dispatch notifications",
         );
       });
   };
@@ -229,7 +314,7 @@ export default function EmergencyPage() {
     // Note: The backend currently doesn't support 'channels' distinctively in the DB schema,
     // but the UI collects it. In a real scenario, we'd pass this to the API.
     // For now, we proceed if validation passes.
-    toast.loading("Sending notification...", { id: "add-emergency" });
+    toast.loading("Creating notification...", { id: "add-emergency" });
     addNotification(
       {
         subject: data.subject,
@@ -239,7 +324,7 @@ export default function EmergencyPage() {
       },
       {
         onSuccess: (result) => {
-          handleDispatchSuccess(result);
+          handleDispatchSuccess(result, data.channels ?? []);
         },
         onError: (error) => {
           toast.dismiss("add-emergency");
