@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRouteAssessment, RiskLevel, RoutePointAssessment } from '@/server/queries/bigquery';
 import type { RouteSegment, RouteOverallAssessment } from '@/types/route-assessment';
+import { BARANGAY_OPTIONS } from '@/constants/crime-case';
 
 // Safety recommendations based on route characteristics
 function generateRouteRecommendations(
@@ -117,6 +118,28 @@ export async function POST(request: NextRequest) {
         dateTo?: string;
       };
     };
+
+    if (filters?.barangayFilters?.length) {
+      const mappedIds = filters.barangayFilters
+        .map((value) => {
+          const trimmed = value.trim();
+          const numeric = Number(trimmed);
+          if (!Number.isNaN(numeric)) {
+            return numeric;
+          }
+          const found = BARANGAY_OPTIONS.find(
+            (option) => option.value.toLowerCase() === trimmed.toLowerCase()
+          );
+          return found?.id;
+        })
+        .filter((id): id is number => typeof id === 'number' && !Number.isNaN(id));
+
+      if (mappedIds.length > 0) {
+        filters.barangayFilters = mappedIds.map(String);
+      } else {
+        delete filters.barangayFilters;
+      }
+    }
 
     if (!coordinates || !Array.isArray(coordinates) || coordinates.length < 2) {
       return NextResponse.json(

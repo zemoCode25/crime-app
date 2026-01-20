@@ -23,10 +23,7 @@ export default function LogoutModal() {
             <h1 className="text-lg font-semibold">Are you absolutely sure?</h1>
           </DialogTitle>
           <DialogDescription asChild>
-            <p className="text-sm">
-              This action cannot be undone. This will permanently delete your
-              account and remove your data from our servers.
-            </p>
+            <p className="text-sm">This action cannot be undone.</p>
           </DialogDescription>
         </DialogHeader>
         <div className="flex w-full justify-between gap-2">
