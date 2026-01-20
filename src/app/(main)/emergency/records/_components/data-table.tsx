@@ -22,6 +22,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useEmergencyRecords } from "@/hooks/emergency/useEmergencyRecords";
+import useSupabaseBrowser from "@/server/supabase/client";
 import type { EmergencyRecord } from "@/server/queries/emergency";
 import { cn } from "@/lib/utils";
 import TableFilter from "./table-filter";
@@ -115,6 +116,13 @@ function EmailDetailDialog({
 }: EmailDetailDialogProps) {
   if (!record) return null;
 
+  const supabase = useSupabaseBrowser();
+  const imageUrl = record.image_key
+    ? supabase.storage
+        .from("emergency-notification-images")
+        .getPublicUrl(record.image_key).data.publicUrl
+    : null;
+
   const isScheduled = record.schedule && isFuture(new Date(record.schedule));
   const formattedDate = record.created_at
     ? format(new Date(record.created_at), "MMMM d, yyyy 'at' h:mm a")
@@ -125,7 +133,7 @@ function EmailDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
@@ -163,6 +171,16 @@ function EmailDetailDialog({
               </div>
             )}
           </div>
+
+          {imageUrl && (
+            <div className="overflow-hidden rounded-md border border-neutral-200 bg-neutral-50">
+              <img
+                src={imageUrl}
+                alt="Emergency notification"
+                className="max-h-80 w-full object-cover"
+              />
+            </div>
+          )}
 
           {/* Message body */}
           <div className="max-h-90 overflow-y-auto rounded-md border border-neutral-200 p-4 text-sm">
@@ -215,7 +233,7 @@ export default function DataTable() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-6xl space-y-4">
       {/* Header with search and sort */}
       <div className="flex items-center justify-between gap-4">
         <TableFilter
