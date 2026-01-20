@@ -211,6 +211,7 @@ export type Database = {
           body: string | null
           created_at: string
           id: number
+          image_key: string | null
           schedule: string | null
           subject: string | null
           user_id: string | null
@@ -219,6 +220,7 @@ export type Database = {
           body?: string | null
           created_at?: string
           id?: number
+          image_key?: string | null
           schedule?: string | null
           subject?: string | null
           user_id?: string | null
@@ -227,6 +229,7 @@ export type Database = {
           body?: string | null
           created_at?: string
           id?: number
+          image_key?: string | null
           schedule?: string | null
           subject?: string | null
           user_id?: string | null
@@ -234,6 +237,136 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "emergency_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_delivery_logs: {
+        Row: {
+          created_at: string
+          emergency_id: number | null
+          error: string | null
+          expo_push_token: string
+          id: number
+          push_job_id: number | null
+          status: string | null
+          ticket_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          emergency_id?: number | null
+          error?: string | null
+          expo_push_token: string
+          id?: number
+          push_job_id?: number | null
+          status?: string | null
+          ticket_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          emergency_id?: number | null
+          error?: string | null
+          expo_push_token?: string
+          id?: number
+          push_job_id?: number | null
+          status?: string | null
+          ticket_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_delivery_logs_emergency_id_fkey"
+            columns: ["emergency_id"]
+            isOneToOne: false
+            referencedRelation: "emergency"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_delivery_logs_push_job_id_fkey"
+            columns: ["push_job_id"]
+            isOneToOne: false
+            referencedRelation: "push_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_jobs: {
+        Row: {
+          created_at: string
+          emergency_id: number
+          error: string | null
+          id: number
+          scheduled_at: string | null
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          emergency_id: number
+          error?: string | null
+          id?: number
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          emergency_id?: number
+          error?: string | null
+          id?: number
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_jobs_emergency_id_fkey"
+            columns: ["emergency_id"]
+            isOneToOne: false
+            referencedRelation: "emergency"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_tokens: {
+        Row: {
+          created_at: string
+          device_id: string | null
+          expo_push_token: string
+          id: number
+          is_active: boolean
+          last_seen_at: string
+          platform: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_id?: string | null
+          expo_push_token: string
+          id?: number
+          is_active?: boolean
+          last_seen_at?: string
+          platform?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string | null
+          expo_push_token?: string
+          id?: number
+          is_active?: boolean
+          last_seen_at?: string
+          platform?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_tokens_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"

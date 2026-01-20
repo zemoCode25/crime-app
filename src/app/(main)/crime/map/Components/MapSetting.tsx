@@ -427,6 +427,16 @@ function RouteAssessmentCard({
             {formatDuration(route.duration)}
           </p>
         </div>
+        <div className="rounded-md bg-white/70 p-2 text-center">
+          <div className="flex items-center justify-center gap-1 text-gray-500">
+            <ShieldAlert className="h-3.5 w-3.5" />
+            <span className="text-xs">Cases Near Route</span>
+          </div>
+          <p className="font-semibold text-gray-800">
+            {overallAssessment.routeCrimeCount ??
+              overallAssessment.totalCrimeCount}
+          </p>
+        </div>
       </div>
 
       {/* Safety Score */}
