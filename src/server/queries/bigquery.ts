@@ -179,9 +179,15 @@ export async function getRiskAssessment(
   }
 
   if (filters?.barangayFilters && filters.barangayFilters.length > 0) {
-    conditions.push('barangay_id IN UNNEST(@barangayFilters)');
-    // Convert string IDs to numbers for BigQuery
-    params.barangayFilters = filters.barangayFilters.map(Number).filter(n => !isNaN(n));
+    const barangayValues = filters.barangayFilters
+      .map((value) => String(value).trim())
+      .filter((value) => value.length > 0);
+
+    if (barangayValues.length > 0) {
+      // Cast to STRING to handle both numeric and string storage schemas.
+      conditions.push('CAST(barangay AS STRING) IN UNNEST(@barangayFilters)');
+      params.barangayFilters = barangayValues;
+    }
   }
 
   if (filters?.dateFrom) {
@@ -290,8 +296,14 @@ export async function getRouteAssessment(
   }
 
   if (filters?.barangayFilters && filters.barangayFilters.length > 0) {
-    conditions.push('barangay_id IN UNNEST(@barangayFilters)');
-    params.barangayFilters = filters.barangayFilters.map(Number).filter(n => !isNaN(n));
+    const barangayValues = filters.barangayFilters
+      .map((value) => String(value).trim())
+      .filter((value) => value.length > 0);
+
+    if (barangayValues.length > 0) {
+      conditions.push('CAST(barangay AS STRING) IN UNNEST(@barangayFilters)');
+      params.barangayFilters = barangayValues;
+    }
   }
 
   if (filters?.dateFrom) {

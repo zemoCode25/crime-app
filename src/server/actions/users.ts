@@ -18,7 +18,18 @@ import { KickUserEmail } from "@/components/utils/KickUserEmail";
 import { redirect } from "next/navigation";
 // Type exports are not allowed from a "use server" action file
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+let resendClient: Resend | null = null;
+
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return null;
+  }
+  if (!resendClient) {
+    resendClient = new Resend(apiKey);
+  }
+  return resendClient;
+}
 
 // Schema moved to queries/users.ts
 
@@ -125,20 +136,28 @@ export async function kickUser(rawInput: KickInput) {
     .join(" ")
     .trim() || "Administrator";
 
-  const { error: emailError } = await resend.emails.send({
-    from: "crime-app <onboarding@resend.dev>",
-    to: [authMeta.email],
-    subject: "Your access has been removed",
-    react: KickUserEmail({
-      fullName,
-      removedBy,
-      reason,
-    }),
-  });
+  const resend = getResendClient();
+  if (resend) {
+    const from =
+      process.env.RESEND_FROM_EMAIL ||
+      "Munti Crime Map <no-reply@munti-crime-map.it.com>";
+    const { error: emailError } = await resend.emails.send({
+      from,
+      to: [authMeta.email],
+      subject: "Your access has been removed",
+      react: KickUserEmail({
+        fullName,
+        removedBy,
+        reason,
+      }),
+    });
 
-  if (emailError) {
-    console.error("Failed to send removal email", emailError);
-    return { ok: false, error: "Failed to send notification email." } as const;
+    if (emailError) {
+      console.error("Failed to send removal email", emailError);
+      // Proceed with removal even if email fails.
+    }
+  } else {
+    console.warn("RESEND_API_KEY not set; skipping removal email.");
   }
 
   const { error: deleteProfileError } = await serviceClient

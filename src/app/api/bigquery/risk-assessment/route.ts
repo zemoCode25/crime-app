@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRiskAssessment, RiskLevel, RiskAssessmentFilters } from '@/server/queries/bigquery';
+import { BARANGAY_OPTIONS } from '@/constants/crime-case';
 
 // Safety tips based on crime types
 const SAFETY_TIPS: Record<string, string> = {
@@ -82,7 +83,24 @@ export async function GET(request: NextRequest) {
 
     const barangayFilters = searchParams.get('barangayFilters');
     if (barangayFilters) {
-      filters.barangayFilters = barangayFilters.split(',');
+      const rawValues = barangayFilters.split(',');
+      const mappedIds = rawValues
+        .map((value) => {
+          const trimmed = value.trim();
+          const numeric = Number(trimmed);
+          if (!Number.isNaN(numeric)) {
+            return numeric;
+          }
+          const found = BARANGAY_OPTIONS.find(
+            (option) => option.value.toLowerCase() === trimmed.toLowerCase()
+          );
+          return found?.id;
+        })
+        .filter((id): id is number => typeof id === 'number' && !Number.isNaN(id));
+
+      if (mappedIds.length > 0) {
+        filters.barangayFilters = mappedIds.map(String);
+      }
     }
 
     const dateFrom = searchParams.get('dateFrom');
