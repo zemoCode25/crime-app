@@ -211,6 +211,7 @@ export type Database = {
           body: string | null
           created_at: string
           id: number
+          image_key: string | null
           schedule: string | null
           subject: string | null
           user_id: string | null
@@ -219,6 +220,7 @@ export type Database = {
           body?: string | null
           created_at?: string
           id?: number
+          image_key?: string | null
           schedule?: string | null
           subject?: string | null
           user_id?: string | null
@@ -227,6 +229,7 @@ export type Database = {
           body?: string | null
           created_at?: string
           id?: number
+          image_key?: string | null
           schedule?: string | null
           subject?: string | null
           user_id?: string | null
