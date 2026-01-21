@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCrimeCase } from "@/hooks/crime-case/useCrimeCase";
 import { useCrimeType } from "@/context/CrimeTypeProvider";
 import { Badge } from "@/components/ui/badge";
@@ -102,6 +103,7 @@ function getRoleColor(role: string | null | undefined) {
 
 export default function CrimeReport({ id }: CrimeReportProps) {
   const supabase = useSupabaseBrowser();
+  const router = useRouter();
   const { data: crimeCase, isLoading, error } = useCrimeCase(id);
   const { crimeTypeConverter } = useCrimeType();
   const [isDownloading, setIsDownloading] = useState(false);
@@ -393,7 +395,11 @@ export default function CrimeReport({ id }: CrimeReportProps) {
               </DialogTrigger>
               <UpdateCrimeCase caseId={crimeCase.id} />
             </Dialog>
-            <DeleteModal caseId={crimeCase.id} closeDropdown={() => {}} />
+            <DeleteModal
+              caseId={crimeCase.id}
+              closeDropdown={() => {}}
+              onDeleted={() => router.replace("/crime/cases")}
+            />
           </div>
         </div>
 

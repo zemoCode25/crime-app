@@ -65,8 +65,8 @@ export default function ChangePasswordPage() {
       : "Medium";
 
   const search = useSearchParams();
-  const error = search.get("error");
-  const success = search.get("success");
+  const error = search?.get("error");
+  const success = search?.get("success");
 
   return (
     <div className="flex w-full max-w-sm flex-col gap-6">

@@ -13,18 +13,24 @@ import { useState } from "react";
 export default function DeleteModal({
   caseId,
   closeDropdown,
+  onDeleted,
 }: {
   caseId: number;
   closeDropdown: () => void;
+  onDeleted?: () => void;
 }) {
   const deleteMutation = useDeleteCrimeCase(); // ✅ Hook called during render
   const [open, setOpen] = useState(false);
 
   const handleDeleteClick = async () => {
-    // ✅ Just USE the mutation, don't create it here
-    await deleteMutation.mutateAsync({ id: caseId });
-    closeDropdown(); // Close the dropdown menus
-    setOpen(false);
+    try {
+      await deleteMutation.mutateAsync({ id: caseId });
+      closeDropdown();
+      setOpen(false);
+      onDeleted?.();
+    } catch (error) {
+      console.error("Failed to delete crime case:", error);
+    }
   };
 
   return (
@@ -67,3 +73,4 @@ export default function DeleteModal({
     </Dialog>
   );
 }
+

@@ -5,6 +5,7 @@ export interface ExpoPushPayload {
   body: string;
   data?: Record<string, unknown>;
   imageUrl?: string | null;
+  projectId?: string | null;
 }
 
 export interface ExpoSendResult {
@@ -23,6 +24,9 @@ export async function sendExpoPushNotifications(
   tokens: string[],
   payload: ExpoPushPayload,
 ): Promise<ExpoSendResult> {
+  const projectId =
+    payload.projectId ??
+    (process.env.EXPO_PROJECT_ID ? process.env.EXPO_PROJECT_ID : null);
   const validTokens: string[] = [];
   const invalidTokens: string[] = [];
 
@@ -41,6 +45,7 @@ export async function sendExpoPushNotifications(
     sound: "default",
     data: payload.data,
     ...(payload.imageUrl ? { image: payload.imageUrl } : {}),
+    ...(projectId ? { projectId } : {}),
   }));
 
   const chunks = expo.chunkPushNotifications(messages);
