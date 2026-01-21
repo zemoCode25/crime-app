@@ -9,7 +9,7 @@ import { requestPasswordResetAction } from "@/server/queries/auth";
 
 export default function RequestChangePassword() {
   const search = useSearchParams();
-  const error = search.get("error");
+  const error = search?.get("error");
   return (
     <div className="flex w-full max-w-sm flex-col gap-6">
       <Card className="overflow-hidden p-0">
