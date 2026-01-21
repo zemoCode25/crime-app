@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/server/supabase/service-client";
 
+export async function GET() {
+  return NextResponse.json(
+    { success: false, error: "Use POST to register a push token." },
+    { status: 405 },
+  );
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
